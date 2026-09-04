@@ -16,5 +16,344 @@ image-alt: ""
 ---
 
 <header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
-<main class="site-main"><section class="page-intro"><p class="section-number">Article · Models and meaning</p><h1>Real Vs. Fake news in football</h1><div class="article-meta"><span class="status">in bloom</span><span>12 May 2023</span></div></section><article class="prose"><p>Can the language of a football story give away whether it is real or fake? This experiment uses text classification to ask a question that is more difficult than the title makes it sound.</p><h2>The setup</h2><p>Text becomes features. Features become a classifier. The classifier becomes a chance to inspect what language patterns it can use, and where it is likely to learn the dataset instead of the claim.</p><h2>The useful caution</h2><p>A high score on a held-out split is not automatically evidence that a model understands truth. Source, style, repetition, and leakage can all masquerade as meaning.</p><p>NLP, but of the good kind: small enough to inspect.</p></article></main>
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Models and meaning</p><h1>Real Vs. Fake news in football</h1><div class="article-meta"><span class="status">in bloom</span><span>12 May 2023</span></div></section><article class="prose real-post"><p>As part of my data-science courses this fall semester, I have started also to get into <em>Natural Language Processing</em> (NLP, but of the good kind). This is the first time I have ever tried it, so let’s see how it went.</p>
+<p>Brief overview of the post:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Basic preprocessing and creation of <em>Data Feature Matrix</em> (DFM), using packages <code>stringr</code> and <code>quanteda</code>.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Classification with Naive-Bayes method.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Classification with Logistic regression, and feature importance plot.</p>
+<section id="background" class="level1">
+<h1>Background</h1>
+<p>This dataset is the “Fake News football” dataset from uploaded to <a href="https://www.kaggle.com/datasets/shawkyelgendy/fake-news-football">Kaggle</a> by Shawky El-Gendy. It contains ~42,000 tweets about the Egyptian football league, some of them are fake new, and some are true.</p>
+<p>The work in this notebook is highly influenced by <span class="citation" data-cites="welbers2017">(<a href="#ref-welbers2017" role="doc-biblioref">Welbers, Van Atteveldt, and Benoit 2017</a>)</span>.</p>
+</section>
+<section id="setup" class="level1">
+<h1>Setup</h1>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-1_f83cbd2941e4f775713a49c35d3fdadb">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)           <span class="co"># data loading, data preparation and stringr</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(quanteda)            <span class="co"># text preprocessing and DFM creation</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(quanteda.textmodels) <span class="co"># machine learning models</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glue)                <span class="co"># that's a secret</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="loading-data" class="level1">
+<h1>Loading data</h1>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-2_88302c9135a715e213b3eddfca3aafc1">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>real <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"real.csv"</span>, <span class="at">show_col_types =</span> F)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>fake <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"fake.csv"</span>, <span class="at">show_col_types =</span> F)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="adding-labels" class="level2">
+<h2 class="anchored" data-anchor-id="adding-labels">Adding labels</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-3_9517af9cf6061d262bc187f6f63bf795">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>real<span class="sc">$</span>label <span class="ot">&lt;-</span> <span class="st">"real"</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>fake<span class="sc">$</span>label <span class="ot">&lt;-</span> <span class="st">"fake"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="combining-data-frames" class="level2">
+<h2 class="anchored" data-anchor-id="combining-data-frames">Combining data frames</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-4_999b31d14c8b3639c25eb42c31ccba48">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>tweets <span class="ot">&lt;-</span> <span class="fu">rbind</span>(real, fake) <span class="sc">|&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>() <span class="sc">|&gt;</span> <span class="co"># dropping NA rows</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">tweet =</span> <span class="fu">str_trim</span>(tweet) <span class="sc">|&gt;</span> <span class="fu">str_squish</span>()) <span class="co"># removing white-spaces in the start and beginning of tweet, and between words</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="text-preprocessing" class="level1">
+<h1>Text preprocessing</h1>
+<p>Creating a <code>corpus</code> object, which is basically a named character vector that also holds other variables such as the tweet’s label. These are called <code>docvars</code>.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-5_de1980b4bc624f3696b98deef71e6155">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>corp <span class="ot">&lt;-</span> <span class="fu">corpus</span>(tweets, <span class="at">text_field =</span> <span class="st">"tweet"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(corp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Corpus consisting of 6 documents and 1 docvar.
+text1 :
+"sun downs technical director: al-ahly respected us and playe..."
+
+text2 :
+"shawky gharib after the tie with enppi: our goal is to retur..."
+
+text3 :
+"egyptian sports news today, wednesday 1/25/2023, which is ma..."
+
+text4 :
+"the main referees committee of the egyptian football associa..."
+
+text5 :
+"haji bari, the striker of the future team, is undergoing a f..."
+
+text6 :
+"zamalek is preparing for a strong match against the arab con..."</code></pre>
+</div>
+</div>
+<section id="creating-dfms-cleaning-text" class="level2">
+<h2 class="anchored" data-anchor-id="creating-dfms-cleaning-text">Creating DFMs &amp; cleaning text</h2>
+<p>Creating a count-based DFM (frequency of each word in each document). Before creating the DFM I employ 3 steps of normalization:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Removing special characters and expressions (punctuation, urls…).<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Converting words to their stem-form (the word <em>example</em> converts to <em>exampl</em>). This step should decrease &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the number of unique tokens, so that our DFM would be less sparse.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Converting every character to lower-case letters.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-6_ed23f8adb4dfd4373302b6f06c48f0f9">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>data_feature_mat <span class="ot">&lt;-</span> corp <span class="sc">|&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tokens</span>(<span class="at">remove_punct =</span> T, <span class="at">remove_numbers =</span> T, <span class="at">remove_url =</span> T, <span class="at">remove_separators =</span> T, <span class="at">remove_symbols =</span> T) <span class="sc">|&gt;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tokens_wordstem</span>() <span class="sc">|&gt;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dfm</span>(<span class="at">tolower =</span> T)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(data_feature_mat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Document-feature matrix of: 6 documents, 18,869 features (99.89% sparse) and 1 docvar.
+       features
+docs    sun down technic director al-ah respect us and play to
+  text1   1    1       1        1     1       1  1   1    1  1
+  text2   0    0       0        0     0       0  0   0    0  2
+  text3   0    0       1        1     0       0  0   0    0  0
+  text4   0    0       0        0     0       0  0   1    0  0
+  text5   0    0       0        0     0       0  0   0    0  1
+  text6   0    0       0        0     0       0  0   0    0  0
+[ reached max_nfeat ... 18,859 more features ]</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="machine-learning" class="level1">
+<h1>Machine Learning</h1>
+<section id="base-rate" class="level3">
+<h3 class="anchored" data-anchor-id="base-rate">Base-rate</h3>
+<p>In classification tasks, it is important to check the initial base-rate of the different classes. Failing to notice a skewed sample will result in false interpretations of performance metrics.</p>
+<blockquote class="blockquote">
+<p><em>Imagine that a certain medical condition affects 1% of the population. A test that systematically gives negative results will have 99% accuracy!</em></p>
+</blockquote>
+<p>We will calculate the base-rate in the following way:<br>
+<span class="math display">\[
+\frac{N_{real}}{N_{real}+N_{fake}}\
+\]</span></p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-7_4c921829e68c7518f898087fdac185d2">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(<span class="fu">docvars</span>(data_feature_mat, <span class="st">'label'</span>))[<span class="st">'real'</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> real
+21869 </code></pre>
+</div>
+</div>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-8_6cef7703830f755dbcf373a62d7913eb">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(<span class="fu">docvars</span>(data_feature_mat, <span class="st">'label'</span>))[<span class="st">'fake'</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> fake
+19991 </code></pre>
+</div>
+</div>
+<p>The base rate is <span class="math inline">\(0.522\)</span>.</p>
+</section>
+<section id="train-test-split" class="level3">
+<h3 class="anchored" data-anchor-id="train-test-split">Train-test split</h3>
+<p>Usually it is advised that the Train-test split would occur before the creation of the DFM. That is because some methods of calculation are proportional and depends on other documents. Because we are employing a count-based DFM, the values in each cell of the matrix are independent of other documents. Therefore it is not necessary to split before creating the DFM’s.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-10_64bf58946f4146abc6a1d139d0e9aae8">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">14</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>train_dfm <span class="ot">&lt;-</span> <span class="fu">dfm_sample</span>(data_feature_mat, <span class="at">size =</span> <span class="fl">0.8</span> <span class="sc">*</span> <span class="fu">nrow</span>(data_feature_mat)) <span class="co"># large sample, we can use 80-20 train-test split</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>test_dfm <span class="ot">&lt;-</span> data_feature_mat[<span class="fu">setdiff</span>(<span class="fu">docnames</span>(data_feature_mat), <span class="fu">docnames</span>(train_dfm)),]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="naive-bayes-classifier" class="level2">
+<h2 class="anchored" data-anchor-id="naive-bayes-classifier">Naive-Bayes classifier</h2>
+<p>A Naive-Bayes classifier predicts the class (in this case of a document) in the following way:<br>
+</p>
+<ol type="1">
+<li><p>The likelihood of each token to appear in documents of each class is calculated from the training data. For example, if the word <em>manager</em> appeared in <span class="math inline">\(11\)</span>% of the documents in the first class, and in <span class="math inline">\(2\)</span>% of the documents in the second class, the likelihood of it in each class is:<br>
+<span class="math display">\[
+\displaylines{p(manager\ |\ class\ 1)=0.11\\p(manager\ |\ class\ 2)=0.02}
+\]</span></p></li>
+<li><p>The prior probability of each document to be classified to each class is also learned from the training data, and it is the base-rate frequencies of the two classes.<br>
+</p></li>
+<li><p>For each document in the test set, the likelihood of it given it is from each of the classes is calculated by multiplying the likelihoods of the tokens appearing in it. So if a document is for example the sentence <em>I like turtles</em>, then the likelihood of it to belong class 1 is:<br>
+<span class="math display">\[
+\displaylines{p(I\ |\ class\ 1)\cdotp(like\ |\ class\ 1)\cdotp(turtles\ |\ class\ 1)}
+\]</span><br>
+More formally, if a document belong to a certain class <span class="math inline">\(k\)</span>, then it’s likelihood of being comprised of a set of tokens <span class="math inline">\(t\)</span> is:<br>
+<span class="math display">\[
+\prod_{i=1}^{n}p(t_i\ |\ class\ k)
+\]</span></p></li>
+<li><p>According to Bayes theorem, the probability of the document to belong to class <span class="math inline">\(k\)</span> - the posterior probability - is proportional to the product of the likelihood of it’s tokens given this class and the prior probability of any document to belong to this class:<br>
+<span class="math display">\[
+p(class\ k\ |\ t) \propto p(t\ |\ class\ k)\cdotp(class\ k)
+\]</span></p></li>
+<li><p>Because the Naive-Bayes classifier is comparing between classes, the standardizing term is not needed. The class that has the largest product of prior and likelihood is the class the document will be classified to.</p></li>
+</ol>
+</section>
+<section id="fitting-the-model" class="level2">
+<h2 class="anchored" data-anchor-id="fitting-the-model">Fitting the model</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-11_f55b3923c3f158039467b422086164b0">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>nb_model <span class="ot">&lt;-</span> <span class="fu">textmodel_nb</span>(train_dfm, <span class="at">y =</span> <span class="fu">docvars</span>(train_dfm, <span class="st">"label"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="test-performance" class="level2">
+<h2 class="anchored" data-anchor-id="test-performance">Test performance</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-12_beb12728719c4087bb6aaf11ee589396">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>pred_nb <span class="ot">&lt;-</span> <span class="fu">predict</span>(nb_model, <span class="at">newdata =</span> test_dfm)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>(conmat_nb <span class="ot">&lt;-</span> <span class="fu">table</span>(pred_nb, <span class="fu">docvars</span>(test_dfm, <span class="st">"label"</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+pred_nb fake real
+   fake 3893  380
+   real  143 3956</code></pre>
+</div>
+</div>
+<p>Seems nice, let’s look at some metrics.</p>
+<p>Confusion matrix</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-13_735f7120ab84f226ed04475a45185bd4">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>caret<span class="sc">::</span><span class="fu">confusionMatrix</span>(conmat_nb, <span class="at">mode =</span> <span class="st">"everything"</span>, <span class="at">positive =</span> <span class="st">"real"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Confusion Matrix and Statistics
+
+
+pred_nb fake real
+   fake 3893  380
+   real  143 3956
+
+               Accuracy : 0.9375
+                 95% CI : (0.9321, 0.9426)
+    No Information Rate : 0.5179
+    P-Value [Acc &gt; NIR] : &lt; 2.2e-16
+
+                  Kappa : 0.8752
+
+ Mcnemar's Test P-Value : &lt; 2.2e-16
+
+            Sensitivity : 0.9124
+            Specificity : 0.9646
+         Pos Pred Value : 0.9651
+         Neg Pred Value : 0.9111
+              Precision : 0.9651
+                 Recall : 0.9124
+                     F1 : 0.9380
+             Prevalence : 0.5179
+         Detection Rate : 0.4725
+   Detection Prevalence : 0.4896
+      Balanced Accuracy : 0.9385
+
+       'Positive' Class : real
+                                          </code></pre>
+</div>
+</div>
+<p>Nice results!</p>
+</section>
+<section id="logistic-regression" class="level2">
+<h2 class="anchored" data-anchor-id="logistic-regression">Logistic regression</h2>
+<p>The nice thing about the <code>textmodel_lr</code> method from the <code>quanteda.textmodels</code> package is that it does the Cross-Validation for us!</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-14_d4fac98c7a2fc4dca3848cdd0b6bfdc5">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>lr_model <span class="ot">&lt;-</span> <span class="fu">textmodel_lr</span>(<span class="at">x =</span> train_dfm, <span class="at">y =</span> <span class="fu">docvars</span>(train_dfm, <span class="st">"label"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="test-performance-1" class="level2">
+<h2 class="anchored" data-anchor-id="test-performance-1">Test performance</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-15_e52b1120af23c9cdafe78b7883525a9f">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>pred_lr <span class="ot">&lt;-</span> <span class="fu">predict</span>(lr_model, <span class="at">newdata =</span> test_dfm)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>(conmat_lr <span class="ot">&lt;-</span> <span class="fu">table</span>(pred_lr, <span class="fu">docvars</span>(test_dfm, <span class="st">"label"</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+pred_lr fake real
+   fake 3795  188
+   real  241 4148</code></pre>
+</div>
+</div>
+<p>Also seems nice.</p>
+<p>Confusion matrix</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-16_4427652dc6661c861efa1560aa3c48db">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>caret<span class="sc">::</span><span class="fu">confusionMatrix</span>(conmat_lr, <span class="at">mode =</span> <span class="st">"everything"</span>, <span class="at">positive =</span> <span class="st">"real"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Confusion Matrix and Statistics
+
+
+pred_lr fake real
+   fake 3795  188
+   real  241 4148
+
+               Accuracy : 0.9488
+                 95% CI : (0.9438, 0.9534)
+    No Information Rate : 0.5179
+    P-Value [Acc &gt; NIR] : &lt; 2e-16
+
+                  Kappa : 0.8973
+
+ Mcnemar's Test P-Value : 0.01205
+
+            Sensitivity : 0.9566
+            Specificity : 0.9403
+         Pos Pred Value : 0.9451
+         Neg Pred Value : 0.9528
+              Precision : 0.9451
+                 Recall : 0.9566
+                     F1 : 0.9508
+             Prevalence : 0.5179
+         Detection Rate : 0.4955
+   Detection Prevalence : 0.5242
+      Balanced Accuracy : 0.9485
+
+       'Positive' Class : real
+                                          </code></pre>
+</div>
+</div>
+<p>Slight improvement…</p>
+</section>
+<section id="plot-important-words-for-classification" class="level2">
+<h2 class="anchored" data-anchor-id="plot-important-words-for-classification">Plot important words for classification</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-17_fe08c6cad81d9f8b36bf576f4462570c">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>lr_summary <span class="ot">&lt;-</span> <span class="fu">summary</span>(lr_model) <span class="co"># summarizing the model</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>coefs <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(lr_summary<span class="sc">$</span>estimated.feature.scores) <span class="co"># extracting coefficients</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>col_vec <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"#fc7753"</span>, <span class="st">"#e3e3e3"</span>, <span class="st">"#66d7d1"</span>, <span class="st">"black"</span>)</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>coefs <span class="sc">|&gt;</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># preparing df for plot</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rownames_to_column</span>(<span class="at">var =</span> <span class="st">"Token"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Coefficient =</span> real) <span class="sc">|&gt;</span></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Coefficient <span class="sc">!=</span> <span class="dv">0</span> <span class="sc">&amp;</span> Token <span class="sc">!=</span> <span class="st">"(Intercept)"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">bigger_then_0 =</span> Coefficient <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ggplotting</span></span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Token, <span class="at">y =</span> Coefficient, <span class="at">color =</span> bigger_then_0)) <span class="sc">+</span></span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(col_vec[<span class="dv">1</span>], col_vec[<span class="dv">3</span>])) <span class="sc">+</span></span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">n.breaks =</span> <span class="dv">10</span>) <span class="sc">+</span></span>
+<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Most important words for classifying if a tweet is fake news"</span>,</span>
+<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">""</span>) <span class="sc">+</span></span>
+<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">linetype =</span> <span class="dv">2</span>, <span class="at">linewidth =</span> <span class="dv">1</span>, <span class="at">show.legend =</span> F) <span class="sc">+</span></span>
+<span id="cb24-25"><a href="#cb24-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">color =</span> col_vec[<span class="dv">4</span>]),</span>
+<span id="cb24-26"><a href="#cb24-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">color =</span> col_vec[<span class="dv">4</span>]),</span>
+<span id="cb24-27"><a href="#cb24-27" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">color =</span> col_vec[<span class="dv">4</span>]),</span>
+<span id="cb24-28"><a href="#cb24-28" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">90</span>, <span class="at">vjust =</span> <span class="fl">0.5</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">12</span>, <span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb24-29"><a href="#cb24-29" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position =</span> <span class="st">"none"</span>,</span>
+<span id="cb24-30"><a href="#cb24-30" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">16</span>, <span class="at">color =</span> col_vec[<span class="dv">4</span>], <span class="at">hjust =</span> .<span class="dv">5</span>, <span class="at">family =</span> <span class="st">"serif"</span>, <span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb24-31"><a href="#cb24-31" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>),</span>
+<span id="cb24-32"><a href="#cb24-32" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" style="width:200.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>I think that for a first attempt at implementing NLP, the current notebook came out nice. I have learned a lot not only about NLP, but also on Naive-Bayes classifiers which is nice.</p>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0">
+<div id="ref-welbers2017" class="csl-entry">
+Welbers, Kasper, Wouter Van Atteveldt, and Kenneth Benoit. 2017. <span>“Text Analysis in r.”</span> <em>Communication Methods and Measures</em> 11 (4): 245–65. <a href="https://doi.org/10.1080/19312458.2017.1387238">https://doi.org/10.1080/19312458.2017.1387238</a>.
+</div>
+</div></section></div></article></main>
 <footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>Classification is not fact-checking.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

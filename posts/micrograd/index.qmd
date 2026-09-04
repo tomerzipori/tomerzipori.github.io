@@ -16,7 +16,953 @@ image-alt: ""
 ---
 
 <header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
-<main class="site-main"><section class="page-intro"><p class="section-number">Article · Models and meaning</p><h1>What’s Artificial Intelligence all about?</h1><div class="article-meta"><span class="status">in bloom</span><span>14 Feb 2025</span></div></section><article class="prose"><p>One way to demystify a model is to build a tiny one. A small automatic-differentiation engine makes the chain rule, gradients, and parameter updates concrete.</p><h2>The question</h2><p>What is the smallest useful object that lets us watch a model learn?</p><h2>The construction</h2><p>Values carry parents and local derivatives. A backward pass applies the chain rule through the graph. The implementation is intentionally small enough that every operation can be read.</p><pre><code>loss.backward()
-for parameter in parameters:
-    parameter.value += -step * parameter.grad</code></pre><p>The point is not to recreate a production framework. It is to turn a black box into a box with transparent walls.</p></article></main>
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Models and meaning</p><h1>What’s Artificial Intelligence all about?</h1><div class="article-meta"><span class="status">in bloom</span><span>14 Feb 2025</span></div></section><article class="prose real-post"><section id="setup" class="level1">
+<h1>Setup</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse) <span class="co"># As always</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(MASS)      <span class="co"># Sampling from a multivariate distributions</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(plotly)    <span class="co"># For 3D plots</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>OK, but what is AI <em>actually</em> about? Over the past two summers, I taught a statistics and research methods course to psychology students. Generally speaking, these students tend to be a little intimidated by this field, and as always, I tried over the summer to both empower them and spark an interest in them in the beauty and ‘coolness’ of statistics.</p>
+<p>One idea they liked was when I told them: <em>If you understand linear regression, you understand Chat GPT</em>. While this is obviously a simplification, I managed to convince them it is not far from the truth. If simple linear modeling is about finding the best two parameters (a slope and an intercept) to approximate a function, AI is about finding the best millions to billions of parameters to approximate a function. In this blog post I will explain one of the basic and most important concepts of modern AI - <strong>Gradient Descent</strong> using simple (as possible) terms and some R code.</p>
+</section>
+<section id="what-is-a-function" class="level1">
+<h1>What is a function?</h1>
+<div class="cell">
+<details class="code-fold">
+<summary>nothing too interesting</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">14</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>nice_colors <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"#8DD3C7"</span>, <span class="st">"#FFFFB3"</span>, <span class="st">"#BEBADA"</span>, <span class="st">"#FB8072"</span>, <span class="st">"#80B1D3"</span>, <span class="st">"#FDB462"</span>, <span class="st">"#B3DE69"</span>, <span class="st">"#FCCDE5"</span>, <span class="st">"#D9D9D9"</span>, <span class="st">"#BC80BD"</span>, <span class="st">"#CCEBC5"</span>, <span class="st">"#FFED6F"</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">mvrnorm</span>(<span class="dv">21</span>, <span class="at">mu =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">1.4</span>), <span class="at">Sigma =</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="fl">0.4</span>, <span class="fl">0.4</span>, <span class="dv">1</span>), <span class="dv">2</span>)))</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(d, <span class="fu">aes</span>(X1, X2)) <span class="sc">+</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Time Spent Studying"</span>, <span class="at">y =</span> <span class="st">"Final Grade"</span>) <span class="sc">+</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>What is the relationship between the variables <em>Time Spent Studying</em> and <em>Final Grade</em>?</p>
+<p>The mission of every statistical model is to provide the best function to estimate this relationship. The function can be linear:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>It can also be quadratic:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>And even a fifth degree polynomial:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Which is the best? In order to answer this question, we need to define what we want our model to maximize (or minimize). Usually, two main things are considered when evaluating our fitted lines: 1. Distance from truth, or how close the line (predictions) is to the points. 2. Complexity, or how complex is the function.</p>
+<p>Together, these two components create the <strong>Loss</strong> that will always look conceptually like that:<br>
+<span class="math display">\[
+Loss=distance-complexity
+\]</span></p>
+<p>For the sake of simplicity (no pun intended), and because both simple linear regression and deep neural networks share this feature, we will ignore the complexity component of the Loss function. So what is the distance between the line and the points for the linear function?</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Each gray dotted line represents the difference between the actual outcome (Final Grade) and the model’s prediction based on Time Spent Studying. In a more formal way we say that each line is:</p>
+<p><span class="math display">\[
+y_i-\hat{y_i}
+\]</span></p>
+<p>Where:<br>
+<span class="math inline">\(y_i\)</span> is the real outcome of point <span class="math inline">\(i\)</span><br>
+<span class="math inline">\(\hat{y_i}\)</span> is the predicted outcome of point <span class="math inline">\(i\)</span></p>
+<p>And the total loss can be the mean of these lines:</p>
+<p><span class="math display">\[
+\frac{1}{N} \sum_{i=1}^{N}(y_i-\hat{y_i})
+\]</span></p>
+<p>BUT, this definition is problematic as I will show in the next chapter.</p>
+<section id="optimal-minimum-loss-intro-to-loss-functions" class="level2">
+<h2 class="anchored" data-anchor-id="optimal-minimum-loss-intro-to-loss-functions">Optimal = Minimum loss (intro to loss functions)</h2>
+<p>Now we can calculate the loss for every model we fit, therefore the loss is actually a function of the model and is called the <strong>Loss Function</strong>.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Models can differ in two main ways: in their structure (for example: a linear function and a 5-th degree polynomial), or in the values of their parameters (for example: these two linear functions: <span class="math inline">\(y=2x-4\)</span>, <span class="math inline">\(y=3x+5\)</span>). With the model structure usually chosen a-priori (or through a separate experiment), we will focus on the loss as a function of the parameters’ values.</p>
+</div>
+</div>
+<p>So our task is to find the set of parameters <span class="math inline">\(\beta\)</span> that minimize the loss function. Let’s formalize it for the linear model case: Given a linear model: <span class="math inline">\(\hat{y}=\beta_0+\beta_1x\)</span>, our goal is to find the minimum of:<br>
+<span class="math display">\[
+loss(\beta_0,\beta_1)=\frac{1}{N} \sum_{i=1}^{N}(y_i-\beta_0-\beta_1x_i)
+\]</span></p>
+<p>But, there is the catch - this function does not have a minimum point! This is because the lines we saw before can be as negative as we want, just make <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span> negative enough. We can also notice that this function is linear with respect to <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta1\)</span>, therefore it has no minimum or maximum points.</p>
+<p>In order to solve this, we simply define the loss function to be the mean <strong>Square</strong> distance from the line - also known as the Variance.</p>
+<p><span class="math display">\[
+loss(\beta_0,\beta_1)=\frac{1}{N} \sum_{i=1}^{N}(y_i-\hat{y_i})^2=\frac{1}{N} \sum_{i=1}^{N}(y_i-\beta_0-\beta_1x_i)^2
+\]</span></p>
+</section>
+</section>
+<section id="finding-a-functions-minimum-point" class="level1">
+<h1>Finding a function’s minimum point</h1>
+<p>How does this function looks like?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>parameter_values <span class="ot">&lt;-</span> <span class="fu">expand_grid</span>(<span class="at">beta0 =</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="fl">1.5</span>, <span class="fl">2.5</span>, <span class="fl">0.05</span>),</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>                                <span class="at">beta1 =</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="fl">1.5</span>, <span class="fl">2.5</span>, <span class="fl">0.05</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">id =</span> <span class="fu">factor</span>(<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">n</span>())))</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> parameter_values <span class="sc">|&gt;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expand_grid</span>(d) <span class="sc">|&gt;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, beta0, beta1, <span class="at">x =</span> X1, <span class="at">y =</span> X2) <span class="sc">|&gt;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">y_pred =</span> beta0 <span class="sc">+</span> beta1<span class="sc">*</span>x) <span class="sc">|&gt;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">loss =</span> (y <span class="sc">-</span> y_pred)<span class="sc">^</span><span class="dv">2</span>) <span class="sc">|&gt;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(id) <span class="sc">|&gt;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">reframe</span>(<span class="at">beta0 =</span> beta0,</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">beta1 =</span> beta1,</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>          <span class="at">mse =</span> <span class="fu">mean</span>(loss)) <span class="sc">|&gt;</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_ly</span>(df, <span class="at">x =</span> <span class="sc">~</span>beta0, <span class="at">y =</span> <span class="sc">~</span>beta1, <span class="at">z =</span> <span class="sc">~</span>mse, <span class="at">type =</span> <span class="st">"scatter3d"</span>, <span class="at">mode =</span> <span class="st">"markers"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p class="figure-note">The original notebook included an interactive 3D plot here.</p>
+</div>
+</div>
+<p>What is the set of parameters that produced the minimal loss?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>insight<span class="sc">::</span><span class="fu">print_html</span>(df[df<span class="sc">$</span>mse <span class="sc">==</span> <span class="fu">min</span>(df<span class="sc">$</span>mse),])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="skuqvmoouw" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#skuqvmoouw table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#skuqvmoouw thead, #skuqvmoouw tbody, #skuqvmoouw tfoot, #skuqvmoouw tr, #skuqvmoouw td, #skuqvmoouw th {
+  border-style: none;
+}
+
+#skuqvmoouw p {
+  margin: 0;
+  padding: 0;
+}
+
+#skuqvmoouw .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#skuqvmoouw .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#skuqvmoouw .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#skuqvmoouw .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#skuqvmoouw .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#skuqvmoouw .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#skuqvmoouw .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#skuqvmoouw .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#skuqvmoouw .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#skuqvmoouw .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#skuqvmoouw .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#skuqvmoouw .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#skuqvmoouw .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#skuqvmoouw .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#skuqvmoouw .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#skuqvmoouw .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#skuqvmoouw .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#skuqvmoouw .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#skuqvmoouw .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#skuqvmoouw .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#skuqvmoouw .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#skuqvmoouw .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#skuqvmoouw .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#skuqvmoouw .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#skuqvmoouw .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#skuqvmoouw .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#skuqvmoouw .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#skuqvmoouw .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#skuqvmoouw .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#skuqvmoouw .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#skuqvmoouw .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#skuqvmoouw .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#skuqvmoouw .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#skuqvmoouw .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#skuqvmoouw .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#skuqvmoouw .gt_left {
+  text-align: left;
+}
+
+#skuqvmoouw .gt_center {
+  text-align: center;
+}
+
+#skuqvmoouw .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#skuqvmoouw .gt_font_normal {
+  font-weight: normal;
+}
+
+#skuqvmoouw .gt_font_bold {
+  font-weight: bold;
+}
+
+#skuqvmoouw .gt_font_italic {
+  font-style: italic;
+}
+
+#skuqvmoouw .gt_super {
+  font-size: 65%;
+}
+
+#skuqvmoouw .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#skuqvmoouw .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#skuqvmoouw .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#skuqvmoouw .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#skuqvmoouw .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#skuqvmoouw .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#skuqvmoouw .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#skuqvmoouw .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#skuqvmoouw div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead>
+<tr class="header gt_col_headings">
+<th id="id" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">id</th>
+<th id="beta0" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">beta0</th>
+<th id="beta1" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">beta1</th>
+<th id="mse" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">mse</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="id">5066</td>
+<td class="gt_row gt_center" headers="beta0">1.60</td>
+<td class="gt_row gt_center" headers="beta1">0.65</td>
+<td class="gt_row gt_center" headers="mse">0.57</td>
+</tr>
+</tbody><tfoot class="gt_sourcenotes">
+<tr class="even">
+<td colspan="4" class="gt_sourcenote"></td>
+</tr>
+</tfoot>
+
+</table>
+
+</div>
+</div>
+</div>
+<p>We can see it in the graph as the lowest point:</p>
+<div class="cell">
+<div class="cell-output-display">
+<p class="figure-note">The original notebook included an interactive 3D plot here.</p>
+</div>
+</div>
+<p>Now let’s find the minimum point using a more rigorous way.</p>
+<section id="derivatives" class="level2">
+<h2 class="anchored" data-anchor-id="derivatives">Derivatives</h2>
+<p>The derivative of a function (with respect to some variable <span class="math inline">\(x\)</span>) at some point is <strong>the slope of the tangent line to the function at this point</strong>, In other words, how much the function “goes up (or down)” at this point.</p>
+<p>Consider this simple function:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>f <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  x<span class="sc">^</span><span class="dv">2</span> <span class="sc">-</span> <span class="dv">3</span><span class="sc">*</span>x <span class="sc">+</span> <span class="dv">2</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>It’s graph looks like this:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">10</span>, <span class="dv">10</span>, <span class="fl">0.1</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">f</span>(x)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">data.frame</span>(<span class="at">x =</span> x, <span class="at">y =</span> y), <span class="fu">aes</span>(x, y)) <span class="sc">+</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>What is the derivative of the function at the point <span class="math inline">\(x=6\)</span>?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> x, <span class="at">y =</span> y)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(x, y)) <span class="sc">+</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> df[df<span class="sc">$</span>x <span class="sc">==</span> <span class="dv">6</span>,], <span class="fu">aes</span>(x, y), <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The function goes up at this point, therefore the derivative is positive. But exactly <strong>How</strong> positive? Or in other words, if we move a little bit to the right of the red point, by how much does the function increase?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>f6 <span class="ot">&lt;-</span> <span class="fu">f</span>(<span class="dv">6</span>) <span class="co"># the value of the function at x = 6</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fl">0.0001</span> <span class="co"># "a little bit"</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>fh <span class="ot">&lt;-</span> <span class="fu">f</span>(<span class="dv">6</span> <span class="sc">+</span> h)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>(fh <span class="sc">-</span> f6) <span class="sc">/</span> h <span class="co"># standardizing by the amount we increased</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 9.0001</code></pre>
+</div>
+</div>
+<p>The slope of the function at <span class="math inline">\(x=6\)</span> is <span class="math inline">\(9\)</span>.</p>
+<p>What is the derivative of the function at <span class="math inline">\(x=-5\)</span>?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>(<span class="fu">f</span>(<span class="sc">-</span><span class="dv">5</span> <span class="sc">+</span> h) <span class="sc">-</span> <span class="fu">f</span>(<span class="sc">-</span><span class="dv">5</span>)) <span class="sc">/</span> h</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -12.9999</code></pre>
+</div>
+</div>
+<p>As expected and as we can see in the graph, this derivative is negative.</p>
+<p>Why do we care? imagine that we stand on the point <span class="math inline">\(x=6\)</span> and we want to “go up”, in what direction we should advance? If the function is increasing at this point - The derivative is positive - then we want to go right (increase <span class="math inline">\(X\)</span>). But, if the function is decreasing at this point - The derivative is negative - then we want to go left (decrease <span class="math inline">\(X\)</span>). Notice that in both scenarios we want to go <strong>In the direction of the derivative</strong>.</p>
+<p>So, what if we stand on the point <span class="math inline">\(x=6\)</span> and we want to “go down”? Simple, just go <strong>In the opposite direction of the derivative</strong>! Let’s see how that works:</p>
+<p>Again, we stand on <span class="math inline">\(x=6\)</span>:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Calculating the derivative:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>x0 <span class="ot">&lt;-</span> <span class="dv">6</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>fx0 <span class="ot">&lt;-</span> <span class="fu">f</span>(x0) <span class="co"># the value of the function at x = 6</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fl">0.0001</span> <span class="co"># "a little bit"</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>fh <span class="ot">&lt;-</span> <span class="fu">f</span>(x0 <span class="sc">+</span> h)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>(fh <span class="sc">-</span> fx0) <span class="sc">/</span> h <span class="co"># standardizing by the amount we increased</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 9.0001</code></pre>
+</div>
+</div>
+<p>Stepping in the <em>Opposite</em> direction:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>step_size <span class="ot">&lt;-</span> <span class="fl">0.1</span> <span class="co"># controlling the size of our step</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> x0 <span class="sc">+</span> <span class="sc">-</span><span class="dv">9</span><span class="sc">*</span>step_size</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>x1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 5.1</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Again!</p>
+<p>calculating the derivative:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>fx1 <span class="ot">&lt;-</span> <span class="fu">f</span>(x1) <span class="co"># the value of the function at x = 5.1</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fl">0.0001</span> <span class="co"># "a little bit"</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>fh <span class="ot">&lt;-</span> <span class="fu">f</span>(x1 <span class="sc">+</span> h)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>(fh <span class="sc">-</span> fx1) <span class="sc">/</span> h <span class="co"># standardizing by the amount we increased</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 7.2001</code></pre>
+</div>
+</div>
+<p>Stepping in the opposite direction:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>step_size <span class="ot">&lt;-</span> <span class="fl">0.1</span> <span class="co"># controlling the size of our step</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> x1 <span class="sc">+</span> <span class="sc">-</span><span class="fl">7.2</span><span class="sc">*</span>step_size</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>x2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 4.38</code></pre>
+</div>
+</div>
+<p>Where we landed?</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>And this is <em>Stochastic Gradient Descent</em> (SGD) - Descending down the gradient (derivative) in a loop (in a stochastic manner).</p>
+<p>What about multivariate functions? for example: <span class="math inline">\(f(x_1, x_2)=3x_1-4x_2+x_1x_2-5\)</span>. In this case we can calculate the derivative of each variable with respect to the outcome, also called the partial derivatives: <span class="math display">\[
+\frac{\partial y}{\partial x_1}, \frac{\partial y}{\partial x_2}
+\]</span></p>
+<p>For example, let’s calculate the partial derivative of <span class="math inline">\(x_1\)</span> with respect to <span class="math inline">\(y\)</span> in the point <span class="math inline">\(x_1=-2, x_2=3\)</span>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="cf">function</span>(x1, x2) {</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="dv">3</span><span class="sc">*</span>x1 <span class="sc">-</span> <span class="dv">4</span><span class="sc">*</span>x2 <span class="sc">+</span> x1<span class="sc">*</span>x2 <span class="sc">-</span> <span class="dv">5</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>g0 <span class="ot">&lt;-</span> <span class="fu">g</span>(<span class="sc">-</span><span class="dv">2</span>, <span class="dv">3</span>)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>g0</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -29</code></pre>
+</div>
+</div>
+<p>What happens when we increase <span class="math inline">\(x_1\)</span> by a little?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fl">0.0001</span> <span class="co"># a little</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>gh <span class="ot">&lt;-</span> <span class="fu">g</span>(<span class="sc">-</span><span class="dv">2</span> <span class="sc">+</span> h, <span class="dv">3</span>) <span class="co"># notice how x2 remains constant</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>(gh <span class="sc">-</span> g0) <span class="sc">/</span> h</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 6</code></pre>
+</div>
+</div>
+<p>The partial derivative of <span class="math inline">\(x_1\)</span> at the point <span class="math inline">\(x_1=-2, x_2=3\)</span> is <span class="math inline">\(6\)</span>. Now we just need to calculate the partial derivative of <span class="math inline">\(x_2\)</span> at the same point and descend the gradient!</p>
+</section>
+<section id="simple-linear-regression" class="level2">
+<h2 class="anchored" data-anchor-id="simple-linear-regression">Simple Linear Regression</h2>
+<p>Returning to the case of a simple linear regression, we see that the whole thing is just about some function with two parameters that we need to minimize.</p>
+<p><span class="math display">\[
+loss(\beta_0,\beta_1)=\frac{1}{N} \sum_{i=1}^{N}(y_i-\beta_0-\beta_1x_i)^2
+\]</span></p>
+<p>Let’s estimate the partial derivatives of <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span> with respect to the loss at the point <span class="math inline">\(\beta_0=2, \beta_1=0.5\)</span>:</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The need to calculate the derivative of the loss function justifies it being the mean of <em>Square</em>, as opposed to Absolute, errors as they easier to differentiate.</p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>beta0 <span class="ot">&lt;-</span> <span class="dv">2</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>beta1 <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>loss0 <span class="ot">&lt;-</span> <span class="fu">mean</span>((d<span class="sc">$</span>X2 <span class="sc">-</span> beta0 <span class="sc">-</span> beta1<span class="sc">*</span>d<span class="sc">$</span>X1)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>loss0</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.6821639</code></pre>
+</div>
+</div>
+<p>Calculating partial derivatives:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Partial derivative of beta0</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>loss1 <span class="ot">&lt;-</span> <span class="fu">mean</span>((d<span class="sc">$</span>X2 <span class="sc">-</span> (beta0 <span class="sc">+</span> <span class="fl">0.001</span>) <span class="sc">-</span> beta1<span class="sc">*</span>d<span class="sc">$</span>X1)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>beta0_grad <span class="ot">&lt;-</span> (loss1 <span class="sc">-</span> loss0) <span class="sc">/</span> <span class="fl">0.001</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Partial derivative of beta1</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>loss1 <span class="ot">&lt;-</span> <span class="fu">mean</span>((d<span class="sc">$</span>X2 <span class="sc">-</span> beta0 <span class="sc">-</span> (beta1 <span class="sc">+</span> <span class="fl">0.001</span>)<span class="sc">*</span>d<span class="sc">$</span>X1)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>beta1_grad <span class="ot">&lt;-</span> (loss1 <span class="sc">-</span> loss0) <span class="sc">/</span> <span class="fl">0.001</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Taking a step:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>step_size <span class="ot">&lt;-</span> <span class="fl">0.1</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>beta0 <span class="ot">&lt;-</span> beta0 <span class="sc">-</span> step_size<span class="sc">*</span>beta0_grad</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>beta1 <span class="ot">&lt;-</span> beta1 <span class="sc">-</span> step_size<span class="sc">*</span>beta1_grad</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Calculating the loss again:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>((d<span class="sc">$</span>X2 <span class="sc">-</span> beta0 <span class="sc">-</span> beta1<span class="sc">*</span>d<span class="sc">$</span>X1)<span class="sc">^</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.6442667</code></pre>
+</div>
+</div>
+<p>The loss went down!</p>
+<p>Automating the process in a loop:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">14</span>)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> d<span class="sc">$</span>X1</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> d<span class="sc">$</span>X2</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Hyper Parameters</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>learning_rate <span class="ot">&lt;-</span> <span class="fl">0.1</span> <span class="co"># formerly known as step_size</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fl">0.001</span>           <span class="co"># small change in parameter for calculating derivatives</span></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>epochs <span class="ot">&lt;-</span> <span class="dv">80</span>         <span class="co"># Number of iterations</span></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Initialing random values for parameters</span></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>beta0 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">1</span>)</span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>beta1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">1</span>)</span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span>epochs)) {</span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Forward Pass (calculating model predictions)</span></span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a>  Y_hat <span class="ot">&lt;-</span> beta0 <span class="sc">+</span> beta1<span class="sc">*</span>X</span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Calculating Loss</span></span>
+<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a>  loss <span class="ot">&lt;-</span> <span class="fu">mean</span>((Y <span class="sc">-</span> Y_hat)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb31-22"><a href="#cb31-22" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-23"><a href="#cb31-23" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Printing loss every 10th iteration</span></span>
+<span id="cb31-24"><a href="#cb31-24" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (i <span class="sc">%%</span> <span class="dv">5</span> <span class="sc">==</span> <span class="dv">0</span>) {</span>
+<span id="cb31-25"><a href="#cb31-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(glue<span class="sc">::</span><span class="fu">glue</span>(<span class="st">"Epoch {i}: Loss: {loss}"</span>))</span>
+<span id="cb31-26"><a href="#cb31-26" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb31-27"><a href="#cb31-27" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-28"><a href="#cb31-28" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Calculating Gradients</span></span>
+<span id="cb31-29"><a href="#cb31-29" aria-hidden="true" tabindex="-1"></a>  beta0_grad <span class="ot">&lt;-</span> (<span class="fu">mean</span>((Y <span class="sc">-</span> (beta0 <span class="sc">+</span> h) <span class="sc">-</span> beta1<span class="sc">*</span>X)<span class="sc">^</span><span class="dv">2</span>) <span class="sc">-</span> loss) <span class="sc">/</span> h</span>
+<span id="cb31-30"><a href="#cb31-30" aria-hidden="true" tabindex="-1"></a>  beta1_grad <span class="ot">&lt;-</span> (<span class="fu">mean</span>((Y <span class="sc">-</span> beta0 <span class="sc">-</span> (beta1 <span class="sc">+</span> h)<span class="sc">*</span>X)<span class="sc">^</span><span class="dv">2</span>) <span class="sc">-</span> loss) <span class="sc">/</span> h</span>
+<span id="cb31-31"><a href="#cb31-31" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-32"><a href="#cb31-32" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Updating Parameters</span></span>
+<span id="cb31-33"><a href="#cb31-33" aria-hidden="true" tabindex="-1"></a>  beta0 <span class="ot">&lt;-</span> beta0 <span class="sc">-</span> learning_rate<span class="sc">*</span>beta0_grad</span>
+<span id="cb31-34"><a href="#cb31-34" aria-hidden="true" tabindex="-1"></a>  beta1 <span class="ot">&lt;-</span> beta1 <span class="sc">-</span> learning_rate<span class="sc">*</span>beta1_grad</span>
+<span id="cb31-35"><a href="#cb31-35" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Epoch 5: Loss: 1.80038967350815
+Epoch 10: Loss: 1.01512495422098
+Epoch 15: Loss: 0.74136306380543
+Epoch 20: Loss: 0.635632474184838
+Epoch 25: Loss: 0.594395955672709
+Epoch 30: Loss: 0.578298619591311
+Epoch 35: Loss: 0.572014177360529
+Epoch 40: Loss: 0.569560667340541
+Epoch 45: Loss: 0.568602778731536
+Epoch 50: Loss: 0.568228797188623
+Epoch 55: Loss: 0.568082782199662
+Epoch 60: Loss: 0.568025770526887
+Epoch 65: Loss: 0.568003508715428
+Epoch 70: Loss: 0.567994814993631
+Epoch 75: Loss: 0.5679914192996
+Epoch 80: Loss: 0.567990092591508</code></pre>
+</div>
+</div>
+<p>What are the final parameters?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(beta0)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.61333</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(beta1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.6348897</code></pre>
+</div>
+</div>
+<p>What are the “real” parameters?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(<span class="fu">lm</span>(Y <span class="sc">~</span> X))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(Intercept)           X
+  1.6145082   0.6342556 </code></pre>
+</div>
+</div>
+<p>Almost the same.</p>
+</section>
+<section id="visualizing-our-journey" class="level2">
+<h2 class="anchored" data-anchor-id="visualizing-our-journey">Visualizing Our Journey</h2>
+<p>We started at the left most point and made our way down the loss function.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-32-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>In the current post we went over the basic idea underlying all of AI. Every part of the process built here was further developed and improved, most important the algorithms used to descend the gradient, but also other things, for example: the specific way of initializing the parameters and adaptive learning rates.</p>
+<p>I hope this post was interesting, and like my Psychology students, you fill like you understand AI a little bit more after it. I hope to post more in the future about other things related to AI, and maybe LLM’s, inspired by my latest deep dive into them.</p>
+
+
+</section></article></main>
 <footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>Open the box. It is smaller than expected.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

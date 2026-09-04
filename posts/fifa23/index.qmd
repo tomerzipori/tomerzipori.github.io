@@ -16,5 +16,535 @@ image-alt: ""
 ---
 
 <header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
-<main class="site-main"><section class="page-intro"><p class="section-number">Article · Data and strange claims</p><h1>What makes FIFA 23 players good?</h1><div class="article-meta"><span class="status">in bloom</span><span>06 May 2023</span></div></section><article class="prose"><p>The dataset contains player ratings, physical attributes, positions, clubs, and a healthy amount of columns that look useful until you inspect them.</p><h2>The question</h2><p>Can player overall rating be predicted accurately and efficiently, and which variables matter for that prediction?</p><h2>The experiment</h2><p>Elastic-net regression and boosted decision trees handle the two goals differently. The workflow cleans ordered work-rate variables, removes sparse or identifier-like fields, splits the data, and evaluates the fitted models.</p><pre><code>Overall ~ all usable player attributes</code></pre><p>The result is a model exercise first and a football verdict second. A game rating is a label produced by a system; it is not a complete theory of being good at football.</p></article></main>
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Data and strange claims</p><h1>What makes FIFA 23 players good?</h1><div class="article-meta"><span class="status">in bloom</span><span>06 May 2023</span></div></section><article class="prose real-post"><section id="background-and-analysis-plan" class="level1">
+<h1>Background and analysis plan</h1>
+<p>The current <a href="https://www.kaggle.com/datasets/babatundezenith/fifa-archive">Data</a> is an upload to <em>Kaggle</em> by Babatunde Zenith, and it includes information about players in the popular <em>FIFA 23</em> video game. Information includes: name, age, nationality, position, various football ratings and contract deals.</p>
+<p>The current notebook is an attempt at:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Accurately and efficiently predicting player’s overall rating.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Identifying important variables (features) for this prediction.</p>
+<p>Both goals will be achieved using two methods: Elastic-net regression and Decision tree Boosting. Data pre-processing will be done with <code>tidyverse</code>, Model fitting and evaluation will be done with the <code>caret</code> and <code>gbm</code> packages.</p>
+</section>
+<section id="setup" class="level1">
+<h1>Setup</h1>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-1_2f4bc1ff9e949cc7f02f5459a68233b3">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse) <span class="co"># For data-wrangling, pre-processing and plotting with ggplot2</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(caret)     <span class="co"># For model training, tuning and evaluating</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gbm)       <span class="co"># For fitting Boost models</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glue)      <span class="co"># Helper package for nice-looking output</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="loading-data" class="level1">
+<h1>Loading data</h1>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-2_1005f1639872a54a1205e089611b747e">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>players <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"Fifa_23_Players_Data.csv"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(players)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 17,529
+Columns: 89
+$ `Known As`                    &lt;chr&gt; "L. Messi", "K. Benzema", "R. Lewandowsk…
+$ `Full Name`                   &lt;chr&gt; "Lionel Messi", "Karim Benzema", "Robert…
+$ Overall                       &lt;dbl&gt; 91, 91, 91, 91, 91, 90, 90, 90, 90, 90, …
+$ Potential                     &lt;dbl&gt; 91, 91, 91, 91, 95, 90, 91, 90, 90, 90, …
+$ `Value(in Euro)`              &lt;dbl&gt; 54000000, 64000000, 84000000, 107500000,…
+$ `Positions Played`            &lt;chr&gt; "RW", "CF,ST", "ST", "CM,CAM", "ST,LW", …
+$ `Best Position`               &lt;chr&gt; "CAM", "CF", "ST", "CM", "ST", "RW", "GK…
+$ Nationality                   &lt;chr&gt; "Argentina", "France", "Poland", "Belgiu…
+$ `Image Link`                  &lt;chr&gt; "https://cdn.sofifa.net/players/158/023/…
+$ Age                           &lt;dbl&gt; 35, 34, 33, 31, 23, 30, 30, 36, 37, 30, …
+$ `Height(in cm)`               &lt;dbl&gt; 169, 185, 185, 181, 182, 175, 199, 193, …
+$ `Weight(in kg)`               &lt;dbl&gt; 67, 81, 81, 70, 73, 71, 96, 93, 83, 92, …
+$ TotalStats                    &lt;dbl&gt; 2190, 2147, 2205, 2303, 2177, 2226, 1334…
+$ BaseStats                     &lt;dbl&gt; 452, 455, 458, 483, 470, 471, 473, 501, …
+$ `Club Name`                   &lt;chr&gt; "Paris Saint-Germain", "Real Madrid CF",…
+$ `Wage(in Euro)`               &lt;dbl&gt; 195000, 450000, 420000, 350000, 230000, …
+$ `Release Clause`              &lt;dbl&gt; 99900000, 131199999, 172200000, 19890000…
+$ `Club Position`               &lt;chr&gt; "RW", "CF", "ST", "CM", "ST", "RW", "GK"…
+$ `Contract Until`              &lt;chr&gt; "2023", "2023", "2025", "2025", "2024", …
+$ `Club Jersey Number`          &lt;chr&gt; "30", "9", "9", "17", "7", "11", "1", "1…
+$ `Joined On`                   &lt;dbl&gt; 2021, 2009, 2022, 2015, 2018, 2017, 2018…
+$ `On Loan`                     &lt;chr&gt; "-", "-", "-", "-", "-", "-", "-", "-", …
+$ `Preferred Foot`              &lt;chr&gt; "Left", "Right", "Right", "Right", "Righ…
+$ `Weak Foot Rating`            &lt;dbl&gt; 4, 4, 4, 5, 4, 3, 3, 4, 4, 3, 5, 5, 5, 3…
+$ `Skill Moves`                 &lt;dbl&gt; 4, 4, 4, 4, 5, 4, 1, 1, 5, 2, 3, 5, 4, 2…
+$ `International Reputation`    &lt;dbl&gt; 5, 4, 5, 4, 4, 4, 4, 5, 5, 4, 4, 5, 4, 3…
+$ `National Team Name`          &lt;chr&gt; "Argentina", "France", "Poland", "Belgiu…
+$ `National Team Image Link`    &lt;chr&gt; "https://cdn.sofifa.net/flags/ar.png", "…
+$ `National Team Position`      &lt;chr&gt; "RW", "ST", "ST", "RF", "ST", "-", "GK",…
+$ `National Team Jersey Number` &lt;chr&gt; "10", "19", "9", "7", "10", "-", "1", "1…
+$ `Attacking Work Rate`         &lt;chr&gt; "Low", "Medium", "High", "High", "High",…
+$ `Defensive Work Rate`         &lt;chr&gt; "Low", "Medium", "Medium", "High", "Low"…
+$ `Pace Total`                  &lt;dbl&gt; 81, 80, 75, 74, 97, 90, 84, 87, 81, 81, …
+$ `Shooting Total`              &lt;dbl&gt; 89, 88, 91, 88, 89, 89, 89, 88, 92, 60, …
+$ `Passing Total`               &lt;dbl&gt; 90, 83, 79, 93, 80, 82, 75, 91, 78, 71, …
+$ `Dribbling Total`             &lt;dbl&gt; 94, 87, 86, 87, 92, 90, 90, 88, 85, 72, …
+$ `Defending Total`             &lt;dbl&gt; 34, 39, 44, 64, 36, 45, 46, 56, 34, 91, …
+$ `Physicality Total`           &lt;dbl&gt; 64, 78, 83, 77, 76, 75, 89, 91, 75, 86, …
+$ Crossing                      &lt;dbl&gt; 84, 75, 71, 94, 78, 80, 14, 15, 80, 53, …
+$ Finishing                     &lt;dbl&gt; 90, 92, 94, 85, 93, 93, 14, 13, 93, 52, …
+$ `Heading Accuracy`            &lt;dbl&gt; 70, 90, 91, 55, 72, 59, 13, 25, 90, 87, …
+$ `Short Passing`               &lt;dbl&gt; 91, 89, 84, 93, 85, 84, 33, 60, 80, 79, …
+$ Volleys                       &lt;dbl&gt; 88, 88, 89, 83, 83, 84, 12, 11, 86, 45, …
+$ Dribbling                     &lt;dbl&gt; 95, 87, 85, 88, 93, 90, 13, 30, 85, 70, …
+$ Curve                         &lt;dbl&gt; 93, 82, 79, 89, 80, 84, 19, 14, 81, 60, …
+$ `Freekick Accuracy`           &lt;dbl&gt; 93, 73, 85, 83, 69, 69, 20, 11, 79, 70, …
+$ LongPassing                   &lt;dbl&gt; 90, 76, 70, 93, 71, 77, 35, 68, 75, 86, …
+$ BallControl                   &lt;dbl&gt; 93, 91, 89, 90, 91, 88, 23, 46, 88, 76, …
+$ Acceleration                  &lt;dbl&gt; 87, 79, 76, 76, 97, 89, 42, 54, 79, 68, …
+$ `Sprint Speed`                &lt;dbl&gt; 76, 80, 75, 73, 97, 91, 52, 60, 83, 91, …
+$ Agility                       &lt;dbl&gt; 91, 78, 77, 76, 93, 90, 63, 51, 77, 61, …
+$ Reactions                     &lt;dbl&gt; 92, 92, 93, 91, 93, 93, 84, 87, 94, 89, …
+$ Balance                       &lt;dbl&gt; 95, 72, 82, 78, 81, 91, 45, 35, 67, 53, …
+$ `Shot Power`                  &lt;dbl&gt; 86, 87, 91, 92, 88, 83, 56, 68, 93, 81, …
+$ Jumping                       &lt;dbl&gt; 68, 79, 85, 63, 77, 69, 68, 77, 95, 88, …
+$ Stamina                       &lt;dbl&gt; 70, 82, 76, 88, 87, 87, 38, 43, 76, 74, …
+$ Strength                      &lt;dbl&gt; 68, 82, 87, 74, 76, 75, 70, 80, 77, 93, …
+$ `Long Shots`                  &lt;dbl&gt; 91, 80, 84, 91, 82, 85, 17, 16, 90, 64, …
+$ Aggression                    &lt;dbl&gt; 44, 63, 81, 75, 64, 63, 23, 29, 63, 85, …
+$ Interceptions                 &lt;dbl&gt; 40, 39, 49, 66, 38, 55, 15, 30, 29, 90, …
+$ Positioning                   &lt;dbl&gt; 93, 92, 94, 88, 92, 92, 13, 12, 95, 47, …
+$ Vision                        &lt;dbl&gt; 94, 89, 81, 94, 83, 85, 44, 70, 76, 65, …
+$ Penalties                     &lt;dbl&gt; 75, 84, 90, 83, 80, 86, 27, 47, 90, 62, …
+$ Composure                     &lt;dbl&gt; 96, 90, 88, 89, 88, 92, 66, 70, 95, 90, …
+$ Marking                       &lt;dbl&gt; 20, 43, 35, 68, 26, 38, 20, 17, 24, 92, …
+$ `Standing Tackle`             &lt;dbl&gt; 35, 24, 42, 65, 34, 43, 18, 10, 32, 92, …
+$ `Sliding Tackle`              &lt;dbl&gt; 24, 18, 19, 53, 32, 41, 16, 11, 24, 86, …
+$ `Goalkeeper Diving`           &lt;dbl&gt; 6, 13, 15, 15, 13, 14, 84, 87, 7, 13, 8,…
+$ `Goalkeeper Handling`         &lt;dbl&gt; 11, 11, 6, 13, 5, 14, 89, 88, 11, 10, 10…
+$ GoalkeeperKicking             &lt;dbl&gt; 15, 5, 12, 5, 7, 9, 75, 91, 15, 13, 11, …
+$ `Goalkeeper Positioning`      &lt;dbl&gt; 14, 5, 8, 10, 11, 11, 89, 91, 14, 11, 14…
+$ `Goalkeeper Reflexes`         &lt;dbl&gt; 8, 7, 10, 13, 6, 14, 90, 88, 11, 11, 11,…
+$ `ST Rating`                   &lt;dbl&gt; 90, 91, 91, 86, 92, 89, 34, 43, 90, 74, …
+$ `LW Rating`                   &lt;dbl&gt; 90, 87, 85, 88, 90, 88, 29, 40, 86, 68, …
+$ `LF Rating`                   &lt;dbl&gt; 91, 89, 88, 87, 90, 88, 31, 43, 88, 70, …
+$ `CF Rating`                   &lt;dbl&gt; 91, 89, 88, 87, 90, 88, 31, 43, 88, 70, …
+$ `RF Rating`                   &lt;dbl&gt; 91, 89, 88, 87, 90, 88, 31, 43, 88, 70, …
+$ `RW Rating`                   &lt;dbl&gt; 90, 87, 85, 88, 90, 88, 29, 40, 86, 68, …
+$ `CAM Rating`                  &lt;dbl&gt; 91, 91, 88, 91, 92, 90, 35, 50, 88, 73, …
+$ `LM Rating`                   &lt;dbl&gt; 91, 89, 86, 91, 92, 90, 34, 47, 87, 73, …
+$ `CM Rating`                   &lt;dbl&gt; 88, 84, 83, 91, 84, 85, 35, 53, 81, 79, …
+$ `RM Rating`                   &lt;dbl&gt; 91, 89, 86, 91, 92, 90, 34, 47, 87, 73, …
+$ `LWB Rating`                  &lt;dbl&gt; 67, 67, 67, 82, 70, 74, 32, 39, 65, 83, …
+$ `CDM Rating`                  &lt;dbl&gt; 66, 67, 69, 82, 66, 71, 34, 46, 62, 88, …
+$ `RWB Rating`                  &lt;dbl&gt; 67, 67, 67, 82, 70, 74, 32, 39, 65, 83, …
+$ `LB Rating`                   &lt;dbl&gt; 62, 63, 64, 78, 66, 70, 32, 38, 61, 85, …
+$ `CB Rating`                   &lt;dbl&gt; 53, 58, 63, 72, 57, 61, 32, 37, 56, 90, …
+$ `RB Rating`                   &lt;dbl&gt; 62, 63, 64, 78, 66, 70, 32, 38, 61, 85, …
+$ `GK Rating`                   &lt;dbl&gt; 22, 21, 22, 24, 21, 25, 90, 90, 23, 23, …</code></pre>
+</div>
+</div>
+<p>Quite a lot of features. Most of them are numeric which is good.</p>
+</section>
+<section id="pre-processing" class="level1">
+<h1>Pre-processing</h1>
+<section id="re-naming-columns" class="level2">
+<h2 class="anchored" data-anchor-id="re-naming-columns">Re-naming columns</h2>
+<p>Replacing spaces with underscores for ease.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-3_9da74e594685cb933e9674368c3f5c0b">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(players) <span class="ot">&lt;-</span> <span class="fu">str_replace_all</span>(<span class="fu">names</span>(players), <span class="at">pattern =</span> <span class="st">" "</span>, <span class="at">replacement =</span> <span class="st">"_"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="non-numeric-variables" class="level2">
+<h2 class="anchored" data-anchor-id="non-numeric-variables">non-numeric variables</h2>
+<p>First we’ll look at potential garbage variables.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-4_40ee6c9c9bca23461333c04a1fb577e5">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(<span class="fu">select</span>(players, <span class="fu">where</span>(is.character)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "Known_As"                    "Full_Name"
+ [3] "Positions_Played"            "Best_Position"
+ [5] "Nationality"                 "Image_Link"
+ [7] "Club_Name"                   "Club_Position"
+ [9] "Contract_Until"              "Club_Jersey_Number"
+[11] "On_Loan"                     "Preferred_Foot"
+[13] "National_Team_Name"          "National_Team_Image_Link"
+[15] "National_Team_Position"      "National_Team_Jersey_Number"
+[17] "Attacking_Work_Rate"         "Defensive_Work_Rate"        </code></pre>
+</div>
+</div>
+<p>Almost all garbage data. Since I’ve noted that <em>Work Rate</em> variables are ordered (low-medium-high) We’ll re-code them:</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-5_990faa1ce881b9d171ffd8df209dd04e">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>players <span class="ot">&lt;-</span> players <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Attacking_Work_Rate =</span> <span class="fu">case_when</span>(Attacking_Work_Rate <span class="sc">==</span> <span class="st">"Low"</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>                                         Attacking_Work_Rate <span class="sc">==</span> <span class="st">"Medium"</span> <span class="sc">~</span> <span class="dv">2</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>                                         Attacking_Work_Rate <span class="sc">==</span> <span class="st">"High"</span> <span class="sc">~</span> <span class="dv">3</span>),</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">Defensive_Work_Rate =</span> <span class="fu">case_when</span>(Defensive_Work_Rate <span class="sc">==</span> <span class="st">"Low"</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>                                         Defensive_Work_Rate <span class="sc">==</span> <span class="st">"Medium"</span> <span class="sc">~</span> <span class="dv">2</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>                                         Defensive_Work_Rate <span class="sc">==</span> <span class="st">"High"</span> <span class="sc">~</span> <span class="dv">3</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>Known_As, <span class="sc">-</span>Full_Name, <span class="sc">-</span>Positions_Played, <span class="sc">-</span>Nationality, <span class="sc">-</span>Image_Link, <span class="sc">-</span>Club_Name, <span class="sc">-</span>Contract_Until, <span class="sc">-</span>Club_Jersey_Number, <span class="sc">-</span>National_Team_Name, <span class="sc">-</span>National_Team_Image_Link, <span class="sc">-</span>National_Team_Jersey_Number, <span class="sc">-</span>On_Loan) <span class="sc">%&gt;%</span> <span class="co"># getting rid of garbage variables</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.character), <span class="sc">~</span><span class="fu">na_if</span>(., <span class="st">"-"</span>))) <span class="co"># replacing all "-" with NA</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="searching-for-variables-with-large-number-of-nas" class="level2">
+<h2 class="anchored" data-anchor-id="searching-for-variables-with-large-number-of-nas">Searching for variables with large number of NA’s</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-6_10ad352b052d997a53de069e25c0ba9f">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(<span class="fu">is.na</span>(players))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                 Overall                Potential           Value(in_Euro)
+                       0                        0                        0
+           Best_Position                      Age            Height(in_cm)
+                       0                        0                        0
+           Weight(in_kg)               TotalStats                BaseStats
+                       0                        0                        0
+           Wage(in_Euro)           Release_Clause            Club_Position
+                       0                        0                       86
+               Joined_On           Preferred_Foot         Weak_Foot_Rating
+                       0                        0                        0
+             Skill_Moves International_Reputation   National_Team_Position
+                       0                        0                    16746
+     Attacking_Work_Rate      Defensive_Work_Rate               Pace_Total
+                       0                        0                        0
+          Shooting_Total            Passing_Total          Dribbling_Total
+                       0                        0                        0
+         Defending_Total        Physicality_Total                 Crossing
+                       0                        0                        0
+               Finishing         Heading_Accuracy            Short_Passing
+                       0                        0                        0
+                 Volleys                Dribbling                    Curve
+                       0                        0                        0
+       Freekick_Accuracy              LongPassing              BallControl
+                       0                        0                        0
+            Acceleration             Sprint_Speed                  Agility
+                       0                        0                        0
+               Reactions                  Balance               Shot_Power
+                       0                        0                        0
+                 Jumping                  Stamina                 Strength
+                       0                        0                        0
+              Long_Shots               Aggression            Interceptions
+                       0                        0                        0
+             Positioning                   Vision                Penalties
+                       0                        0                        0
+               Composure                  Marking          Standing_Tackle
+                       0                        0                        0
+          Sliding_Tackle        Goalkeeper_Diving      Goalkeeper_Handling
+                       0                        0                        0
+       GoalkeeperKicking   Goalkeeper_Positioning      Goalkeeper_Reflexes
+                       0                        0                        0
+               ST_Rating                LW_Rating                LF_Rating
+                       0                        0                        0
+               CF_Rating                RF_Rating                RW_Rating
+                       0                        0                        0
+              CAM_Rating                LM_Rating                CM_Rating
+                       0                        0                        0
+               RM_Rating               LWB_Rating               CDM_Rating
+                       0                        0                        0
+              RWB_Rating                LB_Rating                CB_Rating
+                       0                        0                        0
+               RB_Rating                GK_Rating
+                       0                        0 </code></pre>
+</div>
+</div>
+<p>National team position seems sparse, we’ll have to get rid of club_position as well for the model fitting. We’ll also get rid of <em>best_position</em> because it creates so much dummy vars. I’ll analyzed it in another day…</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-7_dccba2c1e8b74fefd8b4b0e7e9dd7c50">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>players <span class="ot">&lt;-</span> <span class="fu">select</span>(players, <span class="sc">-</span>National_Team_Position, <span class="sc">-</span>Club_Position, <span class="sc">-</span>Best_Position)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="feature-selection" class="level1">
+<h1>Feature selection</h1>
+<p>We’ll first use elastic net regression to try and predict overall rating from the rest of the data, and also find which variables are most important.</p>
+<section id="data-splitting" class="level2">
+<h2 class="anchored" data-anchor-id="data-splitting">Data splitting</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-8_942f1324938fa44738c0e27b75b96a46">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">14</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>train_id <span class="ot">&lt;-</span> <span class="fu">createDataPartition</span>(<span class="at">y =</span> players<span class="sc">$</span>Overall, <span class="at">p =</span> <span class="fl">0.7</span>, <span class="at">list =</span> F)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>players_train <span class="ot">&lt;-</span> players[train_id,]</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>players_test <span class="ot">&lt;-</span> players[<span class="sc">-</span>train_id,]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="elastic-net" class="level1">
+<h1>Elastic net</h1>
+<section id="tuning-grid-for-hyper-parameters" class="level2">
+<h2 class="anchored" data-anchor-id="tuning-grid-for-hyper-parameters">Tuning grid for hyper-parameters</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-9_639d484dd788fe3914fc6c3ad83ee5d4">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>tg <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(<span class="at">alpha =</span> <span class="fu">c</span>(<span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">25</span>)),</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>                  <span class="at">lambda =</span> <span class="fu">c</span>(<span class="dv">2</span> <span class="sc">^</span> <span class="fu">seq</span>(<span class="dv">10</span>, <span class="sc">-</span><span class="dv">10</span>, <span class="at">length =</span> <span class="dv">100</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Setting a relatively large range of hyper-parameters because elastic-net regression is not super expansive computationally.</p>
+</section>
+<section id="training" class="level2">
+<h2 class="anchored" data-anchor-id="training">Training</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-10_df67ee062c086917ff190b89eec82d88">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>elastic_reg <span class="ot">&lt;-</span> <span class="fu">train</span>(Overall <span class="sc">~</span> ., </span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>                    <span class="at">data =</span> players_train,</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>                    <span class="at">method =</span> <span class="st">"glmnet"</span>,</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>                    <span class="at">preProcess =</span> <span class="fu">c</span>(<span class="st">"center"</span>, <span class="st">"scale"</span>), <span class="co"># for better interpatation of coefficients</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>                    <span class="at">tuneGrid =</span> tg,</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>                    <span class="at">trControl =</span>  <span class="fu">trainControl</span>(<span class="at">method =</span> <span class="st">"cv"</span>, <span class="at">number =</span> <span class="dv">10</span>)) <span class="co"># 10-fold Cross-Validation</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="best-hyper-parameters" class="level2">
+<h2 class="anchored" data-anchor-id="best-hyper-parameters">Best hyper-parameters</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-12_40c698182be8c9f7aa81feedef5a7d45">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>elastic_reg<span class="sc">$</span>bestTune</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     alpha       lambda
+1501 0.625 0.0009765625</code></pre>
+</div>
+</div>
+</section>
+<section id="traincv-error" class="level2">
+<h2 class="anchored" data-anchor-id="traincv-error">Train/CV error</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-13_e0dfbc85062503e42863691b3e35cff7">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">bg =</span> <span class="st">'#F9EBDE'</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(elastic_reg, <span class="at">xTrans =</span> log, <span class="at">digits =</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>elastic_reg<span class="sc">$</span>results[elastic_reg<span class="sc">$</span>results<span class="sc">$</span>RMSE <span class="sc">==</span> <span class="fu">min</span>(elastic_reg<span class="sc">$</span>results<span class="sc">$</span>RMSE, <span class="at">na.rm =</span> T),]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     alpha       lambda     RMSE  Rsquared     MAE     RMSESD  RsquaredSD
+1501 0.625 0.0009765625 1.601089 0.9440492 1.24766 0.04469899 0.003446449
+          MAESD
+1501 0.02690937</code></pre>
+</div>
+</div>
+<p>All mixes of <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\lambda\)</span> hyper-parameters converge in the end.</p>
+</section>
+<section id="model-coefficients" class="level2">
+<h2 class="anchored" data-anchor-id="model-coefficients">Model coefficients</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-15_b9e58f20e7ae9c16091ccbbdddf58fc3">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">bg =</span> <span class="st">'#F9EBDE'</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>elasnet_coeffs <span class="ot">&lt;-</span> <span class="fu">coef</span>(elastic_reg<span class="sc">$</span>finalModel, <span class="at">s =</span> elastic_reg<span class="sc">$</span>bestTune<span class="sc">$</span>lambda)</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(elasnet_coeffs, <span class="at">ylab =</span> <span class="st">"Coefficient"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(elasnet_coeffs, <span class="dv">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>73 x 1 sparse Matrix of class "dgCMatrix"
+                              s1
+(Intercept)              65.9420
+Potential                 2.3510
+`Value(in_Euro)`          0.6037
+Age                       2.0174
+`Height(in_cm)`          -0.1111
+`Weight(in_kg)`           0.0979
+TotalStats               -2.7794
+BaseStats                 0.0004
+`Wage(in_Euro)`           0.2468
+Release_Clause           -0.2689
+Joined_On                 0.0710
+Preferred_FootRight      -0.0694
+Weak_Foot_Rating         -0.0397
+Skill_Moves               0.3644
+International_Reputation -0.2143
+Attacking_Work_Rate      -0.0729
+Defensive_Work_Rate      -0.1001
+Pace_Total                0.6887
+Shooting_Total            0.4371
+Passing_Total             0.6242
+Dribbling_Total           1.4907
+Defending_Total          -0.0937
+Physicality_Total         0.9278
+Crossing                  0.3602
+Finishing                -0.4256
+Heading_Accuracy          0.8768
+Short_Passing             0.2001
+Volleys                   0.0255
+Dribbling                -1.3137
+Curve                     0.0000
+Freekick_Accuracy         0.1731
+LongPassing              -0.6509
+BallControl               0.1516
+Acceleration              0.0289
+Sprint_Speed             -0.1612
+Agility                  -0.1264
+Reactions                 1.1084
+Balance                  -0.0032
+Shot_Power               -0.0565
+Jumping                   0.0664
+Stamina                   0.0582
+Strength                 -0.1455
+Long_Shots               -0.3293
+Aggression               -0.1703
+Positioning              -1.1545
+Vision                   -0.7001
+Penalties                 0.1108
+Composure                 0.4431
+Marking                   0.6215
+Standing_Tackle           0.2082
+Sliding_Tackle            0.2331
+Goalkeeper_Diving         0.1745
+Goalkeeper_Handling      -0.0091
+GoalkeeperKicking         0.0767
+Goalkeeper_Positioning   -0.0696
+Goalkeeper_Reflexes      -0.0828
+ST_Rating                 2.5495
+LW_Rating                -0.0648
+LF_Rating                 0.0000
+CF_Rating                 0.0000
+RF_Rating                 0.0000
+RW_Rating                 .
+CAM_Rating               -0.1751
+LM_Rating                 0.5492
+CM_Rating                 1.9575
+RM_Rating                 0.0129
+LWB_Rating                .
+CDM_Rating                1.3227
+RWB_Rating                .
+LB_Rating                -0.0021
+CB_Rating                -0.9501
+RB_Rating                 .
+GK_Rating                 0.6368</code></pre>
+</div>
+</div>
+<p>The intercept is quite large. Let’s look at the variables in a more informative scale.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-16_a4c9c27d776c81a19e9a1b1cb83afb0a">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">bg =</span> <span class="st">'#F9EBDE'</span>)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(elasnet_coeffs[<span class="sc">-</span><span class="dv">1</span>,], <span class="at">ylab =</span> <span class="st">"Coefficient"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="test-error" class="level2">
+<h2 class="anchored" data-anchor-id="test-error">Test error</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-18_59f5f14f266b9212c7df0e902d275bf7">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>elasticreg_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(elastic_reg, <span class="at">newdata =</span> players_test) <span class="co"># calculating model's prediction for test set</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>Test error and effect size</strong><br>
+<span class="math inline">\(RMSE=1.60955711701293\)</span><br>
+<span class="math inline">\(R^2=0.944839845538989\)</span></p>
+<p>Very nice!</p>
+</section>
+</section>
+<section id="boosting" class="level1">
+<h1>Boosting</h1>
+<section id="training-control" class="level2">
+<h2 class="anchored" data-anchor-id="training-control">Training control</h2>
+<p>We’ll use adaptive cross-validation in order to make the hyper-parameter search more efficient.<br>
+For further explanation on implementation in <code>R</code> <a href="https://topepo.github.io/caret/adaptive-resampling.html">see</a>. For further reading on theory <a href="https://arxiv.org/abs/1405.6974">see</a>.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-20_60ea6eb8fbfba253a1d09efebab9d19a">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>tr <span class="ot">&lt;-</span> <span class="fu">trainControl</span>(<span class="at">method =</span> <span class="st">"adaptive_cv"</span>,</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>                   <span class="at">number =</span> <span class="dv">10</span>, <span class="at">repeats =</span> <span class="dv">10</span>,</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>                   <span class="at">adaptive =</span> <span class="fu">list</span>(<span class="at">min =</span> <span class="dv">5</span>, <span class="at">alpha =</span> <span class="fl">0.05</span>, </span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">method =</span> <span class="st">"BT"</span>, <span class="at">complete =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>                   <span class="at">search =</span> <span class="st">"random"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="training-1" class="level2">
+<h2 class="anchored" data-anchor-id="training-1">Training</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-21_ae0e10d3fa931f41cd10bf28d6bef057">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">14</span>)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>boost_model <span class="ot">&lt;-</span> <span class="fu">train</span>(Overall <span class="sc">~</span> ., </span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>                   <span class="at">data =</span> players_train,</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>                   <span class="at">method =</span> <span class="st">"gbm"</span>,</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>                   <span class="at">trControl =</span> tr, <span class="co"># No explicit tuning grid is needed</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>                   <span class="at">verbose =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="traincv-error-1" class="level2">
+<h2 class="anchored" data-anchor-id="traincv-error-1">Train/CV error</h2>
+<p>Getting the results of the best tuning parameters found.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-23_000cc66608c73bcd696fba7eb3781e79">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>boost_model<span class="sc">$</span>results[boost_model<span class="sc">$</span>results<span class="sc">$</span>RMSE <span class="sc">==</span> <span class="fu">min</span>(boost_model<span class="sc">$</span>results<span class="sc">$</span>RMSE, <span class="at">na.rm =</span> T),<span class="dv">5</span><span class="sc">:</span><span class="dv">10</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       RMSE  Rsquared       MAE      RMSESD   RsquaredSD       MAESD
+2 0.7146858 0.9893686 0.5457707 0.005980442 0.0002966158 0.002603466</code></pre>
+</div>
+</div>
+<p>Seems quite optimized, but is it overfitted?</p>
+</section>
+<section id="test-error-1" class="level2">
+<h2 class="anchored" data-anchor-id="test-error-1">Test error</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-24_a27bec5025ebf29120127af1cbbb574b">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>boost_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(boost_model, players_test)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>Test error and effect size</strong><br>
+<span class="math inline">\(RMSE=0.700272523649518\)</span><br>
+<span class="math inline">\(R^2=0.989645490170188\)</span></p>
+<p>Very Very nice!</p>
+</section>
+<section id="variable-importance" class="level2">
+<h2 class="anchored" data-anchor-id="variable-importance">Variable importance</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-26_6d969430b687967ab709185b4fa2b68d">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>varimp <span class="ot">&lt;-</span> caret<span class="sc">::</span><span class="fu">varImp</span>(boost_model, <span class="at">scale =</span> T)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>varimp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>gbm variable importance
+
+  only 20 most important variables shown (out of 72)
+
+                        Overall
+`Value(in_Euro)`       100.0000
+Reactions               50.2939
+BaseStats               16.4047
+Age                      7.5742
+`Wage(in_Euro)`          3.8700
+Potential                3.6002
+CB_Rating                2.3274
+Defending_Total          1.0533
+Goalkeeper_Positioning   0.6619
+Crossing                 0.3162
+TotalStats               0.2916
+Shooting_Total           0.2559
+Strength                 0.2359
+Positioning              0.2113
+Standing_Tackle          0.1991
+LF_Rating                0.1927
+Release_Clause           0.1814
+Dribbling_Total          0.1650
+LB_Rating                0.1578
+Heading_Accuracy         0.1497</code></pre>
+</div>
+</div>
+<section id="plotting-variable-importance" class="level3">
+<h3 class="anchored" data-anchor-id="plotting-variable-importance">Plotting variable importance</h3>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-27_29755b4e109668190ee126103d6629ab">
+<details class="code-fold">
+<summary>Show the plot’s code</summary>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># data preparation</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>varimp<span class="sc">$</span>importance <span class="sc">%&gt;%</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rownames_to_column</span>(<span class="at">var =</span> <span class="st">"Feature"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">rename</span>(<span class="at">Importance =</span> Overall) <span class="sc">%&gt;%</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Importance <span class="sc">!=</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span> <span class="co"># Only features that have an above 0 importance</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Plotting</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(Feature, <span class="sc">-</span>Importance), <span class="at">y =</span> Importance)) <span class="sc">+</span></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>) <span class="sc">+</span></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>)) <span class="sc">+</span></span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">100</span>), <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Feature"</span>, <span class="at">y =</span> <span class="st">"Importance"</span>, <span class="at">title =</span> <span class="st">"Variable importance in boosted model"</span>, <span class="at">caption =</span> <span class="st">"Tomer Zipori | FIFA 23 Player Research by Babatunde Zenith | Kaggle"</span>) <span class="sc">+</span></span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">7</span>),</span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">16</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>),</span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.margin =</span> <span class="fu">unit</span>(<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>), <span class="st">"cm"</span>),</span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.caption =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">6</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">vjust =</span> <span class="sc">-</span><span class="dv">5</span>),</span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>),</span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-27-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Player value is the strongest predictor by far, with a few interesting ones right behind it (CB_rating?).</p>
+</section>
+</section>
+</section>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>Both methods supplied outstanding results with over 94% and 99% explained variance in rating. Not so surprisingly Player’s value is strongly linked with their overall FIFA rating. A few notable findings are the importance of <em>Reactions</em>, <em>CB_rating</em> and <em>Defending_total</em>. Overall, Defensive ability seems to be quite an important predictor of Player’s rating.</p>
+
+
+</section></article></main>
 <footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>Ask the database what it thinks.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

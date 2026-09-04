@@ -15,5 +15,266 @@ image-alt: ""
 ---
 
 <header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
-<main class="site-main"><section class="page-intro"><p class="section-number">Article · Data and strange claims</p><h1>Who is the leading US state in UFO reports? probably not what you thought</h1><div class="article-meta"><span class="status">in bloom</span><span>16 Apr 2023</span></div></section><article class="prose"><p>Counts are easy to find and easy to misunderstand. A state with more reports may simply have more people, more sky, or more people willing to submit a report.</p><h2>The question</h2><p>What changes when UFO reports are visualized per capita instead of as raw totals?</p><h2>The plot</h2><p>The map is exploratory. It makes the denominator visible and turns an odd question into a reminder about exposure, reporting behavior, and the stories that data invite.</p><p>Probably not what you thought. That is where the investigation starts, not where it ends.</p></article></main>
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Data and strange claims</p><h1>Who is the leading US state in UFO reports? probably not what you thought</h1><div class="article-meta"><span class="status">in bloom</span><span>16 Apr 2023</span></div></section><article class="prose real-post"><section id="background" class="level1">
+<h1>Background</h1>
+<p>As I told in another post, I’ve recently enrolled to a course about Data-Viz (and maybe some NLP later-on, stay tuned). One of the assignments in the course was to make some <code>TidyTuesday</code> contribution and present it in class. Although this is not what I’ve presented in class, this was made shortly after and I think it came out quite nice :)</p>
+</section>
+<section id="the-data" class="level1">
+<h1>The Data</h1>
+<section id="from-the-github-repo" class="level5">
+<h5 class="anchored" data-anchor-id="from-the-github-repo">From the Github <a href="https://github.com/tomerzipori/tidytuesday/tree/master/data/2019/2019-06-25">repo</a>:</h5>
+<p><em>This data includes &gt;80,000 recorded UFO “sightings” around the world, including the UFO shape,</em> <em>lat/long and state/country of where the sighting occurred, duration of the “event” and the</em> <em>data_time when it occurred.</em></p>
+<p><em>Data comes originally from <a href="http://www.nuforc.org/">NUFORC</a>, was cleaned and uploaded to Github by <a href="https://github.com/planetsig/ufo-reports">Sigmond Axel</a>, and some exploratory plots were created by <a href="https://www.kaggle.com/jonathanbouchet/e-t-phone-home-but-mostly-after-8-00pm">Jonathan Bouchet</a> a few years back.</em></p>
+<p>Let’s start!</p>
+</section>
+</section>
+<section id="setup" class="level1">
+<h1>Setup</h1>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-1_ba572f8776c9cd8b6a7d467d9331c013">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)    <span class="co"># for data wrangling and pre-processing</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidytuesdayR) <span class="co"># for easy data loading</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(maps)         <span class="co"># map data</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)    <span class="co"># makes dealing with date format much easier</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(jpeg)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggimage)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(showtext)     <span class="co"># fonts</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="loading-data" class="level1">
+<h1>Loading data</h1>
+<section id="initial-pre-processing" class="level2">
+<h2 class="anchored" data-anchor-id="initial-pre-processing">Initial pre-processing</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-2_cc70c28ff1140e3283ebc8e3d17fe7f8">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ufo_sightings <span class="ot">&lt;-</span> readr<span class="sc">::</span><span class="fu">read_csv</span>(<span class="st">"https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-06-25/ufo_sightings.csv"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>usa <span class="ot">&lt;-</span> <span class="fu">map_data</span>(<span class="st">"state"</span>) <span class="co"># US map</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>state_codes <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"state_code.csv"</span>) <span class="sc">%&gt;%</span> <span class="co"># converting from state name to 2-letter code and back</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(state, code) <span class="sc">%&gt;%</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">state =</span> <span class="fu">tolower</span>(state), <span class="at">code =</span> <span class="fu">tolower</span>(code))</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>uspop <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"uspop.xlsx"</span>, <span class="at">col_names =</span> <span class="fu">c</span>(<span class="st">"region"</span>, <span class="st">"pop_2010"</span>, <span class="st">"pop_2011"</span>, <span class="st">"pop_2012"</span>, <span class="st">"pop_2013"</span>, <span class="st">"pop_2014"</span>)) <span class="sc">%&gt;%</span> <span class="co"># info about state population</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">region =</span> <span class="fu">tolower</span>(<span class="fu">str_remove</span>(region, <span class="st">"."</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowwise</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">mean_pop =</span> <span class="fu">mean</span>(<span class="fu">c</span>(pop_2010, pop_2011, pop_2012, pop_2013, pop_2014))) <span class="sc">%&gt;%</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(region, mean_pop)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>US population info taken from the <a href="https://www.census.gov/data/datasets/time-series/demo/popest/2010s-state-total.html#par_textimage_1873399417">United States Census Bureau</a>.</p>
+</section>
+<section id="glimpsing-at-the-data" class="level2">
+<h2 class="anchored" data-anchor-id="glimpsing-at-the-data">Glimpsing at the data</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-3_70201a9b8bd7d7a5e2f8928c740893ac">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(ufo_sightings)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 80,332
+Columns: 11
+$ date_time                  &lt;chr&gt; "10/10/1949 20:30", "10/10/1949 21:00", "10…
+$ city_area                  &lt;chr&gt; "san marcos", "lackland afb", "chester (uk/…
+$ state                      &lt;chr&gt; "tx", "tx", NA, "tx", "hi", "tn", NA, "ct",…
+$ country                    &lt;chr&gt; "us", NA, "gb", "us", "us", "us", "gb", "us…
+$ ufo_shape                  &lt;chr&gt; "cylinder", "light", "circle", "circle", "l…
+$ encounter_length           &lt;dbl&gt; 2700, 7200, 20, 20, 900, 300, 180, 1200, 18…
+$ described_encounter_length &lt;chr&gt; "45 minutes", "1-2 hrs", "20 seconds", "1/2…
+$ description                &lt;chr&gt; "This event took place in early fall around…
+$ date_documented            &lt;chr&gt; "4/27/2004", "12/16/2005", "1/21/2008", "1/…
+$ latitude                   &lt;dbl&gt; 29.88306, 29.38421, 53.20000, 28.97833, 21.…
+$ longitude                  &lt;dbl&gt; -97.941111, -98.581082, -2.916667, -96.6458…</code></pre>
+</div>
+</div>
+</section>
+<section id="defining-functions" class="level2">
+<h2 class="anchored" data-anchor-id="defining-functions">Defining functions</h2>
+<p>Some helper function will help us later, mainly to work with dates.<br>
+<code>convert_to_date</code> takes a vector of character formatted dates and converts it to lubridate’s <em>date</em> format. <code>floor_decade</code> takes a vector of dates and converts it to a vector of decades.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-4_308c4d5c8323b29775280f1f2d6384f8">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>convert_to_date <span class="ot">&lt;-</span> <span class="cf">function</span>(x) { </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  sub_string <span class="ot">&lt;-</span> <span class="fu">str_sub</span>(x, <span class="dv">1</span>, <span class="dv">10</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  d <span class="ot">&lt;-</span> <span class="fu">mdy</span>(sub_string)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">as.numeric</span>(d))</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>floor_decade <span class="ot">&lt;-</span> <span class="cf">function</span>(x){</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(lubridate<span class="sc">::</span><span class="fu">year</span>(x) <span class="sc">-</span> lubridate<span class="sc">::</span><span class="fu">year</span>(x) <span class="sc">%%</span> <span class="dv">10</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  }</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="converting-the-dates" class="level3">
+<h3 class="anchored" data-anchor-id="converting-the-dates">Converting the dates</h3>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-5_4074a8b4322bec1b86af4d844a384ff6">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>ufo_sightings <span class="ot">&lt;-</span> ufo_sightings <span class="sc">%&gt;%</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">date =</span> <span class="fu">as_date</span>(purrr<span class="sc">::</span><span class="fu">map_dbl</span>(date_time, <span class="sc">~</span><span class="fu">convert_to_date</span>(.)))) <span class="co"># Convert to 'Date' format. Run only once, its slow af</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="globals" class="level2">
+<h2 class="anchored" data-anchor-id="globals">Globals</h2>
+<p>Here I’m loading some images and fonts that will be of use later to beautify the plot.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-6_9e2634767a44c8febed501665e71854c">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>nightsky_img <span class="ot">&lt;-</span> <span class="st">"nightsky2.jpg"</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co">#font_files() %&gt;% tibble() %&gt;% filter(str_detect(family, "Showcard Gothic"))</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">font_add</span>(<span class="at">family =</span> <span class="st">"Showcard Gothic"</span>, <span class="at">regular =</span> <span class="st">"SHOWG.TTF"</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">showtext_auto</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="data-pre-processing" class="level2">
+<h2 class="anchored" data-anchor-id="data-pre-processing">Data pre-processing</h2>
+<p>Preparing the data for plotting: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Leaving only reports from the US.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Leaving only reports for <em>continental</em> US.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Selecting the relevant variables.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4. Calculating decades.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-7_329854297199efb901529bfb692549e6">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ufo <span class="ot">&lt;-</span> ufo_sightings <span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(country <span class="sc">==</span> <span class="st">"us"</span>) <span class="sc">%&gt;%</span> <span class="co"># Leaving only sightings in US</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>(state <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"ak"</span>, <span class="st">"pr"</span>, <span class="st">"hi"</span>))) <span class="sc">%&gt;%</span> <span class="co"># Only mainland US</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(date, <span class="at">code =</span> state, description, encounter_length, latitude, longitude) <span class="sc">%&gt;%</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(state_codes, <span class="at">by =</span> <span class="st">"code"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">decade =</span> <span class="fu">as.factor</span>(purrr<span class="sc">::</span><span class="fu">map_dbl</span>(date, <span class="sc">~</span><span class="fu">floor_decade</span>(.)))) <span class="sc">%&gt;%</span> <span class="co"># Create decade variable</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(decade)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>After some experimenting I’ve decided to make a heat map to visualize the number of UFO reports per state. But first, some more data processing. I first counted the number of cases per state (<em>by_state</em>), and then combined it with the USA map data frame (<em>by_state2</em>).</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-8_011db355328eee41aaf4aef5956314c7">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>by_state <span class="ot">&lt;-</span> ufo <span class="sc">%&gt;%</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(state, decade, <span class="at">.drop =</span> F) <span class="sc">%&gt;%</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">cases =</span> <span class="fu">n</span>(),</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>by_state2 <span class="ot">&lt;-</span> <span class="fu">left_join</span>(usa, by_state, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"region"</span> <span class="ot">=</span> <span class="st">"state"</span>), <span class="at">multiple =</span> <span class="st">"all"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(decade <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">2000</span>, <span class="dv">2010</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(uspop, <span class="at">by =</span> <span class="st">"region"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now I need to summarize the number of cases per state.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-9_dda6ec3c0953680aa16f54c717fdf01a">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>cases_per_state <span class="ot">&lt;-</span> by_state2 <span class="sc">%&gt;%</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(region) <span class="sc">%&gt;%</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">cases =</span> <span class="fu">sum</span>(cases), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>And finally merge it back together with the geographic data.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-10_79097f97ee80e34f5050cd17138b9ae0">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>by_state2 <span class="ot">&lt;-</span> <span class="fu">left_join</span>(by_state2, <span class="fu">select</span>(cases_per_state, region, <span class="at">cases_total =</span> cases), <span class="at">by =</span> <span class="st">"region"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="heatmap-1" class="level2">
+<h2 class="anchored" data-anchor-id="heatmap-1">Heatmap 1</h2>
+<p>And now for the heat map… <em>drum roll</em></p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-11_19bcc20263bd5abd36c6741d15a8b58a">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>heatmap <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(by_state2, <span class="fu">aes</span>(<span class="at">x =</span> long, <span class="at">y =</span> lat, <span class="at">fill =</span> cases_total, <span class="at">group =</span> group)) <span class="sc">+</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_polygon</span>(<span class="at">color =</span> <span class="st">"black"</span>, <span class="at">show.legend =</span> T) <span class="sc">+</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradient</span>(<span class="at">low =</span> <span class="st">"#ffae00"</span>, <span class="at">high =</span> <span class="st">"#d90000"</span>, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">2864832</span>), <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">2850000</span>)) <span class="sc">+</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_fixed</span>(<span class="fl">1.3</span>, <span class="at">clip =</span> <span class="st">"off"</span>) <span class="sc">+</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.ticks =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>),</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>),</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>),</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.margin =</span> <span class="fu">unit</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">11</span>,<span class="sc">-</span><span class="fl">0.5</span>,<span class="sc">-</span><span class="dv">11</span>,<span class="sc">-</span><span class="fl">0.5</span>), <span class="at">units =</span> <span class="st">"cm"</span>),</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.margin =</span> <span class="fu">margin</span>(<span class="dv">0</span>, <span class="dv">20</span>, <span class="dv">0</span>, <span class="dv">0</span>))</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>heatmap</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Looking at these results, I thought that of course California, Texas and Florida have the most reports, they also have the most people!<br>
+A <em>per capita</em> measure will probably be more informative.</p>
+<p>Calculating reports per capita.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-12_aaeecacfae096f159077bb9377107b60">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>cases_per_capita <span class="ot">&lt;-</span> by_state2 <span class="sc">%&gt;%</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(region) <span class="sc">%&gt;%</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">cases =</span> <span class="fu">sum</span>(cases), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(uspop, <span class="at">by =</span> <span class="st">"region"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">cases_per_capita =</span> cases<span class="sc">/</span>mean_pop)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Merging again with the geographical data.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-13_852b871ba5321b20ece7e3e1c0e892e4">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>by_state2 <span class="ot">&lt;-</span> <span class="fu">left_join</span>(by_state2, <span class="fu">select</span>(cases_per_capita, region, cases_per_capita, <span class="at">cases_total =</span> cases), <span class="at">by =</span> <span class="st">"region"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="heatmap-2" class="level2">
+<h2 class="anchored" data-anchor-id="heatmap-2">Heatmap 2</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-14_b190363bbe955e673acd67ed4e57535b">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>heatmap2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(by_state2, <span class="fu">aes</span>(<span class="at">x =</span> long, <span class="at">y =</span> lat, <span class="at">fill =</span> cases_per_capita, <span class="at">group =</span> group)) <span class="sc">+</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_polygon</span>(<span class="at">color =</span> <span class="st">"black"</span>, <span class="at">show.legend =</span> T) <span class="sc">+</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradient</span>(<span class="at">low =</span> <span class="st">"#ffae00"</span>, <span class="at">high =</span> <span class="st">"#d90000"</span>, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.2</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="fl">0.2</span>, <span class="at">length.out =</span> <span class="dv">6</span>)) <span class="sc">+</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_fixed</span>(<span class="fl">1.3</span>, <span class="at">clip =</span> <span class="st">"off"</span>) <span class="sc">+</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.ticks =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>),</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>),</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>),</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.margin =</span> <span class="fu">unit</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">11</span>,<span class="sc">-</span><span class="fl">0.5</span>,<span class="sc">-</span><span class="dv">11</span>,<span class="sc">-</span><span class="fl">0.5</span>), <span class="at">units =</span> <span class="st">"cm"</span>),</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.margin =</span> <span class="fu">margin</span>(<span class="dv">0</span>, <span class="dv">20</span>, <span class="dv">0</span>, <span class="dv">0</span>))</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>heatmap2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Nice!</p>
+</section>
+<section id="heatmap3" class="level2">
+<h2 class="anchored" data-anchor-id="heatmap3">Heatmap3</h2>
+<p>Let’s add some aesthetics because why not (I’ve only spent 6 hours on Google researching color theory and ggplot2’s internal logic). Unfold the code chunk if you are interested in seeing the monstrosity.</p>
+<div class="cell" data-fig.dpi="96" data-hash="index_cache/html/unnamed-chunk-15_5c65f1475e83ecf47a1273a3e4113787">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>heatmap3 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(by_state2, <span class="fu">aes</span>(<span class="at">x =</span> long, <span class="at">y =</span> lat, <span class="at">fill =</span> cases_per_capita, <span class="at">group =</span> group)) <span class="sc">+</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_polygon</span>(<span class="at">color =</span> <span class="st">"#00670c"</span>, <span class="at">show.legend =</span> T) <span class="sc">+</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradient</span>(<span class="at">low =</span> <span class="st">"black"</span>, <span class="at">high =</span> <span class="st">"#5dff00"</span>, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.2</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="fl">0.2</span>, <span class="at">length.out =</span> <span class="dv">6</span>), <span class="at">guide =</span> <span class="fu">guide_colorbar</span>(<span class="st">"Number of reported cases per capita"</span>, </span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>                                                                               <span class="at">title.position =</span> <span class="st">"top"</span>,</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>                                                                               <span class="at">title.theme =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"#5dff00"</span>, <span class="at">family =</span> <span class="st">"serif"</span>),</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>                                                                               <span class="at">title.hjust =</span> <span class="fl">0.5</span>,</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>                                                                               <span class="at">barwidth =</span> <span class="dv">30</span>,</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>                                                                               <span class="at">ticks.colour =</span> <span class="cn">NA</span>)) <span class="sc">+</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"15 years of UFO sightings in the US between 2000 and 2014"</span>,</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">caption =</span> <span class="st">"Tomer Zipori | #TidyTuesday | Source: National UFO Reporting Center"</span>) <span class="sc">+</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_fixed</span>(<span class="fl">1.3</span>, <span class="at">clip =</span> <span class="st">"off"</span>) <span class="sc">+</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"label"</span>, <span class="at">x =</span> <span class="sc">-</span><span class="dv">130</span>, <span class="at">y =</span> <span class="fl">45.4</span>, <span class="at">label =</span> <span class="st">"Washington is spooky!</span><span class="sc">\n</span><span class="st"> # of cases: 1,228,975</span><span class="sc">\n</span><span class="st"> Cases per capita: 0.18"</span>,</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>           <span class="at">color =</span> <span class="st">"#5dff00"</span>, <span class="at">fill =</span> <span class="st">"black"</span>, <span class="at">family =</span> <span class="st">"serif"</span>, <span class="at">fontface =</span> <span class="st">"bold"</span>) <span class="sc">+</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_curve</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="sc">-</span><span class="fl">127.5</span>, <span class="at">y =</span> <span class="fl">46.4</span>, <span class="at">xend =</span> <span class="sc">-</span><span class="fl">124.48</span>, <span class="at">yend =</span> <span class="fl">47.4</span>), <span class="at">color =</span> <span class="st">"#5dff00"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>, <span class="at">curvature =</span> <span class="sc">-</span><span class="fl">0.35</span>,</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>             <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">type =</span> <span class="st">"closed"</span>, <span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.02</span>, <span class="st">"npc"</span>))) <span class="sc">+</span></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"label"</span>, <span class="at">x =</span> <span class="sc">-</span><span class="dv">124</span>, <span class="at">y =</span> <span class="fl">30.4</span>, <span class="at">label =</span> <span class="st">"Utah has the lowest rate in the US</span><span class="sc">\n</span><span class="st"> # of cases: 22,715</span><span class="sc">\n</span><span class="st"> Cases per capita: 0.0079"</span>,</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>           <span class="at">color =</span> <span class="st">"#5dff00"</span>, <span class="at">fill =</span> <span class="st">"black"</span>, <span class="at">family =</span> <span class="st">"serif"</span>, <span class="at">fontface =</span> <span class="st">"bold"</span>) <span class="sc">+</span></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_curve</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="sc">-</span><span class="fl">119.4</span>, <span class="at">y =</span> <span class="fl">31.4</span>, <span class="at">xend =</span> <span class="sc">-</span><span class="fl">111.5</span>, <span class="at">yend =</span> <span class="dv">39</span>), <span class="at">color =</span> <span class="st">"#5dff00"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>, <span class="at">curvature =</span> <span class="fl">0.3</span>,</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>             <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">type =</span> <span class="st">"closed"</span>, <span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.02</span>, <span class="st">"npc"</span>))) <span class="sc">+</span></span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">24</span>, <span class="at">vjust =</span> <span class="sc">-</span><span class="dv">4</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">color =</span> <span class="st">"#5dff00"</span>, <span class="at">family =</span> <span class="st">"Showcard Gothic"</span>),</span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.caption =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"#5dff00"</span>, <span class="at">hjust =</span> <span class="fl">1.05</span>, <span class="at">family =</span> <span class="st">"serif"</span>, <span class="at">size =</span> <span class="dv">9</span>),</span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.title.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.title.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.grid =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position =</span> <span class="st">"bottom"</span>, <span class="at">legend.box =</span> <span class="st">"horizontal"</span>, <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"#5dff00"</span>, <span class="at">family =</span> <span class="st">"mono"</span>, <span class="at">size =</span> <span class="dv">14</span>))</span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>heatmap3 <span class="ot">&lt;-</span> <span class="fu">ggbackground</span>(heatmap3, nightsky_img)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="heatmap3.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+</section>
+</section>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>Washington is spooky! I really don’t know why Washington is leading in this measure. Like most people I’ve expected to find Nevada or Utah (which is last!) in the first place. Having said that, UFO stands for “<strong>Unidentified</strong> foreign object”, maybe the people of Nevada know what they are seeing in the sky lol.</p>
+
+
+</section></article></main>
 <footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>One strange claim, two denominators.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

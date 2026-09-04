@@ -39,6 +39,25 @@ class ContentContractTests(unittest.TestCase):
         self.assertIn('sessionStorage.getItem("lastOddDestination")', script)
         self.assertIn('candidate !== previous', script)
 
+    def test_public_posts_keep_their_long_form_source_content(self):
+        markers = {
+            "bayes101": "Bayes theorem",
+            "bayes102": "brms",
+            "eggs": "eggproduction",
+            "elections2024": "Nevada",
+            "fifa23": "elastic_reg",
+            "football_fake_news": "quanteda",
+            "micrograd": "loss(",
+            "netflix": "tfidf(",
+            "p_values_paradox": "p-value",
+            "ufo": "ufo_sightings",
+        }
+        for slug, marker in markers.items():
+            post = (ROOT / "posts" / slug / "index.qmd").read_text()
+            self.assertIn('<article class="prose real-post">', post)
+            self.assertIn(marker, post)
+            self.assertGreater(len(post), 20_000)
+
 
 if __name__ == "__main__":
     unittest.main()

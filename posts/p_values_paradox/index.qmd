@@ -15,5 +15,348 @@ image-alt: ""
 ---
 
 <header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
-<main class="site-main"><section class="page-intro"><p class="section-number">Article · Evidence and belief</p><h1>Rejecting the null hypothesis or not?</h1><div class="article-meta"><span class="status">in bloom</span><span>04 Sep 2023</span></div></section><article class="prose"><p>A p-value can look like a small, clean answer. The trouble begins when different interpretations of probability ask it to answer different questions.</p><h2>The puzzle</h2><p>Under a null model, how surprising is data at least as extreme as the data observed? That is a useful calculation. It is not the probability that the null hypothesis is true.</p><h2>Why the paradox matters</h2><p>Fisherian testing, Neyman–Pearson decision rules, and Bayesian inference organize uncertainty differently. The same observed result can therefore support different next steps, depending on the question and the model.</p><blockquote>Do not ask a number to answer a question it was not built to answer.</blockquote><p>This is a theory note with a practical ending: state the estimand, state the decision rule, and show the model that connects the data to the conclusion.</p></article></main>
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Evidence and belief</p><h1>Rejecting the null hypothesis or not?</h1><div class="article-meta"><span class="status">in bloom</span><span>04 Sep 2023</span></div></section><article class="prose real-post"><p>In the current post I try to explain what appears to be a paradox: given identical data, different schools of statistics disagree about the appropriate conclusion.</p>
+<p>Traditionally, there are two ways to interpret Probability:<br>
+1. Probability is the relative frequency of events at infinity - the Frequentist school.<br>
+2. Probability represents the degree of beliefs - The Bayesian school.</p>
+<p>Classic hypothesis testing in the social sciences usually follows the Frequentist school, the probability of errors is calculated as the relative frequency of extreme data under the relevant hypotheses.</p>
+<section id="distribution-of-p-values-when-the-null-hypothesis-is-true" class="level1">
+<h1>Distribution of p-values when the null hypothesis is true</h1>
+<p>An example for Frequentist logic in hypothesis testing is the probability of type I errors, also known as <span class="math inline">\(\alpha\)</span>: rejecting the null hypothesis when it is true.</p>
+<p>The famous (and notorious?) 5% convention, refers to the relative frequency of significant tests when the null is true.</p>
+<p>Let’s take infinite (140,000) samples of <span class="math inline">\(n=30\)</span> from populations with equal means, and compare each of them with a t-test:</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-3_0fa4db21c223acdc037ff64c1a4ef9e7">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">30</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>mu0 <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>sd0 <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>mu1 <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>p_values_null <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="cn">NULL</span>, <span class="dv">140000</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">140000</span>)) {</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  group1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, mu0, sd0)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  group2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, mu1, sd0)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  test <span class="ot">&lt;-</span> <span class="fu">t.test</span>(group1, group2, <span class="at">alternative =</span> <span class="st">"less"</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  p_values_null[i] <span class="ot">&lt;-</span> test<span class="sc">$</span>p.value</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>How many tests were significant?</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-4_cb4909299457328effb1cb0948af3f81">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(p_values_null[p_values_null <span class="sc">&lt;</span> .<span class="dv">05</span>])<span class="sc">/</span><span class="fu">length</span>(p_values_null)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.05020714</code></pre>
+</div>
+</div>
+<p>What if we defined <span class="math inline">\(\alpha=0.067\)</span>?</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-5_1d5b65e4de494cd2931e85af1c9a119b">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(p_values_null[p_values_null <span class="sc">&lt;</span> .<span class="dv">067</span>])<span class="sc">/</span><span class="fu">length</span>(p_values_null)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.06699286</code></pre>
+</div>
+</div>
+<p>Putting it in different words, the probability of getting p-values under a certain threshold equals to that threshold. or, <strong>When population means are equal, p-values are distributed uniformly.</strong></p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-6_f114d5ba971fbf4869a03ed3d96e9419">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">bg =</span> <span class="st">'#F9EBDE'</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(p_values_null, <span class="at">breaks =</span> <span class="dv">50</span>, <span class="at">xlab =</span> <span class="cn">NULL</span>, <span class="at">freq =</span> F)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="distribution-of-p-values-when-the-null-hypothesis-is-false" class="level1">
+<h1>Distribution of p-values when the null hypothesis is false</h1>
+<p>What happens when population means are <em>not</em> equal? The probability of detecting an existing effect (e.g.&nbsp;getting a significant result) is called <em>Power</em>. Naturally, statistical Power is larger for larger differences between populations means.</p>
+<p>Lets simulate yet again infinite (140,000) t-tests, this time between samples from populations with difference of means of 0.65.</p>
+<section id="distribution-of-p-values-with-80-power" class="level2">
+<h2 class="anchored" data-anchor-id="distribution-of-p-values-with-80-power">Distribution of p-values with 80% power</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-8_b84ad3681c12cb26f25d7efb8710c468">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">30</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>mu0 <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>sd0 <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>mu1 <span class="ot">&lt;-</span> <span class="fl">0.65</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>p_values_80 <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="cn">NULL</span>, <span class="dv">140000</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">140000</span>)) {</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  group1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, mu0, sd0)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  group2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, mu1, sd0)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  test <span class="ot">&lt;-</span> <span class="fu">t.test</span>(group1, group2, <span class="at">alternative =</span> <span class="st">"less"</span>)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  p_values_80[i] <span class="ot">&lt;-</span> test<span class="sc">$</span>p.value</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>What is the probability of getting a significant result?</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-9_d2652adefe2dd3a09b883fb7ced87431">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(p_values_80[p_values_80 <span class="sc">&lt;</span> .<span class="dv">05</span>])<span class="sc">/</span><span class="fu">length</span>(p_values_80)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.80015</code></pre>
+</div>
+</div>
+<p>How does the distribution of p-values look when there is 80% Power (probability of 0.8 of getting a significant result)?</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-10_dc93255a2074b9afd774519511a43ceb">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">bg =</span> <span class="st">'#F9EBDE'</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(p_values_80, <span class="at">breaks =</span> <span class="dv">50</span>, <span class="at">xlab =</span> <span class="cn">NULL</span>, <span class="at">freq =</span> F)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Smaller p-values are more probable, and the uniform distribution from before “gets skewed”.</p>
+</section>
+</section>
+<section id="distribution-of-p-values-with-99-power" class="level1">
+<h1>Distribution of p-values with 99% power</h1>
+<p>Increasing the difference between population means causes the p-values distribution to get more and more skewed.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-12_2a075f0edfecfdcf394d8c185a18acaa">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">30</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>mu0 <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>sd0 <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>mu1 <span class="ot">&lt;-</span> <span class="fl">1.0376218</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>p_values_99 <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="cn">NULL</span>, <span class="dv">140000</span>)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">140000</span>)) {</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  group1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, mu0, sd0)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  group2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, mu1, sd0)</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  test <span class="ot">&lt;-</span> <span class="fu">t.test</span>(group1, group2, <span class="at">alternative =</span> <span class="st">"less"</span>)</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>  p_values_99[i] <span class="ot">&lt;-</span> test<span class="sc">$</span>p.value</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(p_values_99[p_values_99 <span class="sc">&lt;</span> .<span class="dv">05</span>])<span class="sc">/</span><span class="fu">length</span>(p_values_99)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.9899</code></pre>
+</div>
+</div>
+<p>And the distribution of p-values:</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-13_3150a2a57b02008810d4a3b279c8f9ed">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">bg =</span> <span class="st">'#F9EBDE'</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(p_values_99, <span class="at">breaks =</span> <span class="dv">100</span>, <span class="at">freq =</span> F, <span class="at">xlab =</span> <span class="cn">NULL</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="reversing-the-conditionality" class="level1">
+<h1>Reversing the conditionality</h1>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="bayes.png" class="img-fluid figure-img"></p>
+<figcaption>All about the Bayes</figcaption>
+</figure>
+</div>
+<p>As we said before, p-values represent the probability of getting certain data when the null hypothesis is true. What if we looked at it from the other side? What is the probability that the null hypothesis is true, given a certain p-value?</p>
+<p>In the Frequentist school, this question seems weird: what is the relative frequency at infinity of the null hypothesis being true? That is, out of infinite worlds, in how many of them the null is true?</p>
+<p>Switching our perspective to be Bayesian, assigning probabilities to hypotheses becomes less weird. That is because Bayesians see probability as a measure of confidence in some statement/model/possible world.</p>
+<p>As it’s name suggests, the Bayesian interpretation of probability is rooted in the Bayes theorem for conditional probabilities:</p>
+<p><span class="math display">\[
+p(A/B)= \frac {p(A) \cdot p(B/A)}{p(B)}
+\]</span></p>
+<p>Confidence in <span class="math inline">\(A\)</span> given the occurrence of <span class="math inline">\(B\)</span> is proportional to the product of the prior confidence in <span class="math inline">\(A\)</span> and the conditional probability of <span class="math inline">\(A\)</span> on <span class="math inline">\(B\)</span> - also called the <strong>Likelihood</strong> of <span class="math inline">\(A\)</span>.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Bayes’ theorem is <strong>not</strong> a matter of interpretation. it can be derived from the basic probability axioms. It is linked with the interpretation of probability as a measure of confidence in statements because it defines the procedure of belief updating.</p>
+</div>
+</div>
+<p>Re-phrasing the theorem, it is possible to formulate the posterior probability of a hypothesis given some observed data:</p>
+<p><span class="math display">\[
+p(hypothesis/data)= \frac {p(hypothesis) \cdot p(data/hypothesis)}{p(data)}
+\]</span></p>
+<p>Another possibility of conceptualize the Bayes mindset is seeing the posterior probability of the hypothesis as an <em>update</em> to the prior probability of it.</p>
+<p>Bayes theorem also enable the comparison of two hypotheses using the ratio between the posteriors:/ <span class="math display">\[
+\frac{p(hypothesis \, 1/data)}{p(hypothesis \, 2/data)}= \frac {\frac {p(hypothesis \, 1) \cdot p(data/hypothesis \, 1)}{p(data)}}{\frac {p(hypothesis \, 2) \cdot p(data/hypothesis \, 2)}{p(data)}}
+\]</span></p>
+<p>Cancelling the annoying denominator yields the following: <span class="math display">\[
+\frac {p(hypothesis \, 1) \cdot p(data/hypothesis \, 1)}{p(hypothesis \, 2) \cdot p(data/hypothesis \, 2)}
+\]</span></p>
+<p>The ratio of posterior probabilities equals to the product of the prior ratio and the likelihood ratio. When this value is bigger then 1, it can considered as evidence in favor of Hypothesis 1.</p>
+</section>
+<section id="posterior-probability-of-hypotheses-given-p-values" class="level1">
+<h1>Posterior probability of hypotheses given p-values</h1>
+<p>Using Bayes theorem, it is now possible to construct a posterior probability for each of the original hypotheses, given an observed p-value.</p>
+<section id="likelihood" class="level2">
+<h2 class="anchored" data-anchor-id="likelihood">Likelihood</h2>
+<p>What is the probability of p-values given each hypothesis? we actually answered this question earlier when we visualized the density distributions of p-values.</p>
+<p>For example, the probability of observing a p-value between 0.03 and 0.04 given the null hypothesis is:</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-14_19696ea8438686508c148e8538a018bb">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="st">"p"</span> <span class="ot">=</span> p_values_null) <span class="sc">|&gt;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> p)) <span class="sc">+</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="at">alpha =</span> .<span class="dv">6</span>, <span class="at">fill =</span> <span class="st">"#815854"</span>) <span class="sc">+</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_area</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">stage</span>(p, <span class="at">after_stat =</span> <span class="fu">oob_censor</span>(x, <span class="fu">c</span>(<span class="fl">0.03</span>, <span class="fl">0.04</span>)))), <span class="at">stat =</span> <span class="st">"density"</span>, <span class="at">fill =</span> <span class="st">"gray"</span>) <span class="sc">+</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">0.14</span>, <span class="at">y =</span> <span class="fl">0.5</span>, <span class="at">label =</span> <span class="st">"italic(p) == 0.0099"</span>,</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">parse =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fl">0.03</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fl">0.04</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="fl">0.05</span>)) <span class="sc">+</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">""</span>, <span class="at">x =</span> <span class="st">"P-Value"</span>, <span class="at">title =</span> <span class="st">"Density distribution of p-values under the null hypothesis"</span>,</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"Gray area represents the probability of p between 0.03 and 0.04"</span>) <span class="sc">+</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"serif"</span>, <span class="at">size =</span> <span class="dv">16</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>),</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"serif"</span>, <span class="at">size =</span> <span class="dv">13</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>),</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>),</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The probability of observing the same range of p-values when the effect size is <span class="math inline">\(0.65\)</span> is:</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-15_7c38213cc4da5052cf35f38deba9df16">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="st">"p"</span> <span class="ot">=</span> p_values_80) <span class="sc">|&gt;</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> p)) <span class="sc">+</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="at">alpha =</span> .<span class="dv">6</span>, <span class="at">fill =</span> <span class="st">"#815854"</span>) <span class="sc">+</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_area</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">stage</span>(p, <span class="at">after_stat =</span> <span class="fu">oob_censor</span>(x, <span class="fu">c</span>(<span class="fl">0.03</span>, <span class="fl">0.04</span>)))), <span class="at">stat =</span> <span class="st">"density"</span>, <span class="at">fill =</span> <span class="st">"gray"</span>) <span class="sc">+</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">0.14</span>, <span class="at">y =</span> <span class="dv">8</span>, <span class="at">label =</span> <span class="st">"italic(p) == 0.0437"</span>,</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">parse =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fl">0.03</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fl">0.04</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="fl">0.05</span>)) <span class="sc">+</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">""</span>, <span class="at">x =</span> <span class="st">"P-Value"</span>, <span class="at">title =</span> <span class="st">"Density distribution of p-values when the effect size is 0.65"</span>,</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"Gray area represents the probability of p between 0.03 and 0.04"</span>) <span class="sc">+</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"serif"</span>, <span class="at">size =</span> <span class="dv">16</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>),</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"serif"</span>, <span class="at">size =</span> <span class="dv">13</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>),</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>),</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>And for effect size of <span class="math inline">\(1.03\)</span>?</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-16_b030b35e60aacb7ee5f625daa38321ee">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="st">"p"</span> <span class="ot">=</span> p_values_99) <span class="sc">|&gt;</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> p)) <span class="sc">+</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="at">alpha =</span> .<span class="dv">6</span>, <span class="at">fill =</span> <span class="st">"#815854"</span>) <span class="sc">+</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_area</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">stage</span>(p, <span class="at">after_stat =</span> <span class="fu">oob_censor</span>(x, <span class="fu">c</span>(<span class="fl">0.03</span>, <span class="fl">0.04</span>)))), <span class="at">stat =</span> <span class="st">"density"</span>, <span class="at">fill =</span> <span class="st">"gray"</span>) <span class="sc">+</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">0.14</span>, <span class="at">y =</span> <span class="dv">376</span>, <span class="at">label =</span> <span class="st">"italic(p) == 0.0056"</span>,</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">parse =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fl">0.03</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fl">0.04</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="fl">0.05</span>), <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">""</span>, <span class="at">x =</span> <span class="st">"P-Value"</span>, <span class="at">title =</span> <span class="st">"Density distribution of p-values when the effect size is 1.03"</span>,</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"Gray area represents the probability of p between 0.03 and 0.04"</span>) <span class="sc">+</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"serif"</span>, <span class="at">size =</span> <span class="dv">16</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>),</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"serif"</span>, <span class="at">size =</span> <span class="dv">13</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>),</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>),</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The probability of getting a p-value in the range of <span class="math inline">\([0.03,0.04]\)</span> is lower for greater effect sizes.</p>
+</section>
+</section>
+<section id="prior" class="level1">
+<h1>Prior</h1>
+<p>Explicitly incorporating prior knowledge into statistical modelling is a great strength of Bayesian analysis. But, in order to keep things simple, I will stay agnostic and assign each hypothesis an equal prior probability. This is known as a <em>Flat prior</em>.<br>
+</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-17_d3a82f1f1b4ce4caa0ccc26cac443e48">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">data.frame</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">1.5</span>)), <span class="fu">aes</span>(x)) <span class="sc">+</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_function</span>(<span class="at">fun =</span> dunif, <span class="at">geom =</span> <span class="st">"area"</span>, <span class="at">args =</span> <span class="fu">list</span>(<span class="at">min =</span> <span class="dv">0</span>, <span class="at">max =</span> <span class="fl">1.5</span>), <span class="at">fill =</span> <span class="st">"#815854"</span>) <span class="sc">+</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="fl">1.5</span>, <span class="fl">0.1</span>)) <span class="sc">+</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Effect Size"</span>, <span class="at">y =</span> <span class="st">""</span>, <span class="at">title =</span> <span class="st">"Each effect size has equal prior probability"</span>) <span class="sc">+</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"serif"</span>, <span class="at">size =</span> <span class="dv">16</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>),</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"serif"</span>, <span class="at">size =</span> <span class="dv">11</span>),</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>),</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>In this case the prior ratio cancels out and posterior ratio is equal to the likelihood ratio.</p>
+</section>
+<section id="rejecting-the-null" class="level1">
+<h1>Rejecting the null?</h1>
+<p>Given p-value between 0.03 and 0.04, should we reject the null hypothesis or not?</p>
+<p>As good Frequentists, we should see all p-values under the pre-defined alpha of 0.05 as evidence against the null hypothesis.</p>
+<p><strong>But</strong>, as good Bayesian we should ask ourselves, Given <span class="math inline">\(0.03 \le p \le 0.04\)</span>, what is more probable? effect size of <span class="math inline">\(0\)</span> or <span class="math inline">\(1.03\)</span>?</p>
+<p>Defining the the flat prior:</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-18_69a091375d8d3c83be7fc28f2191b83c">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>prior_null <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>prior_1<span class="fl">.03</span> <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">-</span> prior_null</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Defining the likelihood of p-values in the given range, under each hypothesis:</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-19_0db9ca113d09d0b4a08f6f2fe07dc6c8">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>likelihood_null <span class="ot">&lt;-</span> <span class="fu">length</span>(p_values_null[p_values_null <span class="sc">&gt;=</span> <span class="fl">0.03</span> <span class="sc">&amp;</span> p_values_null <span class="sc">&lt;=</span> <span class="fl">0.04</span>])<span class="sc">/</span><span class="fu">length</span>(p_values_null)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>likelihood_1<span class="fl">.03</span> <span class="ot">&lt;-</span> <span class="fu">length</span>(p_values_99[p_values_99 <span class="sc">&gt;=</span> <span class="fl">0.03</span> <span class="sc">&amp;</span> p_values_99 <span class="sc">&lt;=</span> <span class="fl">0.04</span>])<span class="sc">/</span><span class="fu">length</span>(p_values_99)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>What is the posterior ratio?</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-20_91e5fd11310bc36817cf626f89d3fa5d">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>(posterior_ratio <span class="ot">&lt;-</span> (prior_null <span class="sc">*</span> likelihood_null)<span class="sc">/</span>(prior_1<span class="fl">.03</span> <span class="sc">*</span> likelihood_1<span class="fl">.03</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.771684</code></pre>
+</div>
+</div>
+<p>Given a p-value between 0.03 and 0.04, an effect size of <span class="math inline">\(0\)</span> is 1.77 more probable then effect size of <span class="math inline">\(1.03\)</span>!</p>
+</section>
+<section id="so-what-is-the-answer" class="level1">
+<h1>So, what is the answer???</h1>
+<p>What is the solution to this paradox? who is right? is statistical hypothesis testing is broken?</p>
+<p>The source of the current disagreement is the interpretation of probability. Frequentists insist that hypotheses are True or False. There is no place for degrees of confidence in statements. Bayesians assign probability to hypotheses and statements themselves.</p>
+<p>Whether you find yourself in the first camp, or in the second camp, remember:</p>
+<blockquote class="blockquote">
+<p>All models are wrong (George Box)</p>
+</blockquote>
+<p>This is our superpower!</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="meme.png" class="img-fluid figure-img"></p>
+<figcaption>Meme-form</figcaption>
+</figure>
+</div>
+
+
+</section></article></main>
 <footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>The p-value is not the whole story.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

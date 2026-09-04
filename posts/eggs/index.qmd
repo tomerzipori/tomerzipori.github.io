@@ -15,5 +15,203 @@ image-alt: ""
 ---
 
 <header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
-<main class="site-main"><section class="page-intro"><p class="section-number">Article · Data and strange claims</p><h1>Cage-free vs. caged hens in the US</h1><div class="article-meta"><span class="status">in bloom</span><span>12 Apr 2023</span></div></section><article class="prose"><p>Some time ago, when the fall semester began, I enrolled in a Data Science Lab course. One assignment was to make a TidyTuesday contribution and present it in class. This was one of my first respectable attempts at visualizing data.</p><h2>The question</h2><p>How did the number of cage-free hens change relative to traditionally housed hens over the observed period?</p><h2>The plot</h2><p>The analysis filters for table eggs, joins the reported cage-free percentages to the total number of hens, and turns the result into a stacked time-series view.</p><p>Kinda messy. Still worth plotting.</p></article></main>
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Data and strange claims</p><h1>Cage-free vs. caged hens in the US</h1><div class="article-meta"><span class="status">in bloom</span><span>12 Apr 2023</span></div></section><article class="prose real-post"><section id="background" class="level1">
+<h1>Background</h1>
+<p>Some time ago, when the fall semester began I’ve enrolled on a course called <em>Data science lab</em> as part of the ‘Data Science for the Social Sciences’ program. One of the assignments was to make some <code>TidyTuesday</code> contribution and present it in class. So this is my submission and what I consider as my first respectable attempts at visualizing data.</p>
+</section>
+<section id="the-data" class="level1">
+<h1>The Data</h1>
+<section id="from-the-github-repo" class="level5">
+<h5 class="anchored" data-anchor-id="from-the-github-repo">From the Github <a href="https://github.com/tomerzipori/tidytuesday/tree/master/data/2023/2023-04-11">repo</a>:</h5>
+<p><em>The data this week comes from <a href="https://thehumaneleague.org/article/E008R01-us-egg-production-data">The Humane League’s US Egg Production* *dataset</a> by <a href="https://samaramendez.github.io/">Samara Mendez</a>. Dataset and code is available for this project on OSF at <a href="https://osf.io/z2gxn/">US Egg Production Data Set</a>.</em></p>
+<p><em>This dataset tracks the supply of cage-free eggs in the United States from December 2007 to February 2021. For TidyTuesday we’ve used data through February 2021, but the full dataset, with data through the present, is available in the <a href="https://osf.io/z2gxn/">OSF project</a>.</em></p>
+<p>Let’s start!</p>
+</section>
+</section>
+<section id="setup" class="level1">
+<h1>Setup</h1>
+<section id="libraries" class="level2">
+<h2 class="anchored" data-anchor-id="libraries">Libraries</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-1_05ae20fe6c0434bed27e53bc5ad5a57d">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidytuesdayR) <span class="co"># for easy data loading</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)    <span class="co"># for data pre-processing and wrangling</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)    <span class="co"># makes dealing with date format much easier</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(showtext)     <span class="co"># fonts</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="loading-fonts" class="level2">
+<h2 class="anchored" data-anchor-id="loading-fonts">Loading fonts</h2>
+<p><code>showtext</code> is an awesome package that allows to load installed fonts into <code>R</code> and use it in <code>ggplot2</code> plots (for example). For a really helpful video that I used see this <a href="https://www.youtube.com/watch?v=kyOCNPuQzog&amp;t=1010s">video</a> from the Riffomonas Project.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-2_129846770077acaa66fd7c8cfca8b8be">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">font_add</span>(<span class="at">family =</span> <span class="st">"Stencil"</span>, <span class="at">regular =</span> <span class="st">"STENCIL.TTF"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">showtext_auto</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="loading-data" class="level1">
+<h1>Loading data</h1>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-3_a2de8894bdd6525cd2c92055f41c9243">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>eggproduction  <span class="ot">&lt;-</span> readr<span class="sc">::</span><span class="fu">read_csv</span>(<span class="st">'https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-04-11/egg-production.csv'</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>cagefreepercentages <span class="ot">&lt;-</span> readr<span class="sc">::</span><span class="fu">read_csv</span>(<span class="st">'https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-04-11/cage-free-percentages.csv'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="taking-a-peak" class="level2">
+<h2 class="anchored" data-anchor-id="taking-a-peak">Taking a peak</h2>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-4_8aedcaa02b43719f8b63e16bbc056bce">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(eggproduction)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 6
+  observed_month prod_type     prod_process   n_hens     n_eggs source
+  &lt;date&gt;         &lt;chr&gt;         &lt;chr&gt;           &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;
+1 2016-07-31     hatching eggs all          57975000 1147000000 ChicEggs-09-23-…
+2 2016-08-31     hatching eggs all          57595000 1142700000 ChicEggs-10-21-…
+3 2016-09-30     hatching eggs all          57161000 1093300000 ChicEggs-11-22-…
+4 2016-10-31     hatching eggs all          56857000 1126700000 ChicEggs-12-23-…
+5 2016-11-30     hatching eggs all          57116000 1096600000 ChicEggs-01-24-…
+6 2016-12-31     hatching eggs all          57750000 1132900000 ChicEggs-02-28-…</code></pre>
+</div>
+</div>
+<p><code>eggproduction</code> holds monthly data about number of hens and produced eggs in the US. <code>prod_type</code> specifies the type of egg produced, it has 2 levels:</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-5_a43e7eb1917cef666ad3e97e85d26492">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(eggproduction<span class="sc">$</span>prod_type)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "hatching eggs" "table eggs"   </code></pre>
+</div>
+</div>
+<p>For the current mini-project, I’ll stay with “table eggs” only.</p>
+<p>The variable <code>prod_process</code> specifies the type of housing of the egg-producing hens. It has 3 levels:</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-6_71b16fa1a1833e87933ea6f079bdc3f6">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(eggproduction<span class="sc">$</span>prod_process)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "all"                     "cage-free (non-organic)"
+[3] "cage-free (organic)"    </code></pre>
+</div>
+</div>
+<p>I’ll leave data of <code>all</code> hens for now.</p>
+<section id="pre-processing-1" class="level3">
+<h3 class="anchored" data-anchor-id="pre-processing-1">Pre-processing 1</h3>
+<p>Filtering out irrelevant data and renaming some variables.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-7_2d6e0435e6402189dc894061e2083326">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>egg_clean <span class="ot">&lt;-</span> eggproduction <span class="sc">%&gt;%</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(prod_type <span class="sc">!=</span> <span class="st">"hatching eggs"</span> <span class="sc">&amp;</span> prod_process <span class="sc">==</span> <span class="st">"all"</span>) <span class="sc">%&gt;%</span> <span class="co"># Leave only eggs meant for eating and general data</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>source, <span class="sc">-</span>prod_type, <span class="sc">-</span>prod_process, <span class="at">n_hens_all =</span> n_hens, <span class="at">n_eggs_all =</span> n_eggs) <span class="co"># Irrelevant columns</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="taking-a-peak-2" class="level3">
+<h3 class="anchored" data-anchor-id="taking-a-peak-2">Taking a peak 2</h3>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-8_f909d91a36ec594bbaf923eee9f5c614">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(cagefreepercentages)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 4
+  observed_month percent_hens percent_eggs source
+  &lt;date&gt;                &lt;dbl&gt;        &lt;dbl&gt; &lt;chr&gt;
+1 2007-12-31              3.2           NA Egg-Markets-Overview-2019-10-19.pdf
+2 2008-12-31              3.5           NA Egg-Markets-Overview-2019-10-19.pdf
+3 2009-12-31              3.6           NA Egg-Markets-Overview-2019-10-19.pdf
+4 2010-12-31              4.4           NA Egg-Markets-Overview-2019-10-19.pdf
+5 2011-12-31              5.4           NA Egg-Markets-Overview-2019-10-19.pdf
+6 2012-12-31              6             NA Egg-Markets-Overview-2019-10-19.pdf</code></pre>
+</div>
+</div>
+<p>This data-frame also holds monthly data. The variable <code>percent_hens</code> specifies <em>observed or computed percentage of cage-free hens relative to all table-egg-laying hens</em> (from the Github repo). We’ll select these variables and use them to merge with the first data-frame.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-9_4200fc0ea2c1627bdd5f8e69ed57e09d">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>egg_clean2 <span class="ot">&lt;-</span> cagefreepercentages <span class="sc">%&gt;%</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(percent_eggs) <span class="sc">%&gt;%</span>                                                <span class="co"># droping rows with missing percent_eggs data</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>source, <span class="sc">-</span>percent_eggs, <span class="at">cagefree_percent_hens =</span> percent_hens) <span class="sc">%&gt;%</span> <span class="co"># Irrelevant\to many NA's columns + renaming</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(egg_clean, <span class="at">by =</span> <span class="st">"observed_month"</span>, <span class="at">multiple =</span> <span class="st">"all"</span>) <span class="sc">%&gt;%</span>       <span class="co"># joining with the first data-frame</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Cagefree =</span> (cagefree_percent_hens <span class="sc">*</span> n_hens_all) <span class="sc">/</span> <span class="dv">100</span>) <span class="sc">%&gt;%</span>        <span class="co"># calculating number of cage-free hens</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Traditional =</span> n_hens_all <span class="sc">-</span> Cagefree) <span class="sc">%&gt;%</span>                          <span class="co"># calculating number of traditional housing hens</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(observed_month, Cagefree, Traditional) <span class="sc">%&gt;%</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(<span class="st">"Cagefree"</span>, <span class="st">"Traditional"</span>), <span class="at">names_to =</span> <span class="st">"housing"</span>, <span class="at">values_to =</span> <span class="st">"n_hens"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="plotting" class="level1">
+<h1>Plotting</h1>
+<section id="gameplan" class="level2">
+<h2 class="anchored" data-anchor-id="gameplan">Gameplan</h2>
+<p>Few hours deep, I’ve decided it would be interesting to see the change in number of cage-free hens compared to caged hens during the time period we have data about. Because I wanted to plot only certain points of data along the time axis, I needed to create a subset of the big data-frame that holds the data for the points I wanted to plot.</p>
+<section id="identitfying-the-dates-of-interest" class="level3">
+<h3 class="anchored" data-anchor-id="identitfying-the-dates-of-interest">Identitfying the dates of interest</h3>
+<p>First thing, I found 6 dates that are equally spaced between the start and end points. The repetitive code below is quite ugly, and <code>lubridate</code> probably has a nice and elegant solution, I didn’t want to spend to much time on it.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-10_1d957a9ab9153f7d570a66f5f22e4dff">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>dates_for_plot <span class="ot">&lt;-</span> <span class="fu">seq.Date</span>(egg_clean2<span class="sc">$</span>observed_month[<span class="dv">1</span>], egg_clean2<span class="sc">$</span>observed_month[<span class="fu">nrow</span>(egg_clean2)], <span class="at">length.out =</span> <span class="dv">6</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>dates_for_plot[<span class="dv">2</span>] <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(<span class="st">"2017-07-31"</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>dates_for_plot[<span class="dv">3</span>] <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(<span class="st">"2018-05-31"</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>dates_for_plot[<span class="dv">4</span>] <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(<span class="st">"2019-04-30"</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>dates_for_plot[<span class="dv">5</span>] <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(<span class="st">"2020-03-31"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="creating-the-subset" class="level3">
+<h3 class="anchored" data-anchor-id="creating-the-subset">Creating the subset</h3>
+<p>I will use this subset in order to plot the 6 points on the general data. I will only need to specify <code>data = subset_for_points</code> in the relevant <code>geom</code> object.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-11_92706dab5cdfedabd95616099076ba55">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>subset_for_points <span class="ot">&lt;-</span> egg_clean2 <span class="sc">%&gt;%</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>((housing <span class="sc">==</span> <span class="st">"Cagefree"</span> <span class="sc">&amp;</span> observed_month <span class="sc">%in%</span> dates_for_plot) <span class="sc">|</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>           (housing <span class="sc">==</span> <span class="st">"Traditional"</span> <span class="sc">&amp;</span> (observed_month <span class="sc">==</span> dates_for_plot[<span class="dv">1</span>] <span class="sc">|</span> observed_month <span class="sc">==</span> dates_for_plot[<span class="dv">6</span>]))) <span class="sc">%&gt;%</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(<span class="fu">select</span>(egg_clean, observed_month, <span class="at">n_hens =</span> n_hens_all), <span class="at">by =</span> <span class="st">"observed_month"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">n_hens =</span> <span class="fu">case_when</span>(housing <span class="sc">==</span> <span class="st">"Cagefree"</span> <span class="sc">~</span> n_hens.x,</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>                            housing <span class="sc">==</span> <span class="st">"Traditional"</span> <span class="sc">~</span> n_hens.y)) <span class="sc">%&gt;%</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>n_hens.x, <span class="sc">-</span>n_hens.y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="actually-plotting" class="level2">
+<h2 class="anchored" data-anchor-id="actually-plotting">Actually plotting</h2>
+<p>I went with a simple stacked density plot. Watch how the number of cage-free goes from</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-12_48dcae3dc25eacf5ed00add1f21a06c0">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>plot <span class="ot">&lt;-</span> egg_clean2 <span class="sc">%&gt;%</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> observed_month, <span class="at">y =</span> n_hens<span class="sc">/</span><span class="dv">1000000</span>, <span class="at">fill =</span> <span class="fu">factor</span>(housing, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Traditional"</span>, <span class="st">"Cagefree"</span>)),</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> <span class="fu">factor</span>(housing, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Traditional"</span>, <span class="st">"Cagefree"</span>)),</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">label =</span> n_hens<span class="sc">/</span><span class="dv">1000000</span>)) <span class="sc">+</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="at">position =</span> <span class="st">'stack'</span>, <span class="at">stat =</span> <span class="st">'identity'</span>) <span class="sc">+</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> subset_for_points) <span class="sc">+</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="at">data =</span> subset_for_points, <span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">round</span>(n_hens<span class="sc">/</span><span class="dv">1000000</span>)), <span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">vjust =</span> <span class="sc">-</span><span class="dv">1</span>, <span class="at">size =</span> <span class="dv">6</span>, <span class="at">family =</span> <span class="st">"serif"</span>) <span class="sc">+</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"#ffefd5"</span>, <span class="st">"#e1bf92"</span>)) <span class="sc">+</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"#e1bf92"</span>, <span class="st">"#83502e"</span>)) <span class="sc">+</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>, <span class="at">x =</span> <span class="fu">as_date</span>(<span class="st">"2019/1/1"</span>), <span class="at">y =</span> <span class="dv">30</span>, <span class="at">label =</span> <span class="st">"Cage-Free"</span>, <span class="at">color =</span> <span class="st">"#808080"</span>,</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>           <span class="at">family =</span> <span class="st">"Stencil"</span>, <span class="at">angle =</span> <span class="fl">2.5</span>, <span class="at">size =</span> <span class="dv">15</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>, <span class="at">x =</span> <span class="fu">as_date</span>(<span class="st">"2019/1/1"</span>), <span class="at">y =</span> <span class="dv">190</span>, <span class="at">label =</span> <span class="st">"Caged"</span>, <span class="at">color =</span> <span class="st">"#808080"</span>,</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>           <span class="at">family =</span> <span class="st">"Stencil"</span>, <span class="at">angle =</span> <span class="fl">2.5</span>, <span class="at">size =</span> <span class="dv">15</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_date</span>(<span class="at">breaks =</span> dates_for_plot) <span class="sc">+</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">""</span>) <span class="sc">+</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Number of egg-producing hens (millions)"</span>) <span class="sc">+</span></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">fill =</span> <span class="st">"Housing"</span>, <span class="at">title =</span> <span class="st">"Number of Cage-free hens in the US is constatly rising"</span>,</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"Relative number of Cage-free hens in the US in the years 2016-2021"</span>,</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>       <span class="at">caption =</span> <span class="st">"Tomer Zipori | #TidyTuesday | Source: The Humane League's US Egg Production dataset"</span>) <span class="sc">+</span></span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">color =</span> <span class="st">"none"</span>, <span class="at">fill =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">16</span>, <span class="at">color =</span> <span class="st">"#83502e"</span>),</span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">13</span>, <span class="at">color =</span> <span class="st">"#83502e"</span>),</span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">13</span>, <span class="at">color =</span> <span class="st">"#83502e"</span>),</span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="dv">18</span>, <span class="at">color =</span> <span class="st">"#83502e"</span>),</span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="dv">13</span>, <span class="at">family =</span> <span class="st">"serif"</span>, <span class="at">color =</span> <span class="st">"#83502e"</span>),</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.caption =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"serif"</span>, <span class="at">color =</span> <span class="st">"#83502e"</span>),</span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="fl">0.5</span>,<span class="fl">0.5</span>,<span class="fl">0.5</span>,<span class="fl">0.7</span>, <span class="st">"cm"</span>),</span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>),</span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>))</span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-12-1.png" width="800" height="501" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>There is a steady and relative fast growth in cage-free hens in the US, compared with caged-housed hens. Nice. As I said in the beginning. this is my first <code>TidyTuesday</code> contribution, and the first data visualization attempts that I felt worthy of posting lol. I learned a few tricks along the way for example:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>1.</strong> lubridate’s <em>date</em> format is super nice to work with. It can be seq’t along and do all kind of efficient things for dealing with timely data.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>2.</strong> Referencing more then one data-frame in a single <code>ggplot()</code>, Seems obvious, but I didn’t think about this solution to plotting just some of the data until this mini-project.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>3.</strong> Many-many things about aesthetics of <code>ggplot2</code>, like the <code>annotate()</code> and <code>labs()</code> functions and arguments.</p>
+
+
+</section></article></main>
 <footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>A first respectable attempt.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

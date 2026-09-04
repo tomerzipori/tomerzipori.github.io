@@ -16,5 +16,754 @@ image-alt: ""
 ---
 
 <header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
-<main class="site-main"><section class="page-intro"><p class="section-number">Article · Evidence and belief</p><h1>US Presidential Elections — A Bayesian Perspective</h1><div class="article-meta"><span class="status">in bloom</span><span>12 Jan 2025</span></div></section><article class="prose"><p>I want to be a pollster too. This article treats election polling as a model of uncertain information, rather than as a single number waiting to be read aloud.</p><h2>The question</h2><p>How should a forecast change when new polling evidence arrives, and which assumptions are doing the quiet work?</p><h2>What the model makes visible</h2><p>Prior expectations, poll uncertainty, and state-level aggregation each contribute to the final distribution. A probability is not a promise; it is a summary of the model and the information that entered it.</p><p>The original analysis includes a Nevada-focused visualization and the frozen model outputs listed in the migration manifest.</p></article></main>
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Evidence and belief</p><h1>US Presidential Elections — A Bayesian Perspective</h1><div class="article-meta"><span class="status">in bloom</span><span>12 Jan 2025</span></div></section><article class="prose real-post"><section id="setup" class="level1">
+<h1>Setup</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse) <span class="co"># As always</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(brms)      <span class="co"># For Bayesian modeling</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidybayes) <span class="co"># For visualization</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<p>Ever since I’ve finished my grad studies (Few months ago), I wanted to experiment with some “real life” applications of statistics. Things that interest real people. With the 2024 American presidential elections being the hot issue around the world, and Bayesian statistics being the hot issue of my personal projects, I thought how can these two mix.</p>
+<p>Two features of Bayesian statistics pop to mind when thinking about election polling:</p>
+<section id="prior-distributions" class="level2">
+<h2 class="anchored" data-anchor-id="prior-distributions">Prior Distributions</h2>
+<p>The need to explicitly define a prior distribution for any Bayesian model is a point of contention. Some (rightfully) argue that this definition can’t be objective, and it is practically impossible to represent the existing body of knowledge in a single probability distribution. Others (rightfully) argue that every statistical model have prior assumptions which are rarely checked, and can influence the model as much as a prior distribution.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<p>One reason the incorporation of past studies into the prior distribution is hard, is that it depends on the specific parameters of the model. While this make things hard in many cases, election polling is one area where it should be relatively easy! every poll is essentially the same statistical model (how many votes for red, and how many votes for blue), but with different data every time. This is the ideal scenario for a Bayesian statistician as the posterior distribution (the result) of any poll can be used as the prior distribution for the next poll!</p>
+</section>
+<section id="posterior-predictive-distributions" class="level2">
+<h2 class="anchored" data-anchor-id="posterior-predictive-distributions">Posterior Predictive Distributions</h2>
+<p>One tool of Bayesian statistical inference is the Posterior Predictive Distributions - PPD. This is the prediction of the model. For example, one possible PPD from a Bayesian election poll could be the expected electoral college result for each candidate, or the expected number of seats in the parliament.</p>
+</section>
+</section>
+<section id="data" class="level1">
+<h1>Data</h1>
+<p>The following dataset is a summary of many polls conducted from the start of 2023, up to two days before the election.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"../elections2024/president_polls.csv"</span>, <span class="at">show_col_types =</span> F)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 18,095
+Columns: 52
+$ poll_id                   &lt;dbl&gt; 89372, 89372, 89372, 89372, 89372, 89372, 89…
+$ pollster_id               &lt;dbl&gt; 1528, 1528, 1528, 1528, 1528, 1528, 1528, 15…
+$ pollster                  &lt;chr&gt; "AtlasIntel", "AtlasIntel", "AtlasIntel", "A…
+$ sponsor_ids               &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ sponsors                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ display_name              &lt;chr&gt; "AtlasIntel", "AtlasIntel", "AtlasIntel", "A…
+$ pollster_rating_id        &lt;dbl&gt; 546, 546, 546, 546, 546, 546, 546, 546, 546,…
+$ pollster_rating_name      &lt;chr&gt; "AtlasIntel", "AtlasIntel", "AtlasIntel", "A…
+$ numeric_grade             &lt;dbl&gt; 2.7, 2.7, 2.7, 2.7, 2.7, 2.7, 2.7, 2.7, 2.7,…
+$ pollscore                 &lt;dbl&gt; -0.8, -0.8, -0.8, -0.8, -0.8, -0.8, -0.8, -0…
+$ methodology               &lt;chr&gt; "Online Ad", "Online Ad", "Online Ad", "Onli…
+$ transparency_score        &lt;dbl&gt; 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,…
+$ state                     &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, "Arizona", "Ariz…
+$ start_date                &lt;chr&gt; "11/3/24", "11/3/24", "11/3/24", "11/3/24", …
+$ end_date                  &lt;chr&gt; "11/4/24", "11/4/24", "11/4/24", "11/4/24", …
+$ sponsor_candidate_id      &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ sponsor_candidate         &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ sponsor_candidate_party   &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ endorsed_candidate_id     &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ endorsed_candidate_name   &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ endorsed_candidate_party  &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ question_id               &lt;dbl&gt; 216453, 216453, 216453, 216453, 216453, 2164…
+$ sample_size               &lt;dbl&gt; 2703, 2703, 2703, 2703, 2703, 2703, 2703, 87…
+$ population                &lt;chr&gt; "lv", "lv", "lv", "lv", "lv", "lv", "lv", "l…
+$ subpopulation             &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ population_full           &lt;chr&gt; "lv", "lv", "lv", "lv", "lv", "lv", "lv", "l…
+$ tracking                  &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ created_at                &lt;chr&gt; "11/4/24 19:06", "11/4/24 19:06", "11/4/24 1…
+$ notes                     &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ url                       &lt;chr&gt; "https://atlasintel.org/poll/usa-national-20…
+$ url_article               &lt;chr&gt; "https://atlasintel.org/poll/usa-national-20…
+$ url_topline               &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ url_crosstab              &lt;chr&gt; "https://cdn.atlasintel.org/f1cec70d-8eae-44…
+$ source                    &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ internal                  &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ partisan                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ race_id                   &lt;dbl&gt; 8914, 8914, 8914, 8914, 8914, 8914, 8914, 87…
+$ cycle                     &lt;dbl&gt; 2024, 2024, 2024, 2024, 2024, 2024, 2024, 20…
+$ office_type               &lt;chr&gt; "U.S. President", "U.S. President", "U.S. Pr…
+$ seat_number               &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,…
+$ seat_name                 &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ election_date             &lt;chr&gt; "11/5/24", "11/5/24", "11/5/24", "11/5/24", …
+$ stage                     &lt;chr&gt; "general", "general", "general", "general", …
+$ nationwide_batch          &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FA…
+$ ranked_choice_reallocated &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FA…
+$ ranked_choice_round       &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ hypothetical              &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FA…
+$ party                     &lt;chr&gt; "DEM", "REP", "GRE", "IND", "LIB", "DEM", "R…
+$ answer                    &lt;chr&gt; "Harris", "Trump", "Stein", "West", "Oliver"…
+$ candidate_id              &lt;dbl&gt; 16661, 16651, 31116, 31097, 31790, 16661, 16…
+$ candidate_name            &lt;chr&gt; "Kamala Harris", "Donald Trump", "Jill Stein…
+$ pct                       &lt;dbl&gt; 48.1, 49.2, 1.1, 0.3, 0.1, 48.8, 50.0, 45.9,…</code></pre>
+</div>
+</div>
+</section>
+<section id="preprocessing" class="level1">
+<h1>Preprocessing</h1>
+<p>Some preprocessing and cleaning is needed here, mainly I want to include only recent polls to avoid dealing with a large number of candidates, and transforming the percentage of votes into a probability:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>data_clean <span class="ot">&lt;-</span> data <span class="sc">|&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(poll_id, state, <span class="at">poll_date =</span> start_date, question_id, candidate_name, sample_size, pct) <span class="sc">|&gt;</span> <span class="co"># selecting relevant cols only</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pct =</span> pct <span class="sc">/</span> <span class="dv">100</span>,               <span class="co"># transforming to probabilities</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">poll_date =</span> <span class="fu">mdy</span>(poll_date)) <span class="sc">|&gt;</span> <span class="co"># transforming to 'date' types</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">year</span>(poll_date) <span class="sc">&gt;=</span> <span class="dv">2024</span> <span class="sc">&amp;</span> <span class="fu">month</span>(poll_date) <span class="sc">&gt;=</span> <span class="dv">10</span>) <span class="sc">|&gt;</span> <span class="co"># only recent polls to control for speculative candidates</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">candidate_name =</span> <span class="fu">relevel</span>(<span class="fu">factor</span>(candidate_name), <span class="at">ref =</span> <span class="st">"Donald Trump"</span>)) <span class="sc">|&gt;</span> <span class="co"># Defining 'Trump' to be the reference level</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(poll_id) <span class="sc">|&gt;</span>                  <span class="co"># some polls have several q's, this keeps only the main 'who would you vote for' question</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(question_id <span class="sc">==</span> <span class="fu">min</span>(question_id)) <span class="sc">|&gt;</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="modeling" class="level1">
+<h1>Modeling</h1>
+<p>From a statistical point of view, an election poll is a multiclass classification problem: It estimates the real proportion of votes for each candidate in the population, from the sampled proportions. The dependent variable is categorical and does not have any ordering. Since we don’t have any predictors other than the observed proportions, the model is what is called an <em>empty</em> model - and it’s formulation in <code>R</code> is usually represented as: <code>DV ~ 1</code>. Due to the structure of the current data, each observation (row) need to be weighted by the observed percentage. In order to include weighting by the poll’s sample size, I multiplied this percentage by the sample size.</p>
+<p>This multiclass classification problem can be represented with a series of logistic models, each models one category (candidate) against the others as a binary outcome. In order to do that, I will use the <code>categorical()</code> family implemented in <code>brms</code>.</p>
+<p>Let’s start with a simple case, and model results only for Nevada:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>data_clean_nv <span class="ot">&lt;-</span> data_clean <span class="sc">|&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(state <span class="sc">==</span> <span class="st">"Nevada"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>bayesian_model_nv <span class="ot">&lt;-</span> <span class="fu">brm</span>(<span class="at">formula =</span> candidate_name<span class="sc">|</span><span class="fu">weights</span>(sample_size<span class="sc">*</span>pct) <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>                         <span class="at">family =</span> <span class="fu">categorical</span>(<span class="at">link =</span> <span class="st">"logit"</span>),</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>                         <span class="at">data =</span> data_clean_nv,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>                         <span class="at">chains =</span> <span class="dv">10</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>                         <span class="at">cores =</span> <span class="dv">10</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>                         <span class="at">iter =</span> <span class="dv">4000</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>                         <span class="at">refresh =</span> <span class="dv">0</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>                         <span class="at">seed =</span> <span class="dv">14</span>,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>                         <span class="at">backend =</span> <span class="st">"cmdstanr"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(bayesian_model_nv)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Family: categorical
+  Links: muChaseOliver = logit; muCornelWest = logit; muJillStein = logit; muJoelSkousen = logit; muKamalaHarris = logit
+Formula: candidate_name | weights(sample_size * pct) ~ 1
+   Data: data_clean_nv (Number of observations: 85)
+  Draws: 10 chains, each with iter = 4000; warmup = 2000; thin = 1;
+         total post-warmup draws = 20000
+
+Regression Coefficients:
+                         Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS
+muChaseOliver_Intercept     -4.92      0.11    -5.14    -4.71 1.00     8712
+muCornelWest_Intercept     -15.07     10.71   -36.77    -8.70 1.00     2989
+muJillStein_Intercept       -6.10      0.20    -6.51    -5.73 1.00     8233
+muJoelSkousen_Intercept    -15.53     12.01   -39.09    -8.70 1.00     2538
+muKamalaHarris_Intercept     0.00      0.01    -0.02     0.03 1.00     9124
+                         Tail_ESS
+muChaseOliver_Intercept      9672
+muCornelWest_Intercept       1751
+muJillStein_Intercept        7736
+muJoelSkousen_Intercept      1491
+muKamalaHarris_Intercept     9396
+
+Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
+and Tail_ESS are effective sample size measures, and Rhat is the potential
+scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
+</div>
+</div>
+<p>A few things to notice here: first, Trump doesn’t have a parameter. That is because <code>brms</code> estimates each parameter in comparison to the factor’s reference level, which is set to <span class="math inline">\(0\)</span>, or <span class="math inline">\(1\)</span> on the exponential scale. Second, parameter estimates are logits, as this is essentially an output of multiple logistic regressions. In order to transform these estimates into predicted vote shares for every candidate <span class="math inline">\(j\)</span> out of the <span class="math inline">\(K\)</span> total candidates, a softmax transformation need to be applied:</p>
+<p><span class="math display">\[
+P(j)=\frac{e^{Intercept_j}}{\sum_{k=1}^K e^{Intercept_k}}
+\]</span></p>
+<p>Extracting more precise point-estimates:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>draws_nv <span class="ot">&lt;-</span> <span class="fu">spread_draws</span>(bayesian_model_nv, b_muChaseOliver_Intercept, b_muCornelWest_Intercept, b_muJillStein_Intercept, b_muJoelSkousen_Intercept, b_muKamalaHarris_Intercept)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>(<span class="fu">c</span>(<span class="fu">median</span>(draws_nv<span class="sc">$</span>b_muChaseOliver_Intercept), <span class="fu">median</span>(draws_nv<span class="sc">$</span>b_muCornelWest_Intercept), <span class="fu">median</span>(draws_nv<span class="sc">$</span>b_muJillStein_Intercept), <span class="fu">median</span>(draws_nv<span class="sc">$</span>b_muJoelSkousen_Intercept), <span class="fu">median</span>(draws_nv<span class="sc">$</span>b_muKamalaHarris_Intercept)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1]  -4.913210000 -12.452300000  -6.088395000 -12.626300000   0.002381675</code></pre>
+</div>
+</div>
+<p>For example, applying the softmax transformation in order to get the predicted vote share of Jill Stein:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="dv">100</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">6.088395</span>) <span class="sc">/</span> (<span class="fu">exp</span>(<span class="sc">-</span><span class="fl">4.91321</span>) <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">12.4523</span>) <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">6.088395</span>) <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">12.6263</span>) <span class="sc">+</span> <span class="fu">exp</span>(<span class="fl">0.002381675</span>) <span class="sc">+</span> <span class="fu">exp</span>(<span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.1127752</code></pre>
+</div>
+</div>
+<p>About 0.1%.</p>
+<p>The predicted vote share of Kamala Harris is:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="dv">100</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="fl">0.002381675</span>) <span class="sc">/</span> (<span class="fu">exp</span>(<span class="sc">-</span><span class="fl">4.91321</span>) <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">12.4523</span>) <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">6.088395</span>) <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">12.6263</span>) <span class="sc">+</span> <span class="fu">exp</span>(<span class="fl">0.002381675</span>) <span class="sc">+</span> <span class="fu">exp</span>(<span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 49.82007</code></pre>
+</div>
+</div>
+<p>And of Donald Trump:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="dv">100</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="dv">0</span>) <span class="sc">/</span> (<span class="fu">exp</span>(<span class="sc">-</span><span class="fl">4.91321</span>) <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">12.4523</span>) <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">6.088395</span>) <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">12.6263</span>) <span class="sc">+</span> <span class="fu">exp</span>(<span class="fl">0.002381675</span>) <span class="sc">+</span> <span class="fu">exp</span>(<span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 49.70155</code></pre>
+</div>
+</div>
+<p>But, this is a Bayesian model so let’s not stay stuck with point estimates and look at the whole posterior distribution:</p>
+<p>Extracting draws:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>probs_nv <span class="ot">&lt;-</span> draws_nv <span class="sc">|&gt;</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>.chain, <span class="sc">-</span>.iteration) <span class="sc">|&gt;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">b_muChaseOliver_Intercept =</span> <span class="fu">exp</span>(b_muChaseOliver_Intercept),</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">b_muKamalaHarris_Intercept =</span> <span class="fu">exp</span>(b_muKamalaHarris_Intercept),</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">b_muJillStein_Intercept =</span> <span class="fu">exp</span>(b_muJillStein_Intercept),</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">b_muCornelWest_Intercept =</span> <span class="fu">exp</span>(b_muCornelWest_Intercept),</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">b_muJoelSkousen_Intercept =</span> <span class="fu">exp</span>(b_muJoelSkousen_Intercept)) <span class="sc">|&gt;</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">row_sum =</span> b_muChaseOliver_Intercept <span class="sc">+</span> b_muKamalaHarris_Intercept <span class="sc">+</span> b_muJillStein_Intercept <span class="sc">+</span> b_muCornelWest_Intercept <span class="sc">+</span> b_muJoelSkousen_Intercept <span class="sc">+</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Trump =</span> <span class="dv">1</span> <span class="sc">/</span> row_sum,</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">Harris =</span> b_muKamalaHarris_Intercept <span class="sc">/</span> row_sum) <span class="sc">|&gt;</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(.draw, Trump, Harris)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>probs_nv <span class="sc">|&gt;</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(Trump, Harris),</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"Candidate"</span>,</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"prob"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> prob <span class="sc">*</span> <span class="dv">100</span>, <span class="at">fill =</span> Candidate)) <span class="sc">+</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_slab</span>(<span class="at">color =</span> <span class="st">"gray24"</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"#2166AC"</span>, <span class="st">"#B2182B"</span>)) <span class="sc">+</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">48</span>, <span class="dv">52</span>, <span class="fl">0.2</span>), <span class="at">labels =</span> <span class="fu">seq</span>(<span class="dv">48</span>, <span class="dv">52</span>, <span class="fl">0.2</span>)) <span class="sc">+</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Predicted vote share in %"</span>) <span class="sc">+</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Very close!</p>
+<p>And what is the predicted difference between the two main candidates?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>probs_nv <span class="sc">|&gt;</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">diff =</span> Trump <span class="sc">-</span> Harris) <span class="sc">|&gt;</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> diff <span class="sc">*</span> <span class="dv">100</span>, <span class="at">fill =</span> <span class="fu">after_stat</span>(x <span class="sc">&gt;</span> <span class="dv">0</span>))) <span class="sc">+</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_slab</span>(<span class="at">color =</span> <span class="st">"gray24"</span>) <span class="sc">+</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"#2166AC"</span>, <span class="st">"#B2182B"</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Harris win"</span>, <span class="st">"Trump win"</span>)) <span class="sc">+</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">4</span>, <span class="fl">0.5</span>), <span class="at">labels =</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">4</span>, <span class="fl">0.5</span>)) <span class="sc">+</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Predicted vote share difference in %"</span>, <span class="at">fill =</span> <span class="st">" "</span>) <span class="sc">+</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Again, very close (with a slight advantage to Harris).</p>
+<p>Another useful measure from Bayesian statistics is the probability of direction (pd). Due to the winner-takes-all electoral system in 48 of the 50 states, the difference doesn’t really matter. So what is the probability that each candidate will win?</p>
+<p>The probability that Trump will win is seen in the red area in the plot above, that is the probability that the difference in vote share is positive:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>diff <span class="ot">&lt;-</span> probs_nv<span class="sc">$</span>Trump <span class="sc">-</span> probs_nv<span class="sc">$</span>Harris</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(diff[diff <span class="sc">&gt;</span> <span class="dv">0</span>]) <span class="sc">/</span> <span class="fu">length</span>(diff)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.42815</code></pre>
+</div>
+</div>
+<p>Trump has a 42.82% chance of winning Nevada.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(diff[diff <span class="sc">&lt;</span> <span class="dv">0</span>]) <span class="sc">/</span> <span class="fu">length</span>(diff)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.57185</code></pre>
+</div>
+</div>
+<p>And Harris has 57.19% chance.</p>
+<p>Let’s make the plot a little more informative:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>diff_plot <span class="ot">&lt;-</span> probs_nv <span class="sc">|&gt;</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">diff =</span> Trump <span class="sc">-</span> Harris) <span class="sc">|&gt;</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">diff =</span> diff <span class="sc">*</span> <span class="dv">100</span>) <span class="sc">|&gt;</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> diff, <span class="at">fill =</span> <span class="fu">after_stat</span>(<span class="fu">cut</span>(x, <span class="at">breaks =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="cn">Inf</span>, <span class="sc">-</span><span class="dv">2</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="cn">Inf</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Harris by more than 2%"</span>, <span class="st">"Harris by 1%-2%"</span>, <span class="st">"Harris by less than 1%"</span>, <span class="st">"Trump by less than 1%"</span>, <span class="st">"Trump by 1%-2%"</span>, <span class="st">"Trump by more than 2%"</span>))))) <span class="sc">+</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_slab</span>(<span class="at">color =</span> <span class="st">"gray24"</span>) <span class="sc">+</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">rev</span>(RColorBrewer<span class="sc">::</span><span class="fu">brewer.pal</span>(<span class="dv">6</span>, <span class="st">"RdBu"</span>))) <span class="sc">+</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">3</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">3</span>, <span class="fl">0.5</span>), <span class="at">labels =</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">3</span>, <span class="fl">0.5</span>)) <span class="sc">+</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">fill =</span> <span class="st">" "</span>, <span class="at">x =</span> <span class="st">"Predicted Difference in %"</span>, <span class="at">title =</span> <span class="st">"Predicted difference in votes - Nevada"</span>) <span class="sc">+</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"serif"</span>, <span class="at">size =</span> <span class="dv">22</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>diff_plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<section id="eliciting-a-custom-prior" class="level2">
+<h2 class="anchored" data-anchor-id="eliciting-a-custom-prior">Eliciting a custom prior</h2>
+<p>For the last model we used brms’ default prior. In order to elicit our own, For simplicity, I’ll start with the 2020 vote share between Biden and Trump:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="2020_results_nv.png" class="img-fluid figure-img"></p>
+<figcaption>2020 Results - Nevada (from <a href="https://en.wikipedia.org/wiki/2020_United_States_presidential_election_in_Nevada">Wikipedia</a>)</figcaption>
+</figure>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This part contain some math. Don’t skip it, you can understand it! But if you want to skip it, go to the ‘Modeling with a custom prior’ section.</p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>prior_trump <span class="ot">&lt;-</span> <span class="fl">0.4767</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>prior_harris <span class="ot">&lt;-</span> <span class="fl">0.5006</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>These percentages need to be transformed to the logistic model’s scale, now using the inverse-softmax transformation:</p>
+<p><span class="math display">\[
+0.5006=softmax(Intercept_{Harris})=\frac{e^{Intercept_{Harris}}}{\sum_{k=1}^K e^{Intercept_k}}
+\]</span></p>
+<p>And:</p>
+<p><span class="math display">\[
+0.4767=softmax(Intercept_{Trump})=\frac{e^{Intercept_{Trump}}}{\sum_{k=1}^K e^{Intercept_k}}
+\]</span></p>
+<p>But with Trump’s intercept fixed to <span class="math inline">\(0\)</span> as the factor’s reference level, it’s possible to calculate the sum in the denominator:</p>
+<p><span class="math display">\[
+0.4767=\frac{1}{\sum_{k=1}^K e^{Intercept_k}}
+\]</span></p>
+<p>Quick algebra gives:</p>
+<p><span class="math display">\[
+\sum_{k=1}^K e^{Intercept_k}=\frac{1}{0.4767}=2.097755
+\]</span></p>
+<p>Now it’s possible to calculate Harris’ intercept:</p>
+<p><span class="math display">\[
+0.5006=\frac{e^{Intercept_{Harris}}}{2.097755}
+\]</span></p>
+<p><span class="math display">\[
+e^{Intercept_{Harris}}=0.5006 \cdot 2.097755=1.050136
+\]</span></p>
+<p><span class="math display">\[
+Intercept_{Harris}=ln(1.050136)=0.04891968
+\]</span></p>
+<p>A quicker way to derive these intercepts is to notice that for every candidate <span class="math inline">\(j\)</span> other than the ‘reference’ candidate <span class="math inline">\(r\)</span>, the intercept is:</p>
+<p><span class="math display">\[
+Intercept_j=ln(\frac{P(j)}{P(r)})
+\]</span></p>
+<p>Where <span class="math inline">\(P(j)\)</span> and <span class="math inline">\(P(r)\)</span> are the assumed vote shares of candidate <span class="math inline">\(j\)</span> and <span class="math inline">\(r\)</span> respectively.</p>
+</section>
+</section>
+<section id="modeling-with-a-custom-prior" class="level1">
+<h1>Modeling with a custom prior</h1>
+<p>Setting the prior for Harris’ intercept, giving it relatively large standard deviation reflecting the many factors differentiating the 2024 and 2020 elections.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>prior_nv <span class="ot">&lt;-</span> <span class="fu">set_prior</span>(<span class="st">"normal(0.04891968, 0.1)"</span>, <span class="at">class =</span> <span class="st">"Intercept"</span>, <span class="at">dpar =</span> <span class="st">"muKamalaHarris"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>bayesian_model_nv_wprior <span class="ot">&lt;-</span> <span class="fu">brm</span>(<span class="at">formula =</span> candidate_name<span class="sc">|</span><span class="fu">weights</span>(sample_size<span class="sc">*</span>pct) <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>                                <span class="at">family =</span> <span class="fu">categorical</span>(<span class="at">link =</span> <span class="st">"logit"</span>),</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>                                <span class="at">data =</span> data_clean_nv,</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>                                <span class="at">prior =</span> prior_nv,</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>                                <span class="at">chains =</span> <span class="dv">10</span>,</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>                                <span class="at">cores =</span> <span class="dv">10</span>,</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>                                <span class="at">iter =</span> <span class="dv">4000</span>,</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>                                <span class="at">refresh =</span> <span class="dv">0</span>,</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>                                <span class="at">seed =</span> <span class="dv">14</span>,</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>                                <span class="at">backend =</span> <span class="st">"cmdstanr"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(bayesian_model_nv_wprior)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Family: categorical
+  Links: muChaseOliver = logit; muCornelWest = logit; muJillStein = logit; muJoelSkousen = logit; muKamalaHarris = logit
+Formula: candidate_name | weights(sample_size * pct) ~ 1
+   Data: data_clean_nv (Number of observations: 85)
+  Draws: 10 chains, each with iter = 4000; warmup = 2000; thin = 1;
+         total post-warmup draws = 20000
+
+Regression Coefficients:
+                         Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS
+muChaseOliver_Intercept     -4.92      0.11    -5.14    -4.71 1.00    10322
+muCornelWest_Intercept     -14.79      7.81   -36.48    -8.68 1.01     2915
+muJillStein_Intercept       -6.09      0.20    -6.50    -5.72 1.00     9801
+muJoelSkousen_Intercept    -15.41     11.07   -37.29    -8.72 1.00     2797
+muKamalaHarris_Intercept     0.00      0.01    -0.02     0.03 1.00    10356
+                         Tail_ESS
+muChaseOliver_Intercept     10191
+muCornelWest_Intercept       1659
+muJillStein_Intercept        9246
+muJoelSkousen_Intercept      1551
+muKamalaHarris_Intercept    10037
+
+Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
+and Tail_ESS are effective sample size measures, and Rhat is the potential
+scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
+</div>
+</div>
+<p>I’ll inspect the model again, this time using the <code>brms::posterior_epred()</code> function, generating predictions on the probability scale:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>new_data <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(<span class="at">x =</span> <span class="cn">NA</span>)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>pred_probs_nv <span class="ot">&lt;-</span> <span class="fu">posterior_epred</span>(bayesian_model_nv_wprior, <span class="at">newdata =</span> new_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>This essentially creates a <span class="math inline">\(20,000 \times 6\)</span> array of 20,000 “simulated elections” based on the model, and the vote share of each of the 6 candidates. For example, here are the first five simulated elections and the vote share in each:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>pred_probs_nv[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>,,]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     Donald Trump Chase Oliver  Cornel West  Jill Stein Joel Skousen
+[1,]    0.4953947  0.003684427 5.757740e-05 0.001019819 1.934454e-05
+[2,]    0.4994877  0.004458325 1.934866e-06 0.001474521 1.406709e-05
+[3,]    0.5026360  0.003951306 1.079202e-06 0.001657708 8.114247e-06
+[4,]    0.5044252  0.003509907 9.118997e-07 0.001623817 1.605403e-06
+[5,]    0.4987907  0.003857605 2.889669e-06 0.001544016 5.206677e-06
+     Kamala Harris
+[1,]     0.4998241
+[2,]     0.4945634
+[3,]     0.4917458
+[4,]     0.4904386
+[5,]     0.4957995</code></pre>
+</div>
+</div>
+<p>Turning it into the same plots as before gives:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>pred_probs_nv_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(pred_probs_nv[,<span class="dv">1</span>,]) <span class="sc">|&gt;</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">poll_id =</span> <span class="fu">factor</span>(<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">n</span>()))) <span class="sc">|&gt;</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="sc">!</span>poll_id,</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"Candidate"</span>,</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"Proportion"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Candidate =</span> <span class="fu">str_replace_all</span>(Candidate, <span class="st">"</span><span class="sc">\\</span><span class="st">."</span>, <span class="st">" "</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Candidate =</span> <span class="fu">str_replace</span>(Candidate, <span class="st">"^</span><span class="sc">\\</span><span class="st">S* "</span>, <span class="st">""</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>prob_plot <span class="ot">&lt;-</span> pred_probs_nv_df <span class="sc">|&gt;</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Candidate <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Trump"</span>, <span class="st">"Harris"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="dv">100</span> <span class="sc">*</span> Proportion, <span class="at">fill =</span> Candidate)) <span class="sc">+</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>  ggdist<span class="sc">::</span><span class="fu">stat_slab</span>(<span class="at">color =</span> <span class="st">"gray24"</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"#2166AC"</span>, <span class="st">"#B2182B"</span>)) <span class="sc">+</span></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">48</span>, <span class="dv">52</span>, <span class="fl">0.2</span>), <span class="at">labels =</span> <span class="fu">seq</span>(<span class="dv">48</span>, <span class="dv">52</span>, <span class="fl">0.2</span>)) <span class="sc">+</span></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Predicted vote share in %"</span>) <span class="sc">+</span></span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>prob_plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-33-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>diff_plot_wprior <span class="ot">&lt;-</span> pred_probs_nv_df <span class="sc">|&gt;</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Candidate <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Trump"</span>, <span class="st">"Harris"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">id_cols =</span> poll_id,</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">names_from =</span> Candidate,</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from =</span> Proportion) <span class="sc">|&gt;</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">diff =</span> Trump <span class="sc">-</span> Harris) <span class="sc">|&gt;</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">diff =</span> diff <span class="sc">*</span> <span class="dv">100</span>) <span class="sc">|&gt;</span></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> diff, <span class="at">fill =</span> <span class="fu">after_stat</span>(<span class="fu">cut</span>(x, <span class="at">breaks =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="cn">Inf</span>, <span class="sc">-</span><span class="dv">2</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="cn">Inf</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Harris by more than 2%"</span>, <span class="st">"Harris by 1%-2%"</span>, <span class="st">"Harris by less than 1%"</span>, <span class="st">"Trump by less than 1%"</span>, <span class="st">"Trump by 1%-2%"</span>, <span class="st">"Trump by more than 2%"</span>))))) <span class="sc">+</span></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>  ggdist<span class="sc">::</span><span class="fu">stat_slab</span>(<span class="at">color =</span> <span class="st">"gray24"</span>) <span class="sc">+</span></span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">rev</span>(RColorBrewer<span class="sc">::</span><span class="fu">brewer.pal</span>(<span class="dv">6</span>, <span class="st">"RdBu"</span>))) <span class="sc">+</span></span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">3</span>), <span class="at">labels =</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">3</span>, <span class="fl">0.5</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">3</span>, <span class="fl">0.5</span>)) <span class="sc">+</span></span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">fill =</span> <span class="st">" "</span>, <span class="at">x =</span> <span class="st">"Predicted Difference in %"</span>, <span class="at">title =</span> <span class="st">"Predicted difference in votes - Nevada"</span>, <span class="at">subtitle =</span> <span class="st">"Custom Prior"</span>) <span class="sc">+</span></span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"serif"</span>, <span class="at">size =</span> <span class="dv">22</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>),</span>
+<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"serif"</span>, <span class="at">size =</span> <span class="dv">16</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>diff_plot_wprior</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-35-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>How much the custom prior has changed the result?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>diff_plot <span class="sc">/</span> diff_plot_wprior <span class="sc">+</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-36-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Visually, not by much…</p>
+<p>And what about the predicted chance of each candidate of winning the state?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>probs_nv <span class="ot">&lt;-</span> pred_probs_nv_df <span class="sc">|&gt;</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Candidate <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Trump"</span>, <span class="st">"Harris"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">id_cols =</span> poll_id,</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">names_from =</span> Candidate,</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from =</span> Proportion)</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>diff <span class="ot">&lt;-</span> probs_nv<span class="sc">$</span>Trump <span class="sc">-</span> probs_nv<span class="sc">$</span>Harris</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(diff[diff <span class="sc">&gt;</span> <span class="dv">0</span>]) <span class="sc">/</span> <span class="fu">length</span>(diff)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.40885</code></pre>
+</div>
+</div>
+<p>Trump now has a 40.89% chance of winning Nevada, compared with the 42.82% he had before.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(diff[diff <span class="sc">&lt;</span> <span class="dv">0</span>]) <span class="sc">/</span> <span class="fu">length</span>(diff)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.59115</code></pre>
+</div>
+</div>
+<p>And Harris has 59.12% chance, a slight increase from the 57.19% she had before.</p>
+<p>Although visually there hasn’t been much of a change, the prior shifted the chances of winning by ~2% in favor of Harris.</p>
+</section>
+<section id="running-models-for-all-states" class="level1">
+<h1>Running models for all states</h1>
+<p>In this section I run the same Bayesian model for each state. The better way of doing it will be to run one big model with <code>state</code> as a categorical predictor.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> This one-big-model method didn’t converge on the current data, so I resort to run a separate model for each state.</p>
+<p>Here I define some functions to run on the list of states:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>run_b_model <span class="ot">&lt;-</span> <span class="cf">function</span>(state) {</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>  data_clean_state <span class="ot">&lt;-</span> data_clean[data_clean<span class="sc">$</span>state <span class="sc">==</span> state,]</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>  bayesian_model <span class="ot">&lt;-</span> <span class="fu">brm</span>(<span class="at">formula =</span> candidate_name<span class="sc">|</span><span class="fu">weights</span>(sample_size<span class="sc">*</span>pct) <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>                        <span class="at">family =</span> <span class="fu">categorical</span>(<span class="at">link =</span> <span class="st">"logit"</span>),</span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>                        <span class="at">data =</span> data_clean_state,</span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>                        <span class="at">chains =</span> <span class="dv">10</span>,</span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a>                        <span class="at">cores =</span> <span class="dv">10</span>,</span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a>                        <span class="at">iter =</span> <span class="dv">4000</span>,</span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a>                        <span class="at">refresh =</span> <span class="dv">0</span>,</span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a>                        <span class="at">seed =</span> <span class="dv">14</span>,</span>
+<span id="cb47-13"><a href="#cb47-13" aria-hidden="true" tabindex="-1"></a>                        <span class="at">backend =</span> <span class="st">"cmdstanr"</span>)</span>
+<span id="cb47-14"><a href="#cb47-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb47-15"><a href="#cb47-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(bayesian_model)</span>
+<span id="cb47-16"><a href="#cb47-16" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb47-17"><a href="#cb47-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-18"><a href="#cb47-18" aria-hidden="true" tabindex="-1"></a>plots <span class="ot">&lt;-</span> <span class="cf">function</span>(state) {</span>
+<span id="cb47-19"><a href="#cb47-19" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb47-20"><a href="#cb47-20" aria-hidden="true" tabindex="-1"></a>  b_model <span class="ot">&lt;-</span> <span class="fu">run_b_model</span>(<span class="at">state =</span> state)</span>
+<span id="cb47-21"><a href="#cb47-21" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb47-22"><a href="#cb47-22" aria-hidden="true" tabindex="-1"></a>  new_data <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(<span class="at">x =</span> <span class="cn">NA</span>)</span>
+<span id="cb47-23"><a href="#cb47-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-24"><a href="#cb47-24" aria-hidden="true" tabindex="-1"></a>  pred_prob <span class="ot">&lt;-</span> <span class="fu">posterior_epred</span>(b_model, <span class="at">newdata =</span> new_data)</span>
+<span id="cb47-25"><a href="#cb47-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-26"><a href="#cb47-26" aria-hidden="true" tabindex="-1"></a>  pred_prob_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(pred_prob[,<span class="dv">1</span>,]) <span class="sc">|&gt;</span></span>
+<span id="cb47-27"><a href="#cb47-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">poll_id =</span> <span class="fu">factor</span>(<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">n</span>()))) <span class="sc">|&gt;</span></span>
+<span id="cb47-28"><a href="#cb47-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="sc">!</span>poll_id,</span>
+<span id="cb47-29"><a href="#cb47-29" aria-hidden="true" tabindex="-1"></a>                 <span class="at">names_to =</span> <span class="st">"Candidate"</span>,</span>
+<span id="cb47-30"><a href="#cb47-30" aria-hidden="true" tabindex="-1"></a>                 <span class="at">values_to =</span> <span class="st">"Proportion"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb47-31"><a href="#cb47-31" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Candidate =</span> <span class="fu">str_squish</span>(<span class="fu">str_replace_all</span>(Candidate, <span class="st">"</span><span class="sc">\\</span><span class="st">."</span>, <span class="st">" "</span>)))</span>
+<span id="cb47-32"><a href="#cb47-32" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb47-33"><a href="#cb47-33" aria-hidden="true" tabindex="-1"></a>  prob_plot <span class="ot">&lt;-</span> pred_prob_df <span class="sc">|&gt;</span></span>
+<span id="cb47-34"><a href="#cb47-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Candidate <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Donald Trump"</span>, <span class="st">"Kamala Harris"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb47-35"><a href="#cb47-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Proportion, <span class="at">fill =</span> Candidate)) <span class="sc">+</span></span>
+<span id="cb47-36"><a href="#cb47-36" aria-hidden="true" tabindex="-1"></a>  ggdist<span class="sc">::</span><span class="fu">stat_slab</span>(<span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb47-37"><a href="#cb47-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb47-38"><a href="#cb47-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb47-39"><a href="#cb47-39" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb47-40"><a href="#cb47-40" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb47-41"><a href="#cb47-41" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb47-42"><a href="#cb47-42" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb47-43"><a href="#cb47-43" aria-hidden="true" tabindex="-1"></a>  diff_df <span class="ot">&lt;-</span> pred_prob_df <span class="sc">|&gt;</span></span>
+<span id="cb47-44"><a href="#cb47-44" aria-hidden="true" tabindex="-1"></a>   <span class="fu">filter</span>(Candidate <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Donald Trump"</span>, <span class="st">"Kamala Harris"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb47-45"><a href="#cb47-45" aria-hidden="true" tabindex="-1"></a>   <span class="fu">pivot_wider</span>(<span class="at">id_cols =</span> poll_id,</span>
+<span id="cb47-46"><a href="#cb47-46" aria-hidden="true" tabindex="-1"></a>                <span class="at">names_from =</span> Candidate,</span>
+<span id="cb47-47"><a href="#cb47-47" aria-hidden="true" tabindex="-1"></a>                <span class="at">values_from =</span> Proportion) <span class="sc">|&gt;</span></span>
+<span id="cb47-48"><a href="#cb47-48" aria-hidden="true" tabindex="-1"></a>   <span class="fu">mutate</span>(<span class="at">diff =</span> <span class="dv">100</span><span class="sc">*</span>(<span class="st">`</span><span class="at">Donald Trump</span><span class="st">`</span> <span class="sc">-</span> <span class="st">`</span><span class="at">Kamala Harris</span><span class="st">`</span>),</span>
+<span id="cb47-49"><a href="#cb47-49" aria-hidden="true" tabindex="-1"></a>          <span class="at">state =</span> state) <span class="sc">|&gt;</span></span>
+<span id="cb47-50"><a href="#cb47-50" aria-hidden="true" tabindex="-1"></a>   <span class="fu">mutate</span>(<span class="at">diff_label =</span> <span class="fu">cut</span>(diff, <span class="at">breaks =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="cn">Inf</span>, <span class="sc">-</span><span class="dv">10</span>, <span class="sc">-</span><span class="dv">5</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">5</span>, <span class="dv">10</span>, <span class="cn">Inf</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Harris by more than 10%"</span>, <span class="st">"Harris by 10%-5%"</span>, <span class="st">"Harris by 5%-1%"</span>, <span class="st">"Harris by less than 1%"</span>, <span class="st">"Trump by less than 1%"</span>, <span class="st">"Trump by 5%-1%"</span>, <span class="st">"Trump by 10%-5%"</span>, <span class="st">"Trump by more than 10%"</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb47-51"><a href="#cb47-51" aria-hidden="true" tabindex="-1"></a>   <span class="fu">mutate</span>(<span class="at">diff_label =</span> <span class="fu">factor</span>(diff_label, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Harris by more than 10%"</span>, <span class="st">"Harris by 10%-5%"</span>, <span class="st">"Harris by 5%-1%"</span>, <span class="st">"Harris by less than 1%"</span>, <span class="st">"Trump by less than 1%"</span>, <span class="st">"Trump by 5%-1%"</span>, <span class="st">"Trump by 10%-5%"</span>, <span class="st">"Trump by more than 10%"</span>), <span class="at">ordered =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb47-52"><a href="#cb47-52" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb47-53"><a href="#cb47-53" aria-hidden="true" tabindex="-1"></a>  diff_plot <span class="ot">&lt;-</span> diff_df <span class="sc">|&gt;</span></span>
+<span id="cb47-54"><a href="#cb47-54" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> diff, <span class="at">fill =</span> <span class="fu">after_stat</span>(<span class="fu">cut</span>(x, <span class="at">breaks =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="cn">Inf</span>, <span class="sc">-</span><span class="dv">10</span>, <span class="sc">-</span><span class="dv">5</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">5</span>, <span class="dv">10</span>, <span class="cn">Inf</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Harris by more than 10%"</span>, <span class="st">"Harris by 10%-5%"</span>, <span class="st">"Harris by 5%-1%"</span>, <span class="st">"Harris by less than 1%"</span>, <span class="st">"Trump by less than 1%"</span>, <span class="st">"Trump by 5%-1%"</span>, <span class="st">"Trump by 10%-5%"</span>, <span class="st">"Trump by more than 10%"</span>))))) <span class="sc">+</span></span>
+<span id="cb47-55"><a href="#cb47-55" aria-hidden="true" tabindex="-1"></a>    ggdist<span class="sc">::</span><span class="fu">stat_slab</span>(<span class="at">color =</span> <span class="st">"gray30"</span>) <span class="sc">+</span></span>
+<span id="cb47-56"><a href="#cb47-56" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">rev</span>(RColorBrewer<span class="sc">::</span><span class="fu">brewer.pal</span>(<span class="dv">8</span>, <span class="st">"RdBu"</span>))[<span class="fu">sort</span>(<span class="fu">as.numeric</span>(<span class="fu">unique</span>(diff_df<span class="sc">$</span>diff_label)))]) <span class="sc">+</span></span>
+<span id="cb47-57"><a href="#cb47-57" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">fill =</span> <span class="st">"Difference in %"</span>, <span class="at">x =</span> <span class="st">"Predicted Difference in %"</span>, <span class="at">title =</span> glue<span class="sc">::</span><span class="fu">glue</span>(<span class="st">"{state}"</span>)) <span class="sc">+</span></span>
+<span id="cb47-58"><a href="#cb47-58" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb47-59"><a href="#cb47-59" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">axis.title.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb47-60"><a href="#cb47-60" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb47-61"><a href="#cb47-61" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb47-62"><a href="#cb47-62" aria-hidden="true" tabindex="-1"></a>          <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"serif"</span>, <span class="at">size =</span> <span class="dv">22</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>))</span>
+<span id="cb47-63"><a href="#cb47-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-64"><a href="#cb47-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">model =</span> b_model, <span class="at">prob =</span> prob_plot, <span class="at">diff =</span> diff_plot))</span>
+<span id="cb47-65"><a href="#cb47-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-66"><a href="#cb47-66" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Running it on every state:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>states <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="at">X =</span> <span class="fu">unique</span>(data_clean<span class="sc">$</span>state)[<span class="sc">!</span>(<span class="fu">is.na</span>(<span class="fu">unique</span>(data_clean<span class="sc">$</span>state)))],</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>                 <span class="at">FUN =</span> plots)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Extracting the predicted difference between Harris and Trump in each state:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>diff_plots <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="at">X =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">43</span>,</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>                     <span class="at">FUN =</span> <span class="cf">function</span>(x) {states[[x]]<span class="sc">$</span>diff})</span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>one_big_plot <span class="ot">&lt;-</span> patchwork<span class="sc">::</span><span class="fu">wrap_plots</span>(diff_plots, <span class="at">ncol =</span> <span class="dv">5</span>, <span class="at">nrow =</span> <span class="dv">9</span>) <span class="sc">+</span></span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">+</span></span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_annotation</span>(<span class="at">theme =</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>,</span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>                                <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"serif"</span>, <span class="at">size =</span> <span class="dv">14</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>one_big_plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><img src="../elections2024/one_big_plot2.png" style="width:155.0%;height:155.0%"></p>
+</section>
+<section id="expected-electoral-college-results" class="level1">
+<h1>Expected Electoral College Results</h1>
+<p>Using the Bayesian model it is possible to calculate the expected electoral college results. For each ‘simulated’ election, I will calculate the electoral votes each candidate won.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>electors_df <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"../elections2024/2024_Electoral_College.csv"</span>, <span class="at">show_col_types =</span> <span class="cn">FALSE</span>) <span class="co"># Data frame containing elector count for each state</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>For simulated election, the winner in each state is determined based on the predicted difference in votes (positive = Trump win, Negative = Harris win):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>states_df_list <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="at">X =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">43</span>,</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>                    <span class="at">FUN =</span> <span class="cf">function</span>(x) {states[[x]]<span class="sc">$</span>diff<span class="sc">$</span>data})</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>states_df <span class="ot">&lt;-</span> <span class="fu">do.call</span>(<span class="st">"rbind"</span>, states_df_list) <span class="sc">|&gt;</span></span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">diff_binary =</span> <span class="fu">case_when</span>(diff <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">"Trump"</span>,</span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a>                                 diff <span class="sc">&lt;</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">"Harris"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(poll_id, diff_binary, state) <span class="sc">|&gt;</span></span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(<span class="fu">select</span>(electors_df, State, Total), <span class="at">by =</span> <span class="fu">join_by</span>(state <span class="sc">==</span> State)) <span class="sc">|&gt;</span></span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Total =</span> <span class="fu">case_when</span>(state <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Nebraska"</span>, <span class="st">"Maine"</span>) <span class="sc">~</span> <span class="dv">2</span>,</span>
+<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a>                           <span class="at">.default =</span> Total)) <span class="sc">|&gt;</span></span>
+<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">replace_na</span>(<span class="fu">list</span>(<span class="at">Total =</span> <span class="dv">1</span>))</span>
+<span id="cb52-12"><a href="#cb52-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-13"><a href="#cb52-13" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(states_df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 860,000
+Columns: 4
+$ poll_id     &lt;fct&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,…
+$ diff_binary &lt;chr&gt; "Trump", "Trump", "Trump", "Trump", "Trump", "Trump", "Tru…
+$ state       &lt;chr&gt; "Arizona", "Arizona", "Arizona", "Arizona", "Arizona", "Ar…
+$ Total       &lt;dbl&gt; 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11…</code></pre>
+</div>
+</div>
+<p>Summing all electors for each candidate in each simulated election (and completing the picture with states that were not polled):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>expected_electors <span class="ot">&lt;-</span> states_df <span class="sc">|&gt;</span></span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(poll_id, diff_binary) <span class="sc">|&gt;</span></span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">reframe</span>(<span class="at">tot =</span> <span class="fu">sum</span>(Total)) <span class="sc">|&gt;</span></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">tot =</span> <span class="fu">case_when</span>(diff_binary <span class="sc">==</span> <span class="st">"Trump"</span> <span class="sc">~</span> tot <span class="sc">+</span> <span class="dv">9</span> <span class="sc">+</span> <span class="dv">6</span> <span class="sc">+</span> <span class="dv">4</span> <span class="sc">+</span> <span class="dv">6</span> <span class="sc">+</span> <span class="dv">8</span> <span class="sc">+</span> <span class="dv">8</span> <span class="sc">+</span> <span class="dv">6</span> <span class="sc">+</span> <span class="dv">3</span> <span class="sc">+</span> <span class="dv">4</span>,</span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>                         diff_binary <span class="sc">==</span> <span class="st">"Harris"</span> <span class="sc">~</span> tot <span class="sc">+</span> <span class="dv">7</span> <span class="sc">+</span> <span class="dv">3</span> <span class="sc">+</span> <span class="dv">3</span> <span class="sc">+</span> <span class="dv">4</span>))</span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(expected_electors)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 3
+  poll_id diff_binary   tot
+  &lt;fct&gt;   &lt;chr&gt;       &lt;dbl&gt;
+1 1       Harris        276
+2 1       Trump         262
+3 2       Harris        276
+4 2       Trump         262
+5 3       Harris        270
+6 3       Trump         268</code></pre>
+</div>
+</div>
+<p>Visualizing each electoral result for both candidate, and their predicted probability:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>expected_electors <span class="sc">|&gt;</span></span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(diff_binary) <span class="sc">|&gt;</span></span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(diff_binary, tot) <span class="sc">|&gt;</span></span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">reframe</span>(<span class="at">count =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">percent =</span> count<span class="sc">/</span><span class="fu">sum</span>(count)) <span class="sc">|&gt;</span></span>
+<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> tot, <span class="at">y =</span> percent, <span class="at">fill =</span> diff_binary)) <span class="sc">+</span></span>
+<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>) <span class="sc">+</span></span>
+<span id="cb56-8"><a href="#cb56-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">225</span>, <span class="dv">315</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">225</span>, <span class="dv">315</span>, <span class="dv">5</span>), <span class="at">labels =</span> <span class="fu">seq</span>(<span class="dv">225</span>, <span class="dv">315</span>, <span class="dv">5</span>)) <span class="sc">+</span></span>
+<span id="cb56-9"><a href="#cb56-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"#2166AC"</span>, <span class="st">"#B2182B"</span>)) <span class="sc">+</span></span>
+<span id="cb56-10"><a href="#cb56-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Predicted Probability"</span>, <span class="at">x =</span> <span class="st">"Electors Won"</span>, <span class="at">fill =</span> <span class="st">"Candidate"</span>) <span class="sc">+</span></span>
+<span id="cb56-11"><a href="#cb56-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-49-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The most probable results are a narrow electoral win for Harris, with over representation for Trump in the high end, and for Harris on the low end. This could be understood as higher probability for a Trump landslide, rather than a Harris landslide.</p>
+<p>Calculating the most probable results:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>probable_outcomes <span class="ot">&lt;-</span> expected_electors <span class="sc">|&gt;</span></span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(diff_binary) <span class="sc">|&gt;</span></span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> diff_binary,</span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from =</span> tot,</span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">id_cols =</span> poll_id) <span class="sc">|&gt;</span></span>
+<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(Harris, Trump) <span class="sc">|&gt;</span></span>
+<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">count =</span> n) <span class="sc">|&gt;</span></span>
+<span id="cb57-8"><a href="#cb57-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">count =</span> count <span class="sc">/</span> <span class="fu">sum</span>(count)) <span class="sc">|&gt;</span></span>
+<span id="cb57-9"><a href="#cb57-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unite</span>(outcome, Harris<span class="sc">:</span>Trump, <span class="at">remove =</span> <span class="cn">FALSE</span>, <span class="at">sep =</span> <span class="st">":"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Top 20 most probable results:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>top20_probable_outcomes <span class="ot">&lt;-</span> probable_outcomes <span class="sc">|&gt;</span></span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(count)) <span class="sc">|&gt;</span></span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">20</span>) <span class="sc">|&gt;</span></span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Winner =</span> <span class="fu">case_when</span>(Trump <span class="sc">&gt;</span> Harris <span class="sc">~</span> <span class="st">"Trump"</span>,</span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>                            <span class="at">.default =</span> <span class="st">"Harris"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(top20_probable_outcomes, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(outcome, count), <span class="at">y =</span> count, <span class="at">fill =</span> Winner)) <span class="sc">+</span></span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">color =</span> <span class="st">"gray44"</span>) <span class="sc">+</span></span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Harris"</span> <span class="ot">=</span> <span class="st">"#2166AC"</span>, <span class="st">"Trump"</span> <span class="ot">=</span> <span class="st">"#B2182B"</span>)) <span class="sc">+</span></span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Top 20 Most Probable Electoral Results"</span>,</span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Electoral Result"</span>,</span>
+<span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Probability"</span>,</span>
+<span id="cb59-8"><a href="#cb59-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"Winner"</span></span>
+<span id="cb59-9"><a href="#cb59-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb59-10"><a href="#cb59-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb59-11"><a href="#cb59-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb59-12"><a href="#cb59-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>),</span>
+<span id="cb59-13"><a href="#cb59-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="dv">16</span>)</span>
+<span id="cb59-14"><a href="#cb59-14" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-52-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>Of course there are a lot more interesting calculations and visualizations that can be derived from the current Bayesian model, and from other models. This is a first attempt at implementing Bayesian statistical methods in the election polling field, I had fun.</p>
+
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>For a more deep discussion on prior distributions, see this <a href="https://tomerzipori.github.io/blog/posts/bayes101/">post</a>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Or as a factor with random levels, but I don’t think it’s theoretically correct in the US presidential elections.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></article></main>
 <footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>Forecasts are not prophecies.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

@@ -16,5 +16,424 @@ image-alt: ""
 ---
 
 <header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
-<main class="site-main"><section class="page-intro"><p class="section-number">Article · Models and meaning</p><h1>Netflix trends</h1><div class="article-meta"><span class="status">in bloom</span><span>13 Jun 2023</span></div></section><article class="prose"><p>What does a catalogue say when you stop looking at the titles one by one? This notebook explores Netflix title data through text analysis and visualization.</p><h2>The question</h2><p>Can simple representations of title language reveal useful patterns without pretending to explain the whole catalogue?</p><h2>What the text can do</h2><p>Token counts, word associations, and vector views make the language inspectable. They also remind us that the text of a title is not the same thing as the audience, the story, or the platform's recommendation system.</p><p>Text is a map. It is not the territory with subtitles.</p></article></main>
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Models and meaning</p><h1>Netflix trends</h1><div class="article-meta"><span class="status">in bloom</span><span>13 Jun 2023</span></div></section><article class="prose real-post"><p>This post will be dedicated yet again to some experimentation with text analysis. I will be using mostly basic and classic NLP tools like word counting and DFM’s (Document-Feature matrix). I hope that in the next NLP post I will be using some more advanced methods like transformers (go BERT!).</p>
+<p>I will be using the popular <em>Netflix</em> <a href="https://www.kaggle.com/datasets/shivamb/netflix-shows">dataset</a> from Kaggle. It contains data of movies and TV shows added to Netflix’s streaming service since 2008.</p>
+<p>It’s going to be a relatively short post, the first part will include some nice visualization (word clouds), and in the second part I will try and build a mini show-recommendation function.</p>
+<section id="setup" class="level1">
+<h1>Setup</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(extrafont)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggwordcloud)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(quanteda)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(quanteda.textplots)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(quanteda.textstats)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="data-loading" class="level1">
+<h1>Data loading</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"netflix_titles.csv"</span>, <span class="at">show_col_types =</span> F)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 12
+  show_id type    title    director cast  country date_added release_year rating
+  &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt;   &lt;chr&gt;             &lt;dbl&gt; &lt;chr&gt;
+1 s1      Movie   Dick Jo… Kirsten… &lt;NA&gt;  United… September…         2020 PG-13
+2 s2      TV Show Blood &amp;… &lt;NA&gt;     Ama … South … September…         2021 TV-MA
+3 s3      TV Show Ganglan… Julien … Sami… &lt;NA&gt;    September…         2021 TV-MA
+4 s4      TV Show Jailbir… &lt;NA&gt;     &lt;NA&gt;  &lt;NA&gt;    September…         2021 TV-MA
+5 s5      TV Show Kota Fa… &lt;NA&gt;     Mayu… India   September…         2021 TV-MA
+6 s6      TV Show Midnigh… Mike Fl… Kate… &lt;NA&gt;    September…         2021 TV-MA
+# ℹ 3 more variables: duration &lt;chr&gt;, listed_in &lt;chr&gt;, description &lt;chr&gt;</code></pre>
+</div>
+</div>
+<p>Let’s look at one of the more interesting fields in here:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>description, <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "As her father nears the end of his life, filmmaker Kirsten Johnson stages his death in inventive and comical ways to help them both face the inevitable."
+[2] "After crossing paths at a party, a Cape Town teen sets out to prove whether a private-school swimming star is her sister who was abducted at birth."
+[3] "To protect his family from a powerful drug lord, skilled thief Mehdi and his expert team of robbers are pulled into a violent and deadly turf war."      </code></pre>
+</div>
+</div>
+<p>We get to have the description of every TV show or movie added. This has potential…</p>
+</section>
+<section id="preprocessing" class="level1">
+<h1>Preprocessing</h1>
+<p>This part is sort of boring, but I’m creating a <em>Date</em> column in <code>lubridate</code> format. Didn’t know that <code>R</code> has built in object for this.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>months_names <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">name =</span> month.name,</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>                           <span class="at">month =</span> <span class="fu">seq</span>(<span class="dv">1</span>,<span class="dv">12</span>,<span class="dv">1</span>))</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>data_clean <span class="ot">&lt;-</span> data <span class="sc">|&gt;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">month_added =</span> <span class="fu">word</span>(date_added, <span class="dv">1</span>),</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">day_added =</span> <span class="fu">str_remove_all</span>(<span class="fu">word</span>(date_added, <span class="dv">2</span>), <span class="st">","</span>),</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">year_added =</span> <span class="fu">word</span>(date_added, <span class="dv">3</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(months_names, <span class="at">by =</span> <span class="fu">join_by</span>(month_added <span class="sc">==</span> name)) <span class="sc">|&gt;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">date_added =</span> <span class="fu">paste</span>(day_added, month, year_added, <span class="at">sep =</span> <span class="st">"."</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>month_added, <span class="sc">-</span>day_added, <span class="sc">-</span>month) <span class="sc">|&gt;</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">date_added =</span> <span class="fu">dmy</span>(date_added)) <span class="sc">|&gt;</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">date_added_ym =</span> zoo<span class="sc">::</span><span class="fu">as.yearmon</span>(date_added))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="text-analysis-of-show-description" class="level2">
+<h2 class="anchored" data-anchor-id="text-analysis-of-show-description">Text analysis of show description</h2>
+<p>Here I’m creating the DFM. It is basically a huge matrix with each document (show description) being a row, and each unique word being a column. Values represent the frequency of each word in each document.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>data_clean_dfm <span class="ot">&lt;-</span> data_clean <span class="sc">|&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">description =</span> <span class="fu">str_remove_all</span>(description, <span class="at">pattern =</span> <span class="st">"[[:punct:]]"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">corpus</span>(<span class="at">text_field =</span> <span class="st">"description"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tokens</span>(<span class="at">remove_separators =</span> T) <span class="sc">|&gt;</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tokens_remove</span>(<span class="fu">stopwords</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dfm</span>()</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>data_clean_dfm</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Document-feature matrix of: 8,807 documents, 20,824 features (99.93% sparse) and 13 docvars.
+       features
+docs    father nears end life filmmaker kirsten johnson stages death inventive
+  text1      1     1   1    1         1       1       1      1     1         1
+  text2      0     0   0    0         0       0       0      0     0         0
+  text3      0     0   0    0         0       0       0      0     0         0
+  text4      0     0   0    0         0       0       0      0     0         0
+  text5      0     0   0    1         0       0       0      0     0         0
+  text6      0     0   0    0         0       0       0      0     0         0
+[ reached max_ndoc ... 8,801 more documents, reached max_nfeat ... 20,814 more features ]</code></pre>
+</div>
+</div>
+<p>For example: The word ‘father’ appear once in the first document, and doesn’t appear in documents 2 to 6.</p>
+</section>
+</section>
+<section id="content-trends-in-netflixs-new-additions" class="level1">
+<h1>Content trends in Netflix’s new additions</h1>
+<p>Although it is pretty basic, the DFM allows us to check many things. For example: Did Netflix’s new content changed over the years? I thought it would be interesting to see the most frequent words in the descriptions of items added in each year.</p>
+<p>As you can see, I have added a relative frequency column to the data. This is to control for the different number of items added in each year.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>plot_data <span class="ot">&lt;-</span> data_clean_dfm <span class="sc">|&gt;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">textstat_frequency</span>(<span class="at">groups =</span> year_added) <span class="sc">|&gt;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(rank <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>) <span class="sc">&amp;</span> group <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"2016"</span>, <span class="st">"2017"</span>, <span class="st">"2017"</span>, <span class="st">"2019"</span>, <span class="st">"2020"</span>, <span class="st">"2021"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(group) <span class="sc">|&gt;</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">r_frequency =</span> <span class="dv">100</span><span class="sc">*</span>frequency<span class="sc">/</span><span class="fu">sum</span>(frequency)) <span class="sc">|&gt;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>cloud1 <span class="ot">&lt;-</span> plot_data <span class="sc">|&gt;</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">label =</span> feature, <span class="at">size =</span> r_frequency, <span class="at">color =</span> r_frequency)) <span class="sc">+</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_size_area</span>(<span class="at">max_size =</span> <span class="dv">7</span>) <span class="sc">+</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text_wordcloud</span>(<span class="at">seed =</span> <span class="dv">14</span>, ) <span class="sc">+</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_gradient</span>(<span class="at">low =</span> <span class="st">"#000000"</span>, <span class="at">high =</span> <span class="st">"#ff0000"</span>) <span class="sc">+</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>group, <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Content trends in Netflix's new additions every year"</span>,</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"Most common words in the description of every newly added Movie or TV series"</span>) <span class="sc">+</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">strip.text.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">30</span>, <span class="at">family =</span> <span class="st">"Avengeance Heroic Avenger"</span>),</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">32</span>, <span class="at">family =</span> <span class="st">"Bebas Neue"</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>),</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">22</span>, <span class="at">family =</span> <span class="st">"Bebas Neue"</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>),</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>),</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>cloud1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="1248"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="recommendation-generator" class="level1">
+<h1>Recommendation generator</h1>
+<p>The Algorithm. Everyone online for the past 10 years are talking about the algorithm. ‘The algorithm’ is the method every app or website uses to predict our taste in videos/products/TV shows/twitts or Facebook posts.</p>
+<p>In this part I try to create my own mini ‘algorithm’, But first, a short explanation on vector representation and similarity between texts.</p>
+<section id="tf-idf-term-frequency---inverse-document-frequency" class="level2">
+<h2 class="anchored" data-anchor-id="tf-idf-term-frequency---inverse-document-frequency">TF-IDF (Term Frequency - Inverse Document Frequency)</h2>
+<section id="tf---term-frequency" class="level3">
+<h3 class="anchored" data-anchor-id="tf---term-frequency">TF - Term Frequency</h3>
+<p>Up until now I have used the most basic DFM - the count DFM. It basically counts the number of times each word appear in the document, and is sometimes also called ‘Bag of Words’.<br>
+One problem that arises in our inner statistician is that longer documents contain more words! therefore, different term frequencies can be hard to compare. The simple solution is to calculate <em>Proportional frequency</em> in the following way:<br>
+<span class="math display">\[
+term \ frequency= \frac{N \ times \ a \ word \ appear \ in \ the \ document}{Total \ number \ of \ words \ in \ the \ document}
+\]</span></p>
+<p>This gives us the <strong>Term frequency</strong> part of the tf-idf method.</p>
+</section>
+<section id="inverse-document-frequency" class="level3">
+<h3 class="anchored" data-anchor-id="inverse-document-frequency">Inverse Document Frequency</h3>
+<p>So we have the term frequency of every token (word). We can start and make show recommendations, right? Another problem that still exist is that some words could be prevalent in <strong>every</strong> document. For example, if the word ‘Life’ appears in a large number of descriptions, it is not so useful in identifying someones taste in TV shows and movies. If, on the other hand, the word ‘Father’ appear only in a small number of descriptions, it will be a lot more helpful to us. Therefore, we want to represent term <em>Uniqueness</em>. How can we do that?</p>
+<p>For each token (word) the Inverse-Document-Frequency is calculated:<br>
+<span class="math display">\[
+idf=log( \frac{Total \ number \ of \ documents}{N \ documents \ containing \ the \ term})
+\]</span></p>
+<p>This number is getting close to zero the more documents containing the word, and is getting larger the less documents contain it (and the more documents we have).</p>
+<p>To get the final tf-idf value for every term, we simply multiply the Term-Frequency with the Inverse-Document-Frequency:<br>
+<span class="math display">\[
+tfidf(word)=tf(word) \cdot idf(word)
+\]</span></p>
+<p>In creating the tf-idf DFM, I have also converted every word to lower case and to it’s stem.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>netflix_tf_idf <span class="ot">&lt;-</span> data_clean_dfm <span class="sc">|&gt;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dfm_tolower</span>() <span class="sc">|&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dfm_wordstem</span>() <span class="sc">|&gt;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dfm_tfidf</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="cosine-similarity" class="level2">
+<h2 class="anchored" data-anchor-id="cosine-similarity">Cosine Similarity</h2>
+<p>Now that we have the DFM, we have a vector representation of every description of every show. Every word in our dataset is a dimension and it’s tf-idf in each document is the vector component. For example, the vector representation of the description of “Attack on Titan” is:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dfm_subset</span>(netflix_tf_idf, <span class="at">subset =</span> title <span class="sc">==</span> <span class="st">"Attack on Titan"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Document-feature matrix of: 1 document, 15,097 features (99.90% sparse) and 13 docvars.
+         features
+docs      father near end life filmmak kirsten johnson stage death invent
+  text779      0    0   0    0       0       0       0     0     0      0
+[ reached max_nfeat ... 15,087 more features ]</code></pre>
+</div>
+</div>
+<p>Naturally these vector are mostly zeros…</p>
+<p>But now that we have vectors we can do all the cool things that we can do with vectors! For example, we can recommend TV shows and movies based on how their vector representations are <em>similar</em> to a previously watched show. But how to calculate the similarity of two vectors?</p>
+<p>If we return to Physics class, we can think of vectors as arrows with length and direction.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="vectors.png" class="img-fluid figure-img"></p>
+<figcaption>Two vectors</figcaption>
+</figure>
+</div>
+<p>It is natural to think of the similarity between two vectors as the degree to which they point in the same direction. In other words, the angle between two vectors. It is possible to calculate the <em>cosine</em> between two vectors the following way:<br>
+<span class="math display">\[
+cos \theta= \frac{ \vec{a} \cdot \vec{b}}{|\vec{a}| \cdot |\vec{b}|}
+\]</span></p>
+<p>Without turning this into a real Physics class, in the numerator is the dot-product of the vectors, and in the denominator is the product of lengths of the vectors. For example, the cosine between the vectors <span class="math inline">\(\vec{a}=(1,1)\)</span> and <span class="math inline">\(\vec{b}=(-4,3)\)</span> is:<br>
+<span class="math display">\[
+cos \theta= \frac{1 \cdot (-4)+1 \cdot (3)}{ \sqrt{1^2+1^2} \cdot \sqrt{(-4)^2+3^2}}=\frac{-1}{5 \sqrt{2}}
+\]</span></p>
+<p>But what is the angle between ~15,000 dimensions vectors?! fortunately, this calculation remains the same in any dimension.</p>
+<p>What is the relation between the angle and it’s cosine? without digging too deep, the larger the angle, the smaller the cosine. So the larger the cosine, the greater the similarity.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Nice insight: the cosine similarity is nothing but the un-standardized pearson correlation coefficient! Let <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> be vectors of Z scores. The correlation coefficient is:<br>
+<span class="math display">\[
+r_{xy}= \frac{\sum_{i=1}^{N}{x_i \cdot y_i}}{N}
+\]</span> While the cosine of the angle between them is:<br>
+<span class="math display">\[
+cos \theta= \frac{\vec{x} \cdot \vec{y}}{|\vec{x}| \cdot |\vec{y}|}
+\]</span> The length of a vector of Z scores is <span class="math inline">\(\sqrt{N}\)</span>, therefore the denominator is always: <span class="math inline">\(\sqrt{N} \cdot \sqrt{N}=N\)</span>.<br>
+The nominator is the dot product of the vectors, which is exactly the sum of the by-component products. Finally we get:<br>
+<span class="math display">\[
+r_{xy}=cos \ \theta_{xy}
+\]</span></p>
+</div>
+</div>
+<section id="functions" class="level3">
+<h3 class="anchored" data-anchor-id="functions">Functions</h3>
+<p>The main idea of the recommendation generator is simple. If you liked a TV show or a movie, you will probably like shows with similar description. Not any similarity, cosine similarity!</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>get_recommendation <span class="ot">&lt;-</span> <span class="cf">function</span>(show, <span class="at">liked =</span> T) {</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(dplyr)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(quanteda)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  features <span class="ot">&lt;-</span> netflix_tf_idf<span class="sc">@</span>docvars</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  show_id <span class="ot">&lt;-</span> features<span class="sc">$</span>docname_[<span class="fu">tolower</span>(features<span class="sc">$</span>title) <span class="sc">%in%</span> <span class="fu">tolower</span>(show)]</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  show_id <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(<span class="fu">str_remove_all</span>(show_id, <span class="at">pattern =</span> <span class="st">"text"</span>))</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  simil_mat <span class="ot">&lt;-</span> <span class="fu">textstat_simil</span>(netflix_tf_idf[show_id,], netflix_tf_idf, <span class="at">method =</span> <span class="st">"cosine"</span>)</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (liked) {</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  simil_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">shows =</span> simil_mat<span class="sc">@</span>Dimnames[[<span class="dv">2</span>]],</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>                      <span class="at">simil =</span> simil_mat<span class="sc">@</span>x) <span class="sc">|&gt;</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="sc">-</span>simil) <span class="sc">|&gt;</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(<span class="fu">select</span>(netflix_tf_idf<span class="sc">@</span>docvars, docname_, title),</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>             <span class="at">by =</span> <span class="fu">join_by</span>(shows <span class="sc">==</span> docname_)) <span class="sc">|&gt;</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="sc">-</span>shows, <span class="at">match =</span> simil) <span class="sc">|&gt;</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">match =</span> (match<span class="sc">-</span><span class="fu">min</span>(match))<span class="sc">/</span>(<span class="fu">max</span>(match)<span class="sc">-</span><span class="fu">min</span>(match))) <span class="sc">|&gt;</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">head</span>(<span class="dv">11</span>)</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span>liked){</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>    simil_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">shows =</span> simil_mat<span class="sc">@</span>Dimnames[[<span class="dv">2</span>]],</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>                      <span class="at">simil =</span> simil_mat<span class="sc">@</span>x) <span class="sc">|&gt;</span></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(simil) <span class="sc">|&gt;</span></span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(<span class="fu">select</span>(netflix_tf_idf<span class="sc">@</span>docvars, docname_, title),</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>             <span class="at">by =</span> <span class="fu">join_by</span>(shows <span class="sc">==</span> docname_)) <span class="sc">|&gt;</span></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="sc">-</span>shows, <span class="at">match =</span> simil) <span class="sc">|&gt;</span></span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">match =</span> <span class="dv">1</span><span class="sc">-</span>(match<span class="sc">-</span><span class="fu">min</span>(match))<span class="sc">/</span>(<span class="fu">max</span>(match)<span class="sc">-</span><span class="fu">min</span>(match))) <span class="sc">|&gt;</span></span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">head</span>(<span class="dv">11</span>)</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(simil_df[<span class="sc">-</span><span class="dv">1</span>,])</span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>get_recommendation_plot <span class="ot">&lt;-</span> <span class="cf">function</span>(show) {</span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(ggplot2)</span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a>  plot_df <span class="ot">&lt;-</span> <span class="fu">get_recommendation</span>(show)</span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(plot_df, <span class="fu">aes</span>(<span class="fu">reorder</span>(title, <span class="sc">-</span>match, identity), match, <span class="at">fill =</span> match)) <span class="sc">+</span></span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>() <span class="sc">+</span></span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Show"</span>, <span class="at">y =</span> <span class="st">"Match"</span>) <span class="sc">+</span></span>
+<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradient</span>(<span class="at">low =</span> <span class="st">"#000000"</span>, <span class="at">high =</span> <span class="st">"#990011FF"</span>) <span class="sc">+</span></span>
+<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">90</span>, <span class="at">vjust =</span> <span class="fl">0.5</span>, <span class="at">hjust =</span> <span class="dv">1</span>),</span>
+<span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position =</span> <span class="st">"none"</span>,</span>
+<span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>),</span>
+<span id="cb14-50"><a href="#cb14-50" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"#F9EBDE"</span>))</span>
+<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="getting-show-recommendations" class="level3">
+<h3 class="anchored" data-anchor-id="getting-show-recommendations">Getting show recommendations</h3>
+<p>Let’s use an example. Maybe I watched “Attack on Titan”, what are the top 10 recommended shows for me?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>watched <span class="ot">&lt;-</span> <span class="st">"Attack on Titan"</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">get_recommendation</span>(watched)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       match                               title
+2  0.1570728 Little Singham aur Kaal ka Mahajaal
+3  0.1444591                             The BFG
+4  0.1367644                    Sym-Bionic Titan
+5  0.1339566                           The Giant
+6  0.1335654                               Agent
+7  0.1227649                Pup Star: World Tour
+8  0.1207346              Power Battle Watch Car
+9  0.1159523                         Rising High
+10 0.1149643           League of Legends Origins
+11 0.1136349                A Sort of Homecoming</code></pre>
+</div>
+</div>
+<p>What if I did not like a show? no problem, you will be recommended shows and movies that are not similar.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_recommendation</span>(<span class="st">"I Am Sam"</span>, <span class="at">liked =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   match                               title
+2      1                           Ganglands
+3      1               Jailbirds New Orleans
+4      1                        Kota Factory
+5      1    My Little Pony: A New Generation
+6      1                             Sankofa
+7      1       The Great British Baking Show
+8      1                        The Starling
+9      1 Vendetta: Truth, Lies and The Mafia
+10     1                    Bangkok Breaking
+11     1    Confessions of an Invisible Girl</code></pre>
+</div>
+</div>
+<section id="in-a-plot" class="level4">
+<h4 class="anchored" data-anchor-id="in-a-plot">In a plot</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_recommendation_plot</span>(watched)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="interactive-app" class="level3">
+<h3 class="anchored" data-anchor-id="interactive-app">Interactive app</h3>
+<p>Play around with show recommendations. and see other visualizations of the current data in this <a href="https://tomerzipori.shinyapps.io/Netflix/">shiny app</a>.</p>
+<section id="shiny-live" class="level4">
+<h4 class="anchored" data-anchor-id="shiny-live">Shiny-Live</h4>
+<p><em>Update</em> from 11/3/24 - Apparently there is a new way of embedding shiny apps into quarto documents. The current app might not load for you as <code>shinylive</code> still struggles with heavy calculations…</p>
+<pre class="shinylive-r" data-engine="r"><code>#| standalone: true
+#| code-fold: true
+#| cache: false
+library(shiny)
+
+ui &lt;- fluidPage(
+  titlePanel("Test app"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(inputId = "watched_recommendation",
+                  label = "I watched...",
+                  choices = data_clean$title,
+                  selected = data_clean$title[14])
+    ),
+    mainPanel(
+      plotOutput('plot1', height = "350px")
+    )
+  )
+)
+
+server &lt;- function(input, output) {
+  show_watched &lt;- reactive({input$watched_recommendation})
+
+  output$plot1 &lt;- renderPlot({
+  get_recommendation_plot(show_watched())
+  })
+}
+
+shinyApp(ui, server)</code></pre>
+<p>If my app doesn’t load for you, comfort yourself with this demo app from <em>Posit</em>:</p>
+<pre class="shinylive-r" data-engine="r"><code>#| standalone: true
+#| viewerHeight: 650
+#| cache: false
+library(shiny)
+
+vars &lt;- setdiff(names(iris), "Species")
+
+ui &lt;- pageWithSidebar(
+  headerPanel('Iris k-means clustering'),
+  sidebarPanel(
+    selectInput('xcol', 'X Variable', vars),
+    selectInput('ycol', 'Y Variable', vars, selected = vars[[2]]),
+    numericInput('clusters', 'Cluster count', 3, min = 1, max = 9)
+  ),
+  mainPanel(
+    plotOutput('plot1')
+  )
+)
+
+server &lt;- function(input, output, session) {
+
+  # Combine the selected variables into a new data frame
+  selectedData &lt;- reactive({
+    iris[, c(input$xcol, input$ycol)]
+  })
+
+  clusters &lt;- reactive({
+    kmeans(selectedData(), input$clusters)
+  })
+
+  output$plot1 &lt;- renderPlot({
+    palette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
+      "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"))
+
+    par(mar = c(5.1, 4.1, 0, 1))
+    plot(selectedData(),
+         col = clusters()$cluster,
+         pch = 20, cex = 3)
+    points(clusters()$centers, pch = 4, cex = 4, lwd = 4)
+  })
+
+}
+
+shinyApp(ui, server)</code></pre>
+</section>
+</section>
+</section>
+</section>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>This post is an extra step for me in the NLP domain. As always I try to explain the theory behind the interesting parts of the process. For example, I remember when I discovered the connection between the correlation coefficient and the angle between vectors, it was really eye opening!<br>
+</p>
+<p>The recommendation functions could be vastly improved with some more modern NLP methods (Transformers!). I hope that in the near future I will have the time to post about that to.</p>
+
+
+</section></article></main>
 <footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>Text analysis, with plot labels.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>
