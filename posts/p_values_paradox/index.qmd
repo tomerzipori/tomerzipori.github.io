@@ -1,0 +1,19 @@
+---
+title: "Rejecting the null hypothesis or not?"
+description: "When different interpretations of probability disagree about what p-values mean."
+date: 2023-09-04
+updated: 2023-09-04
+status: finished
+draft: false
+paths:
+  - evidence-and-belief
+aliases:
+  - /blog/posts/p_values_paradox/
+  - /blog/posts/p_values_paradox/index.html
+image: ""
+image-alt: ""
+---
+
+<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Evidence and belief</p><h1>Rejecting the null hypothesis or not?</h1><div class="article-meta"><span class="status">in bloom</span><span>04 Sep 2023</span></div></section><article class="prose"><p>A p-value can look like a small, clean answer. The trouble begins when different interpretations of probability ask it to answer different questions.</p><h2>The puzzle</h2><p>Under a null model, how surprising is data at least as extreme as the data observed? That is a useful calculation. It is not the probability that the null hypothesis is true.</p><h2>Why the paradox matters</h2><p>Fisherian testing, Neyman–Pearson decision rules, and Bayesian inference organize uncertainty differently. The same observed result can therefore support different next steps, depending on the question and the model.</p><blockquote>Do not ask a number to answer a question it was not built to answer.</blockquote><p>This is a theory note with a practical ending: state the estimand, state the decision rule, and show the model that connects the data to the conclusion.</p></article></main>
+<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>The p-value is not the whole story.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

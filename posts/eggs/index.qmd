@@ -1,0 +1,19 @@
+---
+title: "Cage-free vs. caged hens in the US"
+description: "A TidyTuesday visualization of the changing number of cage-free hens in the US."
+date: 2023-04-12
+updated: 2023-04-12
+status: finished
+draft: false
+paths:
+  - data-and-strange-claims
+aliases:
+  - /blog/posts/eggs/
+  - /blog/posts/eggs/index.html
+image: ""
+image-alt: ""
+---
+
+<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Data and strange claims</p><h1>Cage-free vs. caged hens in the US</h1><div class="article-meta"><span class="status">in bloom</span><span>12 Apr 2023</span></div></section><article class="prose"><p>Some time ago, when the fall semester began, I enrolled in a Data Science Lab course. One assignment was to make a TidyTuesday contribution and present it in class. This was one of my first respectable attempts at visualizing data.</p><h2>The question</h2><p>How did the number of cage-free hens change relative to traditionally housed hens over the observed period?</p><h2>The plot</h2><p>The analysis filters for table eggs, joins the reported cage-free percentages to the total number of hens, and turns the result into a stacked time-series view.</p><p>Kinda messy. Still worth plotting.</p></article></main>
+<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>A first respectable attempt.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

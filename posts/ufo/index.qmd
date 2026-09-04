@@ -1,0 +1,19 @@
+---
+title: "Who is the leading US state in UFO reports? probably not what you thought"
+description: "Visualizing UFO reports per state capita, where the denominator changes the story."
+date: 2023-04-16
+updated: 2023-04-16
+status: finished
+draft: false
+paths:
+  - data-and-strange-claims
+aliases:
+  - /blog/posts/ufo/
+  - /blog/posts/ufo/index.html
+image: ""
+image-alt: ""
+---
+
+<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Data and strange claims</p><h1>Who is the leading US state in UFO reports? probably not what you thought</h1><div class="article-meta"><span class="status">in bloom</span><span>16 Apr 2023</span></div></section><article class="prose"><p>Counts are easy to find and easy to misunderstand. A state with more reports may simply have more people, more sky, or more people willing to submit a report.</p><h2>The question</h2><p>What changes when UFO reports are visualized per capita instead of as raw totals?</p><h2>The plot</h2><p>The map is exploratory. It makes the denominator visible and turns an odd question into a reminder about exposure, reporting behavior, and the stories that data invite.</p><p>Probably not what you thought. That is where the investigation starts, not where it ends.</p></article></main>
+<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>One strange claim, two denominators.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

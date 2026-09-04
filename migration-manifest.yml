@@ -1,0 +1,98 @@
+version: 1
+source_repository: ../blog
+source_pages_deployment: unchanged-during-rebuild
+source_read_note: >-
+  The existing blog source and Git ref pack were present but cloud-placeholdered
+  during this build. Source commits must be filled from the archive checkout
+  before final cutover; no source SHA is invented here.
+articles:
+  - slug: bayes101
+    old_url: /blog/posts/bayes101/
+    new_url: /posts/bayes101/
+    source_commit: pending-archive-read
+    engine: quarto
+    freeze_status: summary-scaffolded-source-preservation-pending
+    excluded_artifacts: [b_model_t-test.rds]
+  - slug: bayes102
+    old_url: /blog/posts/bayes102/
+    new_url: /posts/bayes102/
+    source_commit: pending-archive-read
+    engine: quarto
+    freeze_status: summary-scaffolded-source-preservation-pending
+    excluded_artifacts: [b_model_epilepsy.rds, b_model_iris.rds, b_model_logistic_sp500.rds, b_model_sleep.rds]
+  - slug: eggs
+    old_url: /blog/posts/eggs/
+    new_url: /posts/eggs/
+    source_commit: pending-archive-read
+    engine: quarto
+    freeze_status: summary-scaffolded-source-preservation-pending
+    excluded_artifacts: []
+  - slug: elections2024
+    old_url: /blog/posts/elections2024/
+    new_url: /posts/elections2024/
+    source_commit: pending-archive-read
+    engine: quarto
+    freeze_status: summary-scaffolded-source-preservation-pending
+    excluded_artifacts: [bayesian_model_nv.rds, bayesian_model_nv_wprior.rds]
+  - slug: fifa23
+    old_url: /blog/posts/fifa23/
+    new_url: /posts/fifa23/
+    source_commit: pending-archive-read
+    engine: quarto
+    freeze_status: summary-scaffolded-source-preservation-pending
+    excluded_artifacts: []
+  - slug: football_fake_news
+    old_url: /blog/posts/football_fake_news/
+    new_url: /posts/football_fake_news/
+    source_commit: pending-archive-read
+    engine: quarto
+    freeze_status: summary-scaffolded-source-preservation-pending
+    excluded_artifacts: []
+  - slug: micrograd
+    old_url: /blog/posts/micrograd/
+    new_url: /posts/micrograd/
+    source_commit: pending-archive-read
+    engine: quarto
+    freeze_status: summary-scaffolded-source-preservation-pending
+    excluded_artifacts: [app.R]
+  - slug: multilingual-embeddings-layers
+    old_url: /blog/posts/multilingual-embeddings-layers/
+    new_url: /posts/multilingual-embeddings-layers/
+    source_commit: pending-feature-branch-read
+    engine: quarto
+    freeze_status: draft-only
+    excluded_artifacts: [model-cache]
+  - slug: netflix
+    old_url: /blog/posts/netflix/
+    new_url: /posts/netflix/
+    source_commit: pending-archive-read
+    engine: quarto
+    freeze_status: summary-scaffolded-source-preservation-pending
+    excluded_artifacts: [app.R]
+  - slug: p_values_paradox
+    old_url: /blog/posts/p_values_paradox/
+    new_url: /posts/p_values_paradox/
+    source_commit: pending-archive-read
+    engine: quarto
+    freeze_status: summary-scaffolded-source-preservation-pending
+    excluded_artifacts: []
+  - slug: ufo
+    old_url: /blog/posts/ufo/
+    new_url: /posts/ufo/
+    source_commit: pending-archive-read
+    engine: quarto
+    freeze_status: summary-scaffolded-source-preservation-pending
+    excluded_artifacts: [uspop.xlsx]
+routes:
+  - old: /blog/
+    new: /
+    behavior: static redirect
+  - old: /blog/blog.html
+    new: /writing/
+    behavior: static redirect
+  - old: /blog/cv.html
+    new: /about/
+    behavior: static redirect
+  - old: /blog/blog.xml
+    new: /writing/index.xml
+    behavior: compatible duplicate RSS output

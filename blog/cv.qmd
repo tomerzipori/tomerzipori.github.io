@@ -1,0 +1,10 @@
+---
+title: "Redirecting to about"
+format:
+  html:
+    title-block-style: none
+    include-in-header:
+      - text: '<meta http-equiv="refresh" content="0; url=/about/">'
+---
+
+<main class="site-main"><section class="page-intro"><p class="section-number">The CV moved</p><h1>Go to about.</h1><p><a href="/about/">Open about</a></p></section></main>

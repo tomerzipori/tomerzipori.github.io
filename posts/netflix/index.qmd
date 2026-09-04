@@ -1,0 +1,20 @@
+---
+title: "Netflix trends"
+description: "Text data visualization and analysis of Netflix titles."
+date: 2023-06-13
+updated: 2023-06-13
+status: finished
+draft: false
+paths:
+  - models-and-meaning
+  - data-and-strange-claims
+aliases:
+  - /blog/posts/netflix/
+  - /blog/posts/netflix/index.html
+image: ""
+image-alt: ""
+---
+
+<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Models and meaning</p><h1>Netflix trends</h1><div class="article-meta"><span class="status">in bloom</span><span>13 Jun 2023</span></div></section><article class="prose"><p>What does a catalogue say when you stop looking at the titles one by one? This notebook explores Netflix title data through text analysis and visualization.</p><h2>The question</h2><p>Can simple representations of title language reveal useful patterns without pretending to explain the whole catalogue?</p><h2>What the text can do</h2><p>Token counts, word associations, and vector views make the language inspectable. They also remind us that the text of a title is not the same thing as the audience, the story, or the platform's recommendation system.</p><p>Text is a map. It is not the territory with subtitles.</p></article></main>
+<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>Text analysis, with plot labels.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

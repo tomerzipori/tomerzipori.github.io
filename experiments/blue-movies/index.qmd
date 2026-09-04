@@ -1,0 +1,20 @@
+---
+title: "Blue Movies"
+description: "A reproducible Python pipeline for testing whether movies released in the early 2000s were more blue."
+date: 2026-06-20
+updated: 2026-06-20
+status: finished
+draft: false
+paths:
+  - data-and-strange-claims
+  - tools-for-thinking
+repo: https://github.com/tomerzipori/blue-movies
+artifact: https://github.com/tomerzipori/blue-movies#readme
+image: ""
+image-alt: ""
+---
+
+<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
+<main class="site-main"><section class="page-intro"><p class="section-number">Experiment · Python pipeline</p><h1>Blue Movies</h1><div class="article-meta"><span class="status">in bloom</span><span>updated 20 Jun 2026</span></div><p>Were movies released in the early 2000s more blue, or did the claim just have a memorable soundtrack?</p></section><article class="prose"><p>This project treats each movie as the statistical unit. It computes frame-level color metrics, aggregates them to one row per movie, and then runs movie-level statistical analysis plus exploratory Lab-based clustering.</p><h2>Question</h2><p>Does a culturally sticky visual impression survive a reproducible color measurement pipeline?</p><h2>Method</h2><p>The pipeline records RGB, blue-ratio, blue-pixel share, luminance, saturation, HSV hue, and Lab summaries. It compares the early-2000s window with other periods and reports effect sizes, confidence intervals, and regression models.</p><pre><code>python3 scripts/04_run_statistical_analysis.py --config config/default.yaml
+python3 scripts/06_make_plots.py --config config/default.yaml</code></pre><h2>Limitation</h2><p>Color metrics are not the same as cinematography, genre, or cultural meaning. The clustering view is exploratory, not causal.</p><p><a class="text-link" href="https://github.com/tomerzipori/blue-movies">Open the repository</a></p></article></main>
+<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../">All experiments</a></p><p>Measure the vibe, carefully.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

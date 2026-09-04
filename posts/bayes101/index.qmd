@@ -1,0 +1,19 @@
+---
+title: "Bayesian Modeling for Psychologists, Part 1"
+description: "An introduction to Bayesian modeling for psychologists, with an emphasis on updating statistical skills."
+date: 2024-02-11
+updated: 2024-02-11
+status: finished
+draft: false
+paths:
+  - evidence-and-belief
+aliases:
+  - /blog/posts/bayes101/
+  - /blog/posts/bayes101/index.html
+image: ""
+image-alt: ""
+---
+
+<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Evidence and belief</p><h1>Bayesian Modeling for Psychologists, Part 1</h1><div class="article-meta"><span class="status">in bloom</span><span>11 Feb 2024</span></div></section><article class="prose"><p>Bayesian modeling is a way to make uncertainty part of the model instead of a footnote after the model. This first article is a practical introduction for psychologists who want to update their statistical toolkit.</p><h2>The question</h2><p>What does it mean to update a belief with data, when the data are noisy and the prior is not optional?</p><h2>The workflow</h2><p>Start with a generative story. Write down the likelihood. Choose a prior that can be explained. Fit the model. Then inspect the posterior rather than stopping at a single summary.</p><pre><code>posterior ∝ likelihood × prior</code></pre><p>The original article remains a technical walk-through with its code and equations preserved in the archive source.</p></article></main>
+<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>Update the beliefs, not the adjectives.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

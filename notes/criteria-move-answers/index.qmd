@@ -1,0 +1,19 @@
+---
+title: "Criteria move the answers. Separation moves discriminability."
+description: "A visual note about ordered response criteria, latent distributions, and discriminability."
+date: 2026-05-22
+updated: 2026-09-04
+status: finished
+draft: false
+paths:
+  - evidence-and-belief
+  - models-and-meaning
+related:
+  - /experiments/ordinal-regression-viz/
+image: ""
+image-alt: ""
+---
+
+<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
+<main class="site-main"><section class="page-intro"><p class="section-number">Note · Evidence and belief</p><h1>Criteria move the answers. Separation moves discriminability.</h1><div class="article-meta"><span class="status">Published</span><span>updated 04 Sep 2026</span></div></section><article class="prose"><p>Suppose two groups of latent evidence sit on the same scale. A six-point rating asks where to place five cut-points. Those cut-points are criteria: they decide which category receives an observation.</p><p>Move the criteria and the response mix changes. A stricter rater can produce fewer high ratings without the underlying signal becoming any more or less separable.</p><blockquote>Criteria move the answers. Separation moves discriminability.</blockquote><h2>Why draw it?</h2><p>Ordinal models often arrive as coefficients and thresholds. Signal detection theory gives the same structure a picture: distributions for latent evidence, thresholds for response categories, and d′ for the distance between the distributions when variance is held equal.</p><p>The picture is a teaching device, not a publication estimate. It keeps one warning visible: changes in observed ratings are not automatically changes in sensitivity.</p><h2>Related project</h2><p><a class="text-link" href="../../experiments/ordinal-regression-viz/">See OrdinalRegressionViz</a> for the package, example figure, and project limits.</p></article></main>
+<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../">All notes</a></p><p>One distinction, drawn carefully.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

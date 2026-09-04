@@ -1,0 +1,20 @@
+---
+title: "What makes FIFA 23 players good?"
+description: "An experiment with Elastic-net regression and decision-tree boosting on FIFA 23 player ratings."
+date: 2023-05-06
+updated: 2023-05-06
+status: finished
+draft: false
+paths:
+  - data-and-strange-claims
+  - models-and-meaning
+aliases:
+  - /blog/posts/fifa23/
+  - /blog/posts/fifa23/index.html
+image: ""
+image-alt: ""
+---
+
+<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Data and strange claims</p><h1>What makes FIFA 23 players good?</h1><div class="article-meta"><span class="status">in bloom</span><span>06 May 2023</span></div></section><article class="prose"><p>The dataset contains player ratings, physical attributes, positions, clubs, and a healthy amount of columns that look useful until you inspect them.</p><h2>The question</h2><p>Can player overall rating be predicted accurately and efficiently, and which variables matter for that prediction?</p><h2>The experiment</h2><p>Elastic-net regression and boosted decision trees handle the two goals differently. The workflow cleans ordered work-rate variables, removes sparse or identifier-like fields, splits the data, and evaluates the fitted models.</p><pre><code>Overall ~ all usable player attributes</code></pre><p>The result is a model exercise first and a football verdict second. A game rating is a label produced by a system; it is not a complete theory of being good at football.</p></article></main>
+<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>Ask the database what it thinks.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

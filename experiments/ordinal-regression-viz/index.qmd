@@ -1,0 +1,33 @@
+---
+title: "OrdinalRegressionViz"
+description: "Publication-ready visualizations for ordinal cumulative models, framed in signal detection theory terms."
+date: 2026-06-16
+updated: 2026-06-16
+status: finished
+draft: false
+paths:
+  - evidence-and-belief
+  - tools-for-thinking
+repo: https://github.com/tomerzipori/OrdinalRegressionViz
+artifact: https://github.com/tomerzipori/OrdinalRegressionViz#readme
+image: /assets/sdt-distributions-example.png
+image-alt: "Latent signal and noise distributions with ordered response thresholds"
+---
+
+<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
+<main class="site-main project-detail">
+<section class="page-intro">
+<p class="section-number">Experiment · R package</p>
+<h1>OrdinalRegressionViz</h1>
+<p class="project-lede">Visual tools for understanding how cumulative ordinal models turn latent evidence into ordered responses.</p>
+<div class="article-meta"><span class="status">Published</span><span>Updated 16 Jun 2026</span></div>
+</section>
+<figure class="project-figure"><img src="../../assets/sdt-distributions-example.png" alt="Latent signal and noise distributions with ordered response thresholds"><figcaption>Latent distributions and the thresholds that convert evidence into response categories.</figcaption></figure>
+<section class="project-overview" aria-label="Project overview">
+<div><p class="section-number">Question</p><h2>What does the model imply?</h2><p>The package shows how cumulative regression parameters relate to response behavior.</p></div>
+<div><p class="section-number">What it provides</p><h2>Plots and measures.</h2><p>It draws latent distributions, ROC curves, posterior predictive checks, and Bayesian forest plots. It also computes d′, criteria, scale ratios, and AUC.</p></div>
+<div><p class="section-number">Limit</p><h2>A plot is not a design.</h2><p>A clear figure cannot repair weak data, an unexamined coding choice, or an unsupported causal claim.</p></div>
+</section>
+<p class="project-actions"><a class="text-link" href="https://github.com/tomerzipori/OrdinalRegressionViz">Open the repository</a><a class="text-link" href="../">All experiments</a></p>
+</main>
+<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../">Home</a></p><p>Ordinal model visualization.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

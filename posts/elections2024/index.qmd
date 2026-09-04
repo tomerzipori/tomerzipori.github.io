@@ -1,0 +1,20 @@
+---
+title: "US Presidential Elections — A Bayesian Perspective"
+description: "A Bayesian view of polling and the uncertainty around a US presidential election."
+date: 2025-01-12
+updated: 2025-01-12
+status: finished
+draft: false
+paths:
+  - evidence-and-belief
+  - data-and-strange-claims
+aliases:
+  - /blog/posts/elections2024/
+  - /blog/posts/elections2024/index.html
+image: ""
+image-alt: ""
+---
+
+<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Evidence and belief</p><h1>US Presidential Elections — A Bayesian Perspective</h1><div class="article-meta"><span class="status">in bloom</span><span>12 Jan 2025</span></div></section><article class="prose"><p>I want to be a pollster too. This article treats election polling as a model of uncertain information, rather than as a single number waiting to be read aloud.</p><h2>The question</h2><p>How should a forecast change when new polling evidence arrives, and which assumptions are doing the quiet work?</p><h2>What the model makes visible</h2><p>Prior expectations, poll uncertainty, and state-level aggregation each contribute to the final distribution. A probability is not a promise; it is a summary of the model and the information that entered it.</p><p>The original analysis includes a Nevada-focused visualization and the frozen model outputs listed in the migration manifest.</p></article></main>
+<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>Forecasts are not prophecies.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

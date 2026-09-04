@@ -1,0 +1,10 @@
+---
+title: "Redirecting to writing"
+format:
+  html:
+    title-block-style: none
+    include-in-header:
+      - text: '<meta http-equiv="refresh" content="0; url=/writing/">'
+---
+
+<main class="site-main"><section class="page-intro"><p class="section-number">The archive moved</p><h1>Go to writing.</h1><p><a href="/writing/">Open the writing archive</a></p></section></main>

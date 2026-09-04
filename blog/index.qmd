@@ -1,0 +1,10 @@
+---
+title: "Redirecting"
+format:
+  html:
+    title-block-style: none
+    include-in-header:
+      - text: '<meta http-equiv="refresh" content="0; url=/">'
+---
+
+<main class="site-main"><section class="page-intro"><p class="section-number">This page has moved</p><h1>Go to the home page.</h1><p><a href="/">Continue to tomerzipori.github.io</a></p></section></main>

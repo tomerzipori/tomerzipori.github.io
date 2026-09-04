@@ -1,0 +1,19 @@
+---
+title: "Bayesian Modeling for Psychologists, Part 2"
+description: "Mixed-effects linear models and generalized linear models, continued from the Bayesian modeling series."
+date: 2024-02-14
+updated: 2024-02-14
+status: finished
+draft: false
+paths:
+  - evidence-and-belief
+aliases:
+  - /blog/posts/bayes102/
+  - /blog/posts/bayes102/index.html
+image: ""
+image-alt: ""
+---
+
+<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Evidence and belief</p><h1>Bayesian Modeling for Psychologists, Part 2</h1><div class="article-meta"><span class="status">in bloom</span><span>14 Feb 2024</span></div></section><article class="prose"><p>The second part moves from the basic update to models that better match how psychological data are collected: repeated observations, groups, and outcomes that are not simply Gaussian.</p><h2>More than one source of variation</h2><p>Mixed-effects models let the model distinguish variation across people or items from the effect that is the current question. Generalized linear models let the outcome shape the likelihood instead of forcing every response into a straight line.</p><h2>What to inspect</h2><p>Posterior predictive checks, parameter scales, and the implications of the link function deserve as much attention as the coefficient table.</p><p>The original article's code and model examples remain part of the legacy migration record.</p></article></main>
+<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>Model the data you collected.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

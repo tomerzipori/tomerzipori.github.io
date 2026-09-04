@@ -1,0 +1,11 @@
+---
+title: "Notes"
+description: "Short technical notes on models, evidence, and analysis."
+format:
+  html:
+    title-block-style: none
+---
+
+<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../"><img class="wordmark-mark" src="../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../questions/">Questions</a><a href="../notes/">Notes</a><a href="../experiments/">Experiments</a><a href="../writing/">Writing</a><a href="../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
+<main class="site-main"><section class="page-intro"><p class="section-number">Technical notes</p><h1>Short observations.</h1><p>Concise explanations with a clear point and a stated limit.</p></section><section class="section"><div class="archive-list"><article class="archive-row"><span class="status">Published</span><div><h2 class="row-title"><a href="criteria-move-answers/">Criteria move the answers. Separation moves discriminability.</a></h2><p class="row-description">The distinction behind the Evidence Thresholds interaction.</p></div><p class="row-type">Evidence · 2026</p></article><article class="archive-row"><span class="status">Published</span><div><h2 class="row-title"><a href="pca-is-intuition-not-proof/">Why PCA is useful intuition but not proof</a></h2><p class="row-description">A projection can help you look. It cannot, on its own, make the case.</p></div><p class="row-type">Models · 2026</p></article></div></section></main>
+<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../">Home</a></p><p>Short technical notes.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../writing/index.xml">RSS</a></nav></footer><script src="../assets/site.js"></script>

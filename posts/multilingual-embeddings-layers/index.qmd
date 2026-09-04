@@ -1,0 +1,19 @@
+---
+title: "When Dog Meets Perro: Tracing Meaning Across Transformer Layers"
+description: "A visual experiment testing whether multilingual transformer representations shift from clustering by language to clustering by meaning across layers."
+date: 2026-05-18
+updated: 2026-05-18
+status: draft
+draft: true
+paths:
+  - models-and-meaning
+aliases:
+  - /blog/posts/multilingual-embeddings-layers/
+  - /blog/posts/multilingual-embeddings-layers/index.html
+image: ""
+image-alt: ""
+---
+
+<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
+<main class="site-main"><section class="page-intro"><p class="section-number">Draft · Models and meaning</p><h1>When Dog Meets Perro: Tracing Meaning Across Transformer Layers</h1><div class="article-meta"><span class="status nearly">nearly there</span><span>editorial review pending</span></div></section><article class="prose"><p>The words <em>dog</em>, <em>perro</em>, <em>chien</em>, and <em>כלב</em> look different and point toward roughly the same concept. If a multilingual model understands that, where does the equivalence appear?</p><h2>Why it stays private</h2><p>The core experiment and frozen outputs exist, but this article still needs an editorial review of its claims, comparisons, and reproducibility path. It is intentionally excluded from the public garden, feed, sitemap, and generated indexes.</p><p>Drafts do not become public merely because they are almost written.</p></article></main>
+<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>Not yet in bloom.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

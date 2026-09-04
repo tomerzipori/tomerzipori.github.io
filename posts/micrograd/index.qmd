@@ -1,0 +1,22 @@
+---
+title: "What’s Artificial Intelligence all about?"
+description: "A small hands-on path into the mechanics behind a model."
+date: 2025-02-14
+updated: 2025-02-14
+status: finished
+draft: false
+paths:
+  - models-and-meaning
+  - tools-for-thinking
+aliases:
+  - /blog/posts/micrograd/
+  - /blog/posts/micrograd/index.html
+image: ""
+image-alt: ""
+---
+
+<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Models and meaning</p><h1>What’s Artificial Intelligence all about?</h1><div class="article-meta"><span class="status">in bloom</span><span>14 Feb 2025</span></div></section><article class="prose"><p>One way to demystify a model is to build a tiny one. A small automatic-differentiation engine makes the chain rule, gradients, and parameter updates concrete.</p><h2>The question</h2><p>What is the smallest useful object that lets us watch a model learn?</p><h2>The construction</h2><p>Values carry parents and local derivatives. A backward pass applies the chain rule through the graph. The implementation is intentionally small enough that every operation can be read.</p><pre><code>loss.backward()
+for parameter in parameters:
+    parameter.value += -step * parameter.grad</code></pre><p>The point is not to recreate a production framework. It is to turn a black box into a box with transparent walls.</p></article></main>
+<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>Open the box. It is smaller than expected.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

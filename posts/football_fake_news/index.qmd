@@ -1,0 +1,20 @@
+---
+title: "Real Vs. Fake news in football"
+description: "An experiment in NLP and text classification using football news."
+date: 2023-05-12
+updated: 2023-05-12
+status: finished
+draft: false
+paths:
+  - models-and-meaning
+  - data-and-strange-claims
+aliases:
+  - /blog/posts/football_fake_news/
+  - /blog/posts/football_fake_news/index.html
+image: ""
+image-alt: ""
+---
+
+<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Models and meaning</p><h1>Real Vs. Fake news in football</h1><div class="article-meta"><span class="status">in bloom</span><span>12 May 2023</span></div></section><article class="prose"><p>Can the language of a football story give away whether it is real or fake? This experiment uses text classification to ask a question that is more difficult than the title makes it sound.</p><h2>The setup</h2><p>Text becomes features. Features become a classifier. The classifier becomes a chance to inspect what language patterns it can use, and where it is likely to learn the dataset instead of the claim.</p><h2>The useful caution</h2><p>A high score on a held-out split is not automatically evidence that a model understands truth. Source, style, repetition, and leakage can all masquerade as meaning.</p><p>NLP, but of the good kind: small enough to inspect.</p></article></main>
+<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>Classification is not fact-checking.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>

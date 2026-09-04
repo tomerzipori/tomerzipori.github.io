@@ -1,0 +1,33 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - "*.qmd"
+    - "about/**/*.qmd"
+    - "blog/**/*.qmd"
+    - "experiments/**/*.qmd"
+    - "notes/**/*.qmd"
+    - "posts/**/*.qmd"
+    - "questions/**/*.qmd"
+    - "writing/**/*.qmd"
+
+website:
+  title: "Tomer Zipori"
+  site-url: https://tomerzipori.github.io/
+  description: "Selected work on models, evidence, and useful research tools."
+  favicon: assets/favicon.svg
+  search: false
+  navbar: false
+
+format:
+  html:
+    theme: none
+    css: /styles.css
+    title-block-style: none
+    toc: false
+    html-math-method: katex
+    code-fold: false
+    smooth-scroll: true
+
+execute:
+  freeze: true

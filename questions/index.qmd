@@ -1,0 +1,22 @@
+---
+title: "Questions"
+description: "Four research themes across Tomer Zipori's work."
+format:
+  html:
+    title-block-style: none
+---
+
+<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../"><img class="wordmark-mark" src="../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../questions/">Questions</a><a href="../notes/">Notes</a><a href="../experiments/">Experiments</a><a href="../writing/">Writing</a><a href="../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
+
+<main class="site-main">
+<section class="page-intro"><p class="section-number">Research themes</p><h1>Questions first. Categories later.</h1><p>Four themes organize the work. A project can belong to more than one theme.</p></section>
+<section class="section path-index">
+<article class="archive-row"><span class="section-number">01</span><div><h2 class="row-title"><a href="evidence-and-belief/">Evidence and belief</a></h2><p class="row-description">What changes when evidence meets criteria, priors, persuasion, or a rating scale?</p><p class="row-type">Bayesian modeling · signal detection · misinformation</p></div></article>
+<article class="archive-row"><span class="section-number">02</span><div><h2 class="row-title"><a href="models-and-meaning/">Models and meaning</a></h2><p class="row-description">What do models represent, and what gets hidden when a picture looks convincing?</p><p class="row-type">NLP · embeddings · interpretability</p></div></article>
+<article class="archive-row"><span class="section-number">03</span><div><h2 class="row-title"><a href="data-and-strange-claims/">Data and strange claims</a></h2><p class="row-description">Can an unusual question survive contact with messy data?</p><p class="row-type">Visualization · exploratory analysis · caveats</p></div></article>
+<article class="archive-row"><span class="section-number">04</span><div><h2 class="row-title"><a href="tools-for-thinking/">Tools for thinking</a></h2><p class="row-description">What small instrument would make the next question easier to inspect?</p><p class="row-type">Open source · reproducibility · local tools</p></div></article>
+</section>
+</main>
+
+<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../">Home</a></p><p>Questions before categories.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="https://huggingface.co/tomerz14">Hugging Face</a><a href="../writing/index.xml">RSS</a></nav></footer>
+<script src="../assets/site.js"></script>

@@ -1,0 +1,19 @@
+---
+title: "Why PCA is useful intuition but not proof"
+description: "A compact note on what a helpful projection can show, and what it cannot establish."
+date: 2026-06-03
+updated: 2026-06-03
+status: finished
+draft: false
+paths:
+  - models-and-meaning
+  - tools-for-thinking
+related:
+  - /posts/multilingual-embeddings-layers/
+image: ""
+image-alt: ""
+---
+
+<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
+<main class="site-main"><section class="page-intro"><p class="section-number">Note · Models and meaning</p><h1>Why PCA is useful intuition but not proof</h1><div class="article-meta"><span class="status">in bloom</span><span>updated 03 Jun 2026</span></div></section><article class="prose"><p>Principal component analysis is a good first flashlight. It compresses a high-dimensional cloud into directions that explain variance, which can make a structure easier to inspect.</p><p>It is not a proof that the visible structure is the structure that matters. A projection can hide separation, invent apparent clusters through scale choices, or make a convenient story look inevitable.</p><h2>The useful question</h2><p>Use the projection to generate a question: which variables, labels, or layers line up with this view? Then test that question in the original space, with a comparison that matches the claim.</p><blockquote>Pretty is a useful place to start. It is a poor place to stop.</blockquote><p>The limitation is not a reason to avoid PCA. It is a reason to keep the method attached to the question it helps you ask.</p></article></main>
+<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../">All notes</a></p><p>✨ pretty ✨, then careful.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>
