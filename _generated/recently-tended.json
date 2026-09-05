@@ -1,0 +1,78 @@
+[
+  {
+    "kind": "note",
+    "collection": "notes",
+    "slug": "the-denominator-changes-the-story",
+    "url": "/notes/the-denominator-changes-the-story/",
+    "title": "The denominator changes the story",
+    "description": "Why counts and population rates can produce different rankings, and what neither measure can establish alone.",
+    "date": "2026-09-05",
+    "updated": "2026-09-05",
+    "status": "finished",
+    "draft": false,
+    "paths": [
+      "data-and-strange-claims",
+      "evidence-and-belief"
+    ],
+    "related": [
+      "/posts/ufo/",
+      "/posts/eggs/"
+    ],
+    "image": "",
+    "image-alt": "",
+    "study-status": "",
+    "study-status-as-of": "",
+    "repo": "",
+    "artifact": ""
+  },
+  {
+    "kind": "note",
+    "collection": "notes",
+    "slug": "more-frames-do-not-mean-more-movies",
+    "url": "/notes/more-frames-do-not-mean-more-movies/",
+    "title": "More frames do not mean more movies",
+    "description": "Why repeated frame measurements do not provide the same information as independently sampled films.",
+    "date": "2026-09-05",
+    "updated": "2026-09-05",
+    "status": "finished",
+    "draft": false,
+    "paths": [
+      "data-and-strange-claims",
+      "tools-for-thinking"
+    ],
+    "related": [
+      "/experiments/blue-movies/"
+    ],
+    "image": "",
+    "image-alt": "",
+    "study-status": "",
+    "study-status-as-of": "",
+    "repo": "",
+    "artifact": ""
+  },
+  {
+    "kind": "note",
+    "collection": "notes",
+    "slug": "criteria-move-answers",
+    "url": "/notes/criteria-move-answers/",
+    "title": "Criteria move the answers. Separation moves discriminability.",
+    "description": "A worked example showing how decision thresholds change responses without changing fixed discriminability.",
+    "date": "2026-05-22",
+    "updated": "2026-09-05",
+    "status": "finished",
+    "draft": false,
+    "paths": [
+      "evidence-and-belief",
+      "models-and-meaning"
+    ],
+    "related": [
+      "/experiments/ordinal-regression-viz/"
+    ],
+    "image": "",
+    "image-alt": "",
+    "study-status": "",
+    "study-status-as-of": "",
+    "repo": "",
+    "artifact": ""
+  }
+]

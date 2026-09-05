@@ -14,8 +14,9 @@ image: ""
 image-alt: ""
 ---
 
-<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
-<main class="site-main"><section class="page-intro"><p class="section-number">Article · Evidence and belief</p><h1>Rejecting the null hypothesis or not?</h1><div class="article-meta"><span class="status">in bloom</span><span>04 Sep 2023</span></div></section><article class="prose real-post"><p>In the current post I try to explain what appears to be a paradox: given identical data, different schools of statistics disagree about the appropriate conclusion.</p>
+{{< include ../../_includes/site-header.qmd >}}
+
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Evidence and belief</p><h1>Rejecting the null hypothesis or not?</h1><div class="article-meta"><span class="status">Published</span><span>04 Sep 2023</span></div></section><article class="prose real-post"><p>In the current post I try to explain what appears to be a paradox: given identical data, different schools of statistics disagree about the appropriate conclusion.</p>
 <p>Traditionally, there are two ways to interpret Probability:<br>
 1. Probability is the relative frequency of events at infinity - the Frequentist school.<br>
 2. Probability represents the degree of beliefs - The Bayesian school.</p>
@@ -358,5 +359,10 @@ p(hypothesis/data)= \frac {p(hypothesis) \cdot p(data/hypothesis)}{p(data)}
 </div>
 
 
-</section></article></main>
-<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>The p-value is not the whole story.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>
+</section></article>
+
+{{< include ../../_generated/article-p_values_paradox.html >}}
+
+</main>
+
+{{< include ../../_includes/site-footer.qmd >}}

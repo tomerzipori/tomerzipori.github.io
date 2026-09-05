@@ -55,13 +55,6 @@ articles:
     engine: quarto
     freeze_status: summary-scaffolded-source-preservation-pending
     excluded_artifacts: [app.R]
-  - slug: multilingual-embeddings-layers
-    old_url: /blog/posts/multilingual-embeddings-layers/
-    new_url: /posts/multilingual-embeddings-layers/
-    source_commit: pending-feature-branch-read
-    engine: quarto
-    freeze_status: draft-only
-    excluded_artifacts: [model-cache]
   - slug: netflix
     old_url: /blog/posts/netflix/
     new_url: /posts/netflix/

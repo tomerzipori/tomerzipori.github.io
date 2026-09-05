@@ -1,0 +1,54 @@
+---
+title: "More frames do not mean more movies"
+description: "Why repeated frame measurements do not provide the same information as independently sampled films."
+date: 2026-09-05
+updated: 2026-09-05
+status: finished
+draft: false
+paths:
+  - data-and-strange-claims
+  - tools-for-thinking
+related:
+  - /experiments/blue-movies/
+---
+
+{{< include ../../_includes/site-header.qmd >}}
+
+<main class="site-main note-page">
+<section class="page-intro"><p class="section-number">Note · Data and strange claims</p><h1>More frames do not mean more movies</h1><div class="article-meta"><span class="status">Published</span><span>05 Sep 2026</span></div></section>
+<article class="prose"><p>Suppose I sample 100 frames from each of ten films. I now have 1,000 rows of colour measurements.</p>
+
+<p>I still have ten films.</p>
+
+<p>Frames from the same movie share lighting, grading, locations, and many other choices. Treating every frame as an independent example of a film can make the dataset look more informative than it is.</p>
+
+<p>This is related to pseudoreplication: the analysis fails to account for the structure that connects observations. See this <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC2817684/">discussion of the unit-of-analysis problem</a>.</p>
+
+<h2>Start with the claim</h2>
+
+<p>If the question concerns differences between movies from different periods, the movie is the unit I want to compare.</p>
+
+<p>One approach is to calculate a summary for each film and compare those summaries. A hierarchical model offers another approach when within-film variation matters.</p>
+
+<p>Neither approach makes the choice of films representative. That is a separate sampling question.</p>
+
+<h2>More measurements can still help</h2>
+
+<p>Additional frames can improve the estimate for one film, especially when scenes vary. They do not provide the same information as additional independently sampled films.</p>
+
+<p>A film with many sampled frames should not silently receive more influence just because its extraction produced more rows.</p>
+
+<h2>Keep the unit visible</h2>
+
+<p>For Blue Movies, the workflow separates frame measurements from movie-level analysis. That distinction belongs in the explanation, not only in the code.</p>
+
+<p>The same question appears elsewhere: several answers from one person, many crops from one photograph, or repeated requests from one customer.</p>
+
+<p>Before trusting a sample size, ask what each row represents—and which rows share a source.</p>
+</article>
+
+{{< include ../../_generated/note-more-frames-do-not-mean-more-movies.html >}}
+
+</main>
+
+{{< include ../../_includes/site-footer.qmd >}}

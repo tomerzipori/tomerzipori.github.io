@@ -15,8 +15,9 @@ image: ""
 image-alt: ""
 ---
 
-<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
-<main class="site-main"><section class="page-intro"><p class="section-number">Article · Models and meaning</p><h1>Netflix trends</h1><div class="article-meta"><span class="status">in bloom</span><span>13 Jun 2023</span></div></section><article class="prose real-post"><p>This post will be dedicated yet again to some experimentation with text analysis. I will be using mostly basic and classic NLP tools like word counting and DFM’s (Document-Feature matrix). I hope that in the next NLP post I will be using some more advanced methods like transformers (go BERT!).</p>
+{{< include ../../_includes/site-header.qmd >}}
+
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Models and meaning</p><h1>Netflix trends</h1><div class="article-meta"><span class="status">Published</span><span>13 Jun 2023</span></div></section><article class="prose real-post"><p>This post will be dedicated yet again to some experimentation with text analysis. I will be using mostly basic and classic NLP tools like word counting and DFM’s (Document-Feature matrix). I hope that in the next NLP post I will be using some more advanced methods like transformers (go BERT!).</p>
 <p>I will be using the popular <em>Netflix</em> <a href="https://www.kaggle.com/datasets/shivamb/netflix-shows">dataset</a> from Kaggle. It contains data of movies and TV shows added to Netflix’s streaming service since 2008.</p>
 <p>It’s going to be a relatively short post, the first part will include some nice visualization (word clouds), and in the second part I will try and build a mini show-recommendation function.</p>
 <section id="setup" class="level1">
@@ -435,5 +436,10 @@ shinyApp(ui, server)</code></pre>
 <p>The recommendation functions could be vastly improved with some more modern NLP methods (Transformers!). I hope that in the near future I will have the time to post about that to.</p>
 
 
-</section></article></main>
-<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>Text analysis, with plot labels.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>
+</section></article>
+
+{{< include ../../_generated/article-netflix.html >}}
+
+</main>
+
+{{< include ../../_includes/site-footer.qmd >}}

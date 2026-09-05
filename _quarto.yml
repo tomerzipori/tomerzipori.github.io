@@ -1,15 +1,19 @@
 project:
   type: website
   output-dir: _site
+  pre-render: python3 scripts/build_content.py
   render:
     - "*.qmd"
     - "about/**/*.qmd"
     - "blog/**/*.qmd"
+    - "garden/**/*.qmd"
     - "experiments/**/*.qmd"
     - "notes/**/*.qmd"
     - "posts/**/*.qmd"
     - "questions/**/*.qmd"
     - "writing/**/*.qmd"
+  resources:
+    - "_generated/**"
 
 website:
   title: "Tomer Zipori"

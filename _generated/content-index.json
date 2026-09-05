@@ -1,0 +1,426 @@
+{
+  "generated": "2026-09-05",
+  "items": [
+    {
+      "kind": "note",
+      "collection": "notes",
+      "slug": "the-denominator-changes-the-story",
+      "url": "/notes/the-denominator-changes-the-story/",
+      "title": "The denominator changes the story",
+      "description": "Why counts and population rates can produce different rankings, and what neither measure can establish alone.",
+      "date": "2026-09-05",
+      "updated": "2026-09-05",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "data-and-strange-claims",
+        "evidence-and-belief"
+      ],
+      "related": [
+        "/posts/ufo/",
+        "/posts/eggs/"
+      ],
+      "image": "",
+      "image-alt": "",
+      "study-status": "",
+      "study-status-as-of": "",
+      "repo": "",
+      "artifact": ""
+    },
+    {
+      "kind": "note",
+      "collection": "notes",
+      "slug": "more-frames-do-not-mean-more-movies",
+      "url": "/notes/more-frames-do-not-mean-more-movies/",
+      "title": "More frames do not mean more movies",
+      "description": "Why repeated frame measurements do not provide the same information as independently sampled films.",
+      "date": "2026-09-05",
+      "updated": "2026-09-05",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "data-and-strange-claims",
+        "tools-for-thinking"
+      ],
+      "related": [
+        "/experiments/blue-movies/"
+      ],
+      "image": "",
+      "image-alt": "",
+      "study-status": "",
+      "study-status-as-of": "",
+      "repo": "",
+      "artifact": ""
+    },
+    {
+      "kind": "note",
+      "collection": "notes",
+      "slug": "criteria-move-answers",
+      "url": "/notes/criteria-move-answers/",
+      "title": "Criteria move the answers. Separation moves discriminability.",
+      "description": "A worked example showing how decision thresholds change responses without changing fixed discriminability.",
+      "date": "2026-05-22",
+      "updated": "2026-09-05",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "evidence-and-belief",
+        "models-and-meaning"
+      ],
+      "related": [
+        "/experiments/ordinal-regression-viz/"
+      ],
+      "image": "",
+      "image-alt": "",
+      "study-status": "",
+      "study-status-as-of": "",
+      "repo": "",
+      "artifact": ""
+    },
+    {
+      "kind": "note",
+      "collection": "notes",
+      "slug": "distilhubert-padding-study",
+      "url": "/notes/distilhubert-padding-study/",
+      "title": "Can padding change audio-classification metrics?",
+      "description": "An ongoing DistilHuBERT study comparing ordinary and masked positional BatchNorm under minimal and additional padding.",
+      "date": "2026-09-05",
+      "updated": "2026-09-05",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "models-and-meaning",
+        "tools-for-thinking"
+      ],
+      "related": [
+        "/notes/criteria-move-answers/",
+        "/notes/more-frames-do-not-mean-more-movies/"
+      ],
+      "image": "",
+      "image-alt": "",
+      "study-status": "ongoing",
+      "study-status-as-of": "2026-09-05",
+      "repo": "",
+      "artifact": ""
+    },
+    {
+      "kind": "note",
+      "collection": "notes",
+      "slug": "a-useful-local-agent-earns-its-keep",
+      "url": "/notes/a-useful-local-agent-earns-its-keep/",
+      "title": "A useful local agent earns its keep",
+      "description": "Evaluate a local agent by the useful result after preparation, review, correction, and unsuccessful attempts.",
+      "date": "2026-09-05",
+      "updated": "2026-09-05",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "tools-for-thinking",
+        "models-and-meaning"
+      ],
+      "related": [
+        "/experiments/local-agent-toolkit/"
+      ],
+      "image": "",
+      "image-alt": "",
+      "study-status": "",
+      "study-status-as-of": "",
+      "repo": "",
+      "artifact": ""
+    },
+    {
+      "kind": "project",
+      "collection": "experiments",
+      "slug": "local-agent-toolkit",
+      "url": "/experiments/local-agent-toolkit/",
+      "title": "Local Agent Toolkit",
+      "description": "A bounded local worker for repository exploration, first-pass reviews, diagnostics, and candidate patches.",
+      "date": "2026-07-02",
+      "updated": "2026-07-02",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "tools-for-thinking",
+        "models-and-meaning"
+      ],
+      "related": [],
+      "image": "",
+      "image-alt": "",
+      "study-status": "",
+      "study-status-as-of": "",
+      "repo": "https://github.com/tomerzipori/local-agent-toolkit",
+      "artifact": "https://github.com/tomerzipori/local-agent-toolkit#readme"
+    },
+    {
+      "kind": "project",
+      "collection": "experiments",
+      "slug": "blue-movies",
+      "url": "/experiments/blue-movies/",
+      "title": "Blue Movies",
+      "description": "A reproducible Python pipeline for testing whether movies released in the early 2000s were more blue.",
+      "date": "2026-06-20",
+      "updated": "2026-06-20",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "data-and-strange-claims",
+        "tools-for-thinking"
+      ],
+      "related": [],
+      "image": "",
+      "image-alt": "",
+      "study-status": "",
+      "study-status-as-of": "",
+      "repo": "https://github.com/tomerzipori/blue-movies",
+      "artifact": "https://github.com/tomerzipori/blue-movies#readme"
+    },
+    {
+      "kind": "project",
+      "collection": "experiments",
+      "slug": "ordinal-regression-viz",
+      "url": "/experiments/ordinal-regression-viz/",
+      "title": "OrdinalRegressionViz",
+      "description": "Publication-ready visualizations for ordinal cumulative models, framed in signal detection theory terms.",
+      "date": "2026-06-16",
+      "updated": "2026-06-16",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "evidence-and-belief",
+        "tools-for-thinking"
+      ],
+      "related": [],
+      "image": "/assets/sdt-distributions-example.png",
+      "image-alt": "Latent signal and noise distributions with ordered response thresholds",
+      "study-status": "",
+      "study-status-as-of": "",
+      "repo": "https://github.com/tomerzipori/OrdinalRegressionViz",
+      "artifact": "https://github.com/tomerzipori/OrdinalRegressionViz#readme"
+    },
+    {
+      "kind": "article",
+      "collection": "posts",
+      "slug": "micrograd",
+      "url": "/posts/micrograd/",
+      "title": "What’s Artificial Intelligence all about?",
+      "description": "A small hands-on path into the mechanics behind a model.",
+      "date": "2025-02-14",
+      "updated": "2025-02-14",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "models-and-meaning",
+        "tools-for-thinking"
+      ],
+      "related": [],
+      "image": "",
+      "image-alt": "",
+      "study-status": "",
+      "study-status-as-of": "",
+      "repo": "",
+      "artifact": ""
+    },
+    {
+      "kind": "article",
+      "collection": "posts",
+      "slug": "elections2024",
+      "url": "/posts/elections2024/",
+      "title": "US Presidential Elections — A Bayesian Perspective",
+      "description": "A Bayesian view of polling and the uncertainty around a US presidential election.",
+      "date": "2025-01-12",
+      "updated": "2025-01-12",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "evidence-and-belief",
+        "data-and-strange-claims"
+      ],
+      "related": [],
+      "image": "",
+      "image-alt": "",
+      "study-status": "",
+      "study-status-as-of": "",
+      "repo": "",
+      "artifact": ""
+    },
+    {
+      "kind": "article",
+      "collection": "posts",
+      "slug": "bayes102",
+      "url": "/posts/bayes102/",
+      "title": "Bayesian Modeling for Psychologists, Part 2",
+      "description": "Mixed-effects linear models and generalized linear models, continued from the Bayesian modeling series.",
+      "date": "2024-02-14",
+      "updated": "2024-02-14",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "evidence-and-belief"
+      ],
+      "related": [],
+      "image": "",
+      "image-alt": "",
+      "study-status": "",
+      "study-status-as-of": "",
+      "repo": "",
+      "artifact": ""
+    },
+    {
+      "kind": "article",
+      "collection": "posts",
+      "slug": "bayes101",
+      "url": "/posts/bayes101/",
+      "title": "Bayesian Modeling for Psychologists, Part 1",
+      "description": "An introduction to Bayesian modeling for psychologists, with an emphasis on updating statistical skills.",
+      "date": "2024-02-11",
+      "updated": "2024-02-11",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "evidence-and-belief"
+      ],
+      "related": [],
+      "image": "",
+      "image-alt": "",
+      "study-status": "",
+      "study-status-as-of": "",
+      "repo": "",
+      "artifact": ""
+    },
+    {
+      "kind": "article",
+      "collection": "posts",
+      "slug": "p_values_paradox",
+      "url": "/posts/p_values_paradox/",
+      "title": "Rejecting the null hypothesis or not?",
+      "description": "When different interpretations of probability disagree about what p-values mean.",
+      "date": "2023-09-04",
+      "updated": "2023-09-04",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "evidence-and-belief"
+      ],
+      "related": [],
+      "image": "",
+      "image-alt": "",
+      "study-status": "",
+      "study-status-as-of": "",
+      "repo": "",
+      "artifact": ""
+    },
+    {
+      "kind": "article",
+      "collection": "posts",
+      "slug": "netflix",
+      "url": "/posts/netflix/",
+      "title": "Netflix trends",
+      "description": "Text data visualization and analysis of Netflix titles.",
+      "date": "2023-06-13",
+      "updated": "2023-06-13",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "models-and-meaning",
+        "data-and-strange-claims"
+      ],
+      "related": [],
+      "image": "",
+      "image-alt": "",
+      "study-status": "",
+      "study-status-as-of": "",
+      "repo": "",
+      "artifact": ""
+    },
+    {
+      "kind": "article",
+      "collection": "posts",
+      "slug": "football_fake_news",
+      "url": "/posts/football_fake_news/",
+      "title": "Real Vs. Fake news in football",
+      "description": "An experiment in NLP and text classification using football news.",
+      "date": "2023-05-12",
+      "updated": "2023-05-12",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "models-and-meaning",
+        "data-and-strange-claims"
+      ],
+      "related": [],
+      "image": "",
+      "image-alt": "",
+      "study-status": "",
+      "study-status-as-of": "",
+      "repo": "",
+      "artifact": ""
+    },
+    {
+      "kind": "article",
+      "collection": "posts",
+      "slug": "fifa23",
+      "url": "/posts/fifa23/",
+      "title": "What makes FIFA 23 players good?",
+      "description": "An experiment with Elastic-net regression and decision-tree boosting on FIFA 23 player ratings.",
+      "date": "2023-05-06",
+      "updated": "2023-05-06",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "data-and-strange-claims",
+        "models-and-meaning"
+      ],
+      "related": [],
+      "image": "",
+      "image-alt": "",
+      "study-status": "",
+      "study-status-as-of": "",
+      "repo": "",
+      "artifact": ""
+    },
+    {
+      "kind": "article",
+      "collection": "posts",
+      "slug": "ufo",
+      "url": "/posts/ufo/",
+      "title": "Who is the leading US state in UFO reports? probably not what you thought",
+      "description": "Visualizing UFO reports per state capita, where the denominator changes the story.",
+      "date": "2023-04-16",
+      "updated": "2023-04-16",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "data-and-strange-claims"
+      ],
+      "related": [],
+      "image": "",
+      "image-alt": "",
+      "study-status": "",
+      "study-status-as-of": "",
+      "repo": "",
+      "artifact": ""
+    },
+    {
+      "kind": "article",
+      "collection": "posts",
+      "slug": "eggs",
+      "url": "/posts/eggs/",
+      "title": "Cage-free vs. caged hens in the US",
+      "description": "A TidyTuesday visualization of the changing number of cage-free hens in the US.",
+      "date": "2023-04-12",
+      "updated": "2023-04-12",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "data-and-strange-claims"
+      ],
+      "related": [],
+      "image": "",
+      "image-alt": "",
+      "study-status": "",
+      "study-status-as-of": "",
+      "repo": "",
+      "artifact": ""
+    }
+  ]
+}

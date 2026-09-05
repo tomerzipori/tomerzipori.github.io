@@ -15,8 +15,9 @@ image: ""
 image-alt: ""
 ---
 
-<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
-<main class="site-main"><section class="page-intro"><p class="section-number">Article · Data and strange claims</p><h1>What makes FIFA 23 players good?</h1><div class="article-meta"><span class="status">in bloom</span><span>06 May 2023</span></div></section><article class="prose real-post"><section id="background-and-analysis-plan" class="level1">
+{{< include ../../_includes/site-header.qmd >}}
+
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Data and strange claims</p><h1>What makes FIFA 23 players good?</h1><div class="article-meta"><span class="status">Published</span><span>06 May 2023</span></div></section><article class="prose real-post"><section id="background-and-analysis-plan" class="level1">
 <h1>Background and analysis plan</h1>
 <p>The current <a href="https://www.kaggle.com/datasets/babatundezenith/fifa-archive">Data</a> is an upload to <em>Kaggle</em> by Babatunde Zenith, and it includes information about players in the popular <em>FIFA 23</em> video game. Information includes: name, age, nationality, position, various football ratings and contract deals.</p>
 <p>The current notebook is an attempt at:<br>
@@ -546,5 +547,10 @@ Heading_Accuracy         0.1497</code></pre>
 <p>Both methods supplied outstanding results with over 94% and 99% explained variance in rating. Not so surprisingly Player’s value is strongly linked with their overall FIFA rating. A few notable findings are the importance of <em>Reactions</em>, <em>CB_rating</em> and <em>Defending_total</em>. Overall, Defensive ability seems to be quite an important predictor of Player’s rating.</p>
 
 
-</section></article></main>
-<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>Ask the database what it thinks.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>
+</section></article>
+
+{{< include ../../_generated/article-fifa23.html >}}
+
+</main>
+
+{{< include ../../_includes/site-footer.qmd >}}

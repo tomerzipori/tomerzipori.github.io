@@ -1,8 +1,8 @@
 ---
 title: "Criteria move the answers. Separation moves discriminability."
-description: "A visual note about ordered response criteria, latent distributions, and discriminability."
+description: "A worked example showing how decision thresholds change responses without changing fixed discriminability."
 date: 2026-05-22
-updated: 2026-09-04
+updated: 2026-09-05
 status: finished
 draft: false
 paths:
@@ -10,10 +10,49 @@ paths:
   - models-and-meaning
 related:
   - /experiments/ordinal-regression-viz/
-image: ""
-image-alt: ""
 ---
 
-<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
-<main class="site-main"><section class="page-intro"><p class="section-number">Note · Evidence and belief</p><h1>Criteria move the answers. Separation moves discriminability.</h1><div class="article-meta"><span class="status">Published</span><span>updated 04 Sep 2026</span></div></section><article class="prose"><p>Suppose two groups of latent evidence sit on the same scale. A six-point rating asks where to place five cut-points. Those cut-points are criteria: they decide which category receives an observation.</p><p>Move the criteria and the response mix changes. A stricter rater can produce fewer high ratings without the underlying signal becoming any more or less separable.</p><blockquote>Criteria move the answers. Separation moves discriminability.</blockquote><h2>Why draw it?</h2><p>Ordinal models often arrive as coefficients and thresholds. Signal detection theory gives the same structure a picture: distributions for latent evidence, thresholds for response categories, and d′ for the distance between the distributions when variance is held equal.</p><p>The picture is a teaching device, not a publication estimate. It keeps one warning visible: changes in observed ratings are not automatically changes in sensitivity.</p><h2>Related project</h2><p><a class="text-link" href="../../experiments/ordinal-regression-viz/">See OrdinalRegressionViz</a> for the package, example figure, and project limits.</p></article></main>
-<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../">All notes</a></p><p>One distinction, drawn carefully.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>
+{{< include ../../_includes/site-header.qmd >}}
+
+<main class="site-main note-page">
+<section class="page-intro"><p class="section-number">Note · Evidence and belief</p><h1>Criteria move the answers. Separation moves discriminability.</h1><div class="article-meta"><span class="status">Published</span><span>Updated 05 Sep 2026</span></div></section>
+<article class="prose"><p>Imagine two people reviewing the same evidence. One rarely chooses the highest confidence rating. The other uses it freely. Their answers differ, but that alone does not tell us who distinguishes signal from noise more accurately.</p>
+
+<p>Signal detection theory separates two ideas: how much the evidence distributions overlap, and where a person places a decision criterion. Under an equal-variance Gaussian model, discriminability is:</p>
+
+<p class="equation">\[d'=\frac{\mu_{\text{signal}}-\mu_{\text{noise}}}{\sigma}.\]</p>
+
+<p>Moving the criterion changes the answers without changing this separation. See this <a href="https://www.cns.nyu.edu/~david/handouts/sdt/sdt.html">introduction to signal detection theory</a>.</p>
+
+<h2>A small example</h2>
+
+<p>Take noise with mean 0 and signal with mean 1.5. Give both distributions a standard deviation of 1. The resulting \(d'\) is 1.5.</p>
+
+<p>Call an observation “signal” when it exceeds a threshold. At a threshold of 0.5, the illustrative hit rate is about 84%, and the false-alarm rate is about 31%. Move the threshold to 1.0: the rates fall to about 69% and 16%.</p>
+
+<p>These are calculated probabilities from the example model, not observations from a study. The stricter rule changes both rates. It does not change \(d'\).</p>
+
+<h2>From two answers to six</h2>
+
+<p>A six-point response scale needs five ordered thresholds. Moving these thresholds changes how much probability falls into each category.</p>
+
+<p>This is why I find the picture useful: it separates a change in the response rule from a change in the underlying distributions.</p>
+
+<h2>Try it</h2>
+
+<p>Move a threshold in the interactive figure. Watch the category probabilities change while the distributions stay fixed. Reset the figure to compare with the starting point.</p>
+
+<div class="threshold-note-embed">
+
+{{< include ../../_includes/evidence-threshold-component.qmd >}}
+
+</div>
+
+<p>The demonstration assumes normal distributions with equal variance. Real data may require a different model. Observed ratings alone do not establish why two groups differ.</p>
+</article>
+
+{{< include ../../_generated/note-criteria-move-answers.html >}}
+
+</main>
+
+{{< include ../../_includes/site-footer.qmd >}}

@@ -1,0 +1,13 @@
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="site-header" aria-label="Main navigation">
+<a class="wordmark" href="/" aria-label="Tomer Zipori home"><img class="wordmark-mark" src="/assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a>
+<nav class="primary-nav" id="primary-navigation">
+<a href="/experiments/">Work</a>
+<a href="/garden/">Garden</a>
+<a href="/writing/">Writing</a>
+<a href="/about/">About</a>
+<a href="/assets/cv/tomer-zipori.pdf">CV</a>
+</nav>
+<div class="utility-nav"><a href="https://github.com/tomerzipori" rel="me">GitHub</a><a href="/writing/index.xml" aria-label="RSS feed">RSS</a></div>
+<button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button>
+</header>

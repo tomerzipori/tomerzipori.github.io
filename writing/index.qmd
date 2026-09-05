@@ -1,21 +1,17 @@
 ---
 title: "Writing"
-description: "Articles on models, data, and the plots used to inspect them."
+description: "Articles and notes on models, evidence, and useful research tools."
 format:
   html:
     title-block-style: none
 ---
 
-<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../"><img class="wordmark-mark" src="../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../questions/">Questions</a><a href="../notes/">Notes</a><a href="../experiments/">Experiments</a><a href="../writing/">Writing</a><a href="../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
-<main class="site-main"><section class="page-intro"><p class="section-number">Archive</p><h1>Writing.</h1><p>Articles and analyses, listed by date.</p></section><section class="section"><div class="archive-list">
-<article class="archive-row"><span class="status">Published</span><div><h2 class="row-title"><a href="../posts/elections2024/">US Presidential Elections — A Bayesian Perspective</a></h2><p class="row-description">A polling question approached with a Bayesian model.</p></div><p class="row-type">analysis</p><p class="row-date">12 Jan 2025</p></article>
-<article class="archive-row"><span class="status">Published</span><div><h2 class="row-title"><a href="../posts/bayes102/">Bayesian Modeling for Psychologists, Part 2</a></h2><p class="row-description">Mixed-effects linear models and generalized linear models.</p></div><p class="row-type">tutorial</p><p class="row-date">14 Feb 2024</p></article>
-<article class="archive-row"><span class="status">Published</span><div><h2 class="row-title"><a href="../posts/bayes101/">Bayesian Modeling for Psychologists, Part 1</a></h2><p class="row-description">Updating statistical skills, with a model you can inspect.</p></div><p class="row-type">tutorial</p><p class="row-date">11 Feb 2024</p></article>
-<article class="archive-row"><span class="status">Published</span><div><h2 class="row-title"><a href="../posts/p_values_paradox/">Rejecting the null hypothesis or not?</a></h2><p class="row-description">When interpretations of probability disagree about p-values.</p></div><p class="row-type">theory</p><p class="row-date">04 Sep 2023</p></article>
-<article class="archive-row"><span class="status">Published</span><div><h2 class="row-title"><a href="../posts/netflix/">Netflix trends</a></h2><p class="row-description">Text data visualization and analysis.</p></div><p class="row-type">NLP</p><p class="row-date">13 Jun 2023</p></article>
-<article class="archive-row"><span class="status">Published</span><div><h2 class="row-title"><a href="../posts/football_fake_news/">Real Vs. Fake news in football</a></h2><p class="row-description">An experiment in NLP and text classification.</p></div><p class="row-type">analysis</p><p class="row-date">12 May 2023</p></article>
-<article class="archive-row"><span class="status">Published</span><div><h2 class="row-title"><a href="../posts/fifa23/">What makes FIFA 23 players good?</a></h2><p class="row-description">Elastic-net regression and decision-tree boosting.</p></div><p class="row-type">ML</p><p class="row-date">06 May 2023</p></article>
-<article class="archive-row"><span class="status">Published</span><div><h2 class="row-title"><a href="../posts/ufo/">Which US state leads in UFO reports?</a></h2><p class="row-description">UFO reports per state capita.</p></div><p class="row-type">visualization</p><p class="row-date">16 Apr 2023</p></article>
-<article class="archive-row"><span class="status">Published</span><div><h2 class="row-title"><a href="../posts/eggs/">Cage-free vs. caged hens in the US</a></h2><p class="row-description">A TidyTuesday visualization of change over time.</p></div><p class="row-type">visualization</p><p class="row-date">12 Apr 2023</p></article>
-</div></section></main>
-<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../">Home</a></p><p>Articles and analyses.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="index.xml">RSS</a></nav></footer><script src="../assets/site.js"></script>
+{{< include ../_includes/site-header.qmd >}}
+
+<main class="site-main" id="content"><section class="page-intro"><p class="section-number">Writing</p><h1>Articles and notes.</h1><p>Long-form analysis and short explanations. Start with everything, or filter by kind.</p></section><section class="section archive-section">
+
+{{< include ../_generated/writing-list.html >}}
+
+</section></main>
+
+{{< include ../_includes/site-footer.qmd >}}

@@ -15,8 +15,9 @@ image: ""
 image-alt: ""
 ---
 
-<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../../questions/">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
-<main class="site-main"><section class="page-intro"><p class="section-number">Article · Models and meaning</p><h1>Real Vs. Fake news in football</h1><div class="article-meta"><span class="status">in bloom</span><span>12 May 2023</span></div></section><article class="prose real-post"><p>As part of my data-science courses this fall semester, I have started also to get into <em>Natural Language Processing</em> (NLP, but of the good kind). This is the first time I have ever tried it, so let’s see how it went.</p>
+{{< include ../../_includes/site-header.qmd >}}
+
+<main class="site-main"><section class="page-intro"><p class="section-number">Article · Models and meaning</p><h1>Real Vs. Fake news in football</h1><div class="article-meta"><span class="status">Published</span><span>12 May 2023</span></div></section><article class="prose real-post"><p>As part of my data-science courses this fall semester, I have started also to get into <em>Natural Language Processing</em> (NLP, but of the good kind). This is the first time I have ever tried it, so let’s see how it went.</p>
 <p>Brief overview of the post:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Basic preprocessing and creation of <em>Data Feature Matrix</em> (DFM), using packages <code>stringr</code> and <code>quanteda</code>.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Classification with Naive-Bayes method.<br>
@@ -355,5 +356,10 @@ pred_lr fake real
 <div id="ref-welbers2017" class="csl-entry">
 Welbers, Kasper, Wouter Van Atteveldt, and Kenneth Benoit. 2017. <span>“Text Analysis in r.”</span> <em>Communication Methods and Measures</em> 11 (4): 245–65. <a href="https://doi.org/10.1080/19312458.2017.1387238">https://doi.org/10.1080/19312458.2017.1387238</a>.
 </div>
-</div></section></div></article></main>
-<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../../writing/">All writing</a></p><p>Classification is not fact-checking.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>
+</div></section></div></article>
+
+{{< include ../../_generated/article-football_fake_news.html >}}
+
+</main>
+
+{{< include ../../_includes/site-footer.qmd >}}

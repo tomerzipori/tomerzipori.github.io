@@ -1,0 +1,15 @@
+<section class="evidence-threshold-component" data-evidence-component aria-labelledby="threshold-heading">
+<div class="component-heading"><p class="figure-label">Illustrative model</p><h3 id="threshold-heading">Same evidence. Different decision.</h3><p>Move a criterion. The response probabilities change; fixed discriminability does not.</p></div>
+<figure class="threshold-figure">
+<svg class="threshold-svg" data-threshold-svg viewBox="0 0 640 290" role="img" aria-label="Two equal-variance distributions with five ordered response thresholds"><path class="threshold-fallback-noise" d="M45 232 C120 231 150 190 210 110 C250 58 292 35 325 32 C365 35 405 65 445 124 C492 190 535 229 605 232"/><path class="threshold-fallback-signal" d="M45 232 C200 232 250 225 300 186 C350 125 410 51 465 34 C515 55 550 125 576 188 C590 219 598 230 605 232"/><line class="axis" x1="45" x2="605" y1="232" y2="232"/><text class="threshold-index" x="45" y="260">low rating</text><text class="threshold-index" x="605" y="260" text-anchor="end">high rating</text></svg>
+<figcaption>Equal-variance distributions. The five movable lines are response criteria.</figcaption>
+</figure>
+<div class="threshold-controls">
+<label class="threshold-separation">Fixed separation <output data-separation-output>1.55</output><input type="range" min="0.8" max="2.4" step="0.05" value="1.55" data-separation-control aria-label="Fixed distribution separation"></label>
+<div class="probability-readouts" aria-live="polite"><div><span>Noise</span><div class="probability-bar" data-probability-bar aria-label="Noise category probabilities"></div></div><div><span>Signal</span><div class="probability-bar" data-probability-bar aria-label="Signal category probabilities"></div></div></div>
+<p class="evidence-readout" data-evidence-readout>d′ = 1.55 · criteria shift responses, not discriminability</p>
+<button class="reset-button" type="button" data-threshold-reset>Reset</button>
+</div>
+<noscript><p class="no-script-note">This static figure shows the two distributions and five ordered criteria. JavaScript adds movable controls and probability readouts.</p></noscript>
+</section>
+<script src="/assets/evidence-thresholds.js"></script>

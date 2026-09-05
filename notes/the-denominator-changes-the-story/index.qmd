@@ -1,0 +1,57 @@
+---
+title: "The denominator changes the story"
+description: "Why counts and population rates can produce different rankings, and what neither measure can establish alone."
+date: 2026-09-05
+updated: 2026-09-05
+status: finished
+draft: false
+paths:
+  - data-and-strange-claims
+  - evidence-and-belief
+related:
+  - /posts/ufo/
+  - /posts/eggs/
+---
+
+{{< include ../../_includes/site-header.qmd >}}
+
+<main class="site-main note-page">
+<section class="page-intro"><p class="section-number">Note · Data and strange claims</p><h1>The denominator changes the story</h1><div class="article-meta"><span class="status">Published</span><span>05 Sep 2026</span></div></section>
+<article class="prose"><p>Suppose State A records 1,000 UFO reports and State B records 300. Which state reports more UFOs?</p>
+
+<p>By total count, A does. Now suppose A has ten million residents and B has one million.</p>
+
+<p>A has 10 reports per 100,000 residents. B has 30.</p>
+
+<p>Nothing about the reports changed. The question changed.</p>
+
+<h2>Count and rate answer different questions</h2>
+
+<p>A count describes the volume of recorded events. A population rate describes that volume relative to the number of residents.</p>
+
+<p>Neither measure is automatically better. A newsroom asking where most reports came from may need counts. Someone comparing reporting frequency across populations may need rates.</p>
+
+<p>Both need a matching time period and a clear definition of a report.</p>
+
+<h2>A rate is still a measurement of reporting</h2>
+
+<p>Dividing by population does not turn UFO reports into a direct measure of unusual objects in the sky.</p>
+
+<p>Tourism, reporting access, repeated submissions, and differences in observation conditions can all affect the numerator. Small counts can also make rankings unstable: one extra report matters much more when the starting count is two than when it is two thousand.</p>
+
+<p>Population adjustment answers one problem. It does not remove every other explanation.</p>
+
+<h2>What I want beside the chart</h2>
+
+<p>Show the count, denominator, time window, and unit. If the chart ranks places, explain what that ranking measures.</p>
+
+<p>The numbers above are an invented example. Their purpose is to show why a denominator belongs in the story.</p>
+
+<p>Before asking which place leads, decide what “leads” means.</p>
+</article>
+
+{{< include ../../_generated/note-the-denominator-changes-the-story.html >}}
+
+</main>
+
+{{< include ../../_includes/site-footer.qmd >}}

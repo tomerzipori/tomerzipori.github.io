@@ -4,7 +4,8 @@ PYTHON ?= python3
 
 check:
 	$(PYTHON) scripts/build_content.py --check
-	@echo "Content contract passed. Install Quarto to run: quarto render"
+	$(PYTHON) -m unittest discover -s tests -q
+	@echo "Content contract passed. Run quarto render for the full site build."
 
 new-note:
 	$(PYTHON) scripts/scaffold_content.py note "$(TITLE)"

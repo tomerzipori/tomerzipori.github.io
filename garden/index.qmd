@@ -1,0 +1,26 @@
+---
+title: "Garden"
+description: "An accessible map of Tomer Zipori's public articles, notes, and projects."
+format:
+  html:
+    title-block-style: none
+---
+
+{{< include ../_includes/site-header.qmd >}}
+
+<main class="site-main" id="content"><section class="page-intro garden-intro"><p class="section-number">Garden</p><h1>Follow a question.</h1><p>These paths connect my projects, notes, and longer articles. Connections show shared themes and editorial links, not measured similarity.</p><a class="odd-link" data-odd-link data-odd-candidates="/posts/ufo/,/posts/eggs/,/posts/fifa23/,/posts/p_values_paradox/" href="/posts/ufo/">Take me somewhere odd</a></section>
+<section class="section garden-section"><div class="garden-shell" data-garden-shell data-view="map"><div class="garden-toolbar"><div class="filter-buttons" role="group" aria-label="Garden filters"><button type="button" class="filter-button is-active" data-garden-filter="all">All</button><button type="button" class="filter-button" data-garden-filter="article">Articles</button><button type="button" class="filter-button" data-garden-filter="note">Notes</button><button type="button" class="filter-button" data-garden-filter="project">Projects</button></div><label class="search-field">Search the garden <input type="search" data-garden-search placeholder="Title or question"></label><div class="view-switch" role="group" aria-label="Garden view"><button type="button" class="filter-button is-active" data-garden-view="map" aria-pressed="true">Map</button><button type="button" class="filter-button" data-garden-view="list">List</button></div><button type="button" class="reset-button" data-garden-reset hidden>Reset</button></div><p class="empty-state" data-garden-empty hidden>No public item matches that search.</p><div class="garden-map" data-garden-map>
+
+{{< include ../_generated/garden-map.html >}}
+
+</div><div class="garden-list" data-garden-list>
+
+{{< include ../_generated/garden-list.html >}}
+
+</div><noscript><p class="no-script-note">JavaScript is off. The grouped list above contains every public item.</p></noscript>
+
+{{< include ../_generated/garden-data.html >}}
+
+</div></section></main>
+
+{{< include ../_includes/site-footer.qmd >}}

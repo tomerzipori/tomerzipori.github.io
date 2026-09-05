@@ -2,7 +2,6 @@ _site/
 _preview.html
 _freeze/
 .quarto/
-_generated/
 .DS_Store
 *.Rproj.user/
 *.pyc
@@ -11,3 +10,5 @@ __pycache__/
 node_modules/
 
 /.quarto/
+
+**/*.quarto_ipynb

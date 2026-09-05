@@ -1,6 +1,6 @@
 ---
 title: ""
-description: "Selected work on models, evidence, and useful research tools."
+description: "Playful questions and rigorous answers about models, evidence, and research tools."
 format:
   html:
     title-block-style: none
@@ -8,92 +8,46 @@ format:
     include-in-header:
       - text: |
           <meta name="theme-color" content="#f7f5ef">
-          <meta property="og:title" content="Tomer Zipori — models, evidence, and tools">
-          <meta property="og:description" content="Selected projects, technical notes, and analyses.">
+          <meta property="og:title" content="Tomer Zipori — playful questions, rigorous answers">
+          <meta property="og:description" content="Models, experiments, and tools to understand how people and machines make sense of the world.">
           <meta property="og:image" content="assets/site-mark.svg">
           <meta name="twitter:card" content="summary">
 ---
 
-<a class="skip-link" href="#content">Skip to content</a>
-
-<header class="site-header" aria-label="Main navigation">
-<a class="wordmark" href="/" aria-label="Tomer Zipori home">
-<img class="wordmark-mark" src="assets/site-mark.svg" alt="">
-<span>Tomer Zipori.</span>
-</a>
-<nav class="primary-nav" id="primary-navigation">
-<a href="questions/">Questions</a>
-<a href="notes/">Notes</a>
-<a href="experiments/">Experiments</a>
-<a href="writing/">Writing</a>
-<a href="about/">About</a>
-</nav>
-<div class="utility-nav">
-<a href="https://github.com/tomerzipori" rel="me">GitHub</a>
-<a href="writing/index.xml" aria-label="RSS feed">RSS</a>
-</div>
-<button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button>
-</header>
+{{< include _includes/site-header.qmd >}}
 
 <main class="site-main" id="content">
-<section class="hero" aria-labelledby="page-title">
-<div class="hero-copy">
-<p class="eyebrow">Research · models · tools</p>
-<h1 id="page-title">I make models easier to inspect.</h1>
-<p class="hero-intro">I work across applied research, machine learning, and model evaluation. This site collects selected projects, technical notes, and longer analyses.</p>
-<div class="hero-actions">
-<a class="text-link" href="#selected-work">View selected work</a>
-<a class="odd-link" data-odd-link data-odd-candidates="posts/ufo/,posts/eggs/,posts/fifa23/,posts/p_values_paradox/" href="posts/ufo/">Surprise me</a>
+<section class="home-hero" aria-labelledby="page-title">
+<div class="home-hero-copy"><p class="eyebrow">ML · Model evaluation · Research tools</p><h1 id="page-title">Tomer Zipori</h1><p class="hero-tagline">Playful questions. Rigorous answers.</p><p class="hero-intro">I build models, experiments, and tools to understand how people—and machines—make sense of the world.</p><div class="hero-actions"><a class="button-link" href="#selected-work">Explore my work</a><a class="text-link" href="/assets/cv/tomer-zipori.pdf">CV</a><a class="text-link" href="#contact">Contact</a></div></div>
+<div class="hero-demonstration">
+
+{{< include _includes/evidence-threshold-component.qmd >}}
+
 </div>
-</div>
-<figure class="hero-visual">
-<img src="assets/profile.jpg" alt="Tomer Zipori outdoors, looking toward the camera">
-<figcaption>Researcher and builder, based in Israel.</figcaption>
-</figure>
 </section>
 
-<section class="section" id="selected-work" aria-labelledby="selected-title">
-<div class="section-heading">
-<p class="section-number">Selected work</p>
-<div>
-<h2 id="selected-title">Projects and notes.</h2>
-<p>A small selection of work on model interpretation, evaluation, and reproducible analysis.</p>
-</div>
-</div>
-<div class="tended-list">
-<article class="tended-row">
-<span class="status">R package</span>
-<div><h3 class="row-title"><a href="experiments/ordinal-regression-viz/">OrdinalRegressionViz</a></h3><p class="row-description">Visual tools for cumulative ordinal models, including latent distributions, criteria, ROC curves, and uncertainty.</p></div>
-<p class="row-type">Experiment</p><p class="row-date">2026</p>
-</article>
-<article class="tended-row">
-<span class="status">Python</span>
-<div><h3 class="row-title"><a href="experiments/local-agent-toolkit/">Local Agent Toolkit</a></h3><p class="row-description">A bounded local worker for repository exploration, review, diagnostics, and candidate patches.</p></div>
-<p class="row-type">Experiment</p><p class="row-date">2026</p>
-</article>
-<article class="tended-row">
-<span class="status">Article</span>
-<div><h3 class="row-title"><a href="posts/p_values_paradox/">When the p-value is not the whole story</a></h3><p class="row-description">A concise look at competing interpretations of probability and null-hypothesis testing.</p></div>
-<p class="row-type">Writing</p><p class="row-date">2023</p>
-</article>
-</div>
-<p class="section-action"><a class="text-link" href="experiments/">All experiments</a><a class="text-link" href="writing/">All writing</a></p>
+<section class="section selected-work-section" id="selected-work" aria-labelledby="selected-work-title"><div class="section-heading"><p class="section-number">Selected work</p><div><h2 id="selected-work-title">Questions with somewhere to go.</h2><p>Three finished projects where a claim becomes a tool, a workflow, or a picture.</p></div></div>
+<div class="project-presentations">
+<article class="project-presentation"><div class="project-presentation-copy"><p class="project-index">01 · Visual explanation</p><h3><a href="/experiments/ordinal-regression-viz/">Making ordinal models plot-able</a></h3><p>Visual tools that connect model parameters to latent evidence, response thresholds, and uncertainty.</p><p><a class="text-link" href="/experiments/ordinal-regression-viz/">Read the case study</a> <a class="text-link" href="https://github.com/tomerzipori/OrdinalRegressionViz">Repository</a></p></div><figure class="project-figure project-figure--ordinal"><img src="/assets/sdt-distributions-example.png" alt="Latent signal and noise distributions with ordered response thresholds"><figcaption>Evidence, criteria, response.</figcaption></figure></article>
+<article class="project-presentation"><div class="project-presentation-copy"><p class="project-index">02 · Research workflow</p><h3><a href="/experiments/local-agent-toolkit/">Harness the power of your laptop</a></h3><p>A toolkit for repository exploration, review, and candidate patches, with human verification built into the workflow.</p><p><a class="text-link" href="/experiments/local-agent-toolkit/">Read the case study</a> <a class="text-link" href="https://github.com/tomerzipori/local-agent-toolkit">Repository</a></p></div><figure class="project-figure"><svg class="workflow-diagram" viewBox="0 0 560 150" role="img" aria-label="Workflow from bounded task through selected context and local model to human verification"><path d="M24 76 H524"/><circle cx="55" cy="76" r="8"/><circle cx="205" cy="76" r="8"/><circle cx="355" cy="76" r="8"/><circle cx="505" cy="76" r="8"/><text x="55" y="38">Bounded task</text><text x="205" y="122">Selected context</text><text x="355" y="38">Local model</text><text x="505" y="122">Human verification</text></svg><figcaption>Workflow</figcaption></figure></article>
+<article class="project-presentation"><div class="project-presentation-copy"><p class="project-index">03 · Reproducible analysis</p><h3><a href="/experiments/blue-movies/">Measuring a cinematic hunch</a></h3><p>A Python pipeline for testing a claim about movie colour, with the movie as the unit of analysis.</p><p><a class="text-link" href="/experiments/blue-movies/">Read the case study</a> <a class="text-link" href="https://github.com/tomerzipori/blue-movies">Repository</a></p></div><figure class="project-figure"><svg class="workflow-diagram workflow-diagram--warm" viewBox="0 0 560 150" role="img" aria-label="Workflow from movie through sampled frames and colour measurements to movie-level analysis"><path d="M24 76 H524"/><circle cx="55" cy="76" r="8"/><circle cx="205" cy="76" r="8"/><circle cx="355" cy="76" r="8"/><circle cx="505" cy="76" r="8"/><text x="55" y="38">Movie</text><text x="205" y="122">Sampled frames</text><text x="355" y="38">Colour measurements</text><text x="505" y="122">Movie-level analysis</text></svg><figcaption>Workflow</figcaption></figure></article>
+</div></section>
+
+<section class="section study-section" aria-labelledby="study-title"><div class="section-heading"><p class="section-number">Currently investigating</p><div><h2 id="study-title">Can padding change what a model learns?</h2><p>I’m testing whether padding-sensitive normalization changes audio-classification metrics in a small DistilHuBERT model. The study compares ordinary and masked normalization under two padding conditions.</p><p class="study-callout"><a class="button-link" href="/notes/distilhubert-padding-study/">Read the experiment note</a> <span class="study-status">Ongoing study · Pilot complete</span></p></div></div><figure class="padding-diagram"><svg viewBox="0 0 720 190" role="img" aria-label="Two waveforms compare minimal padding and additional padding"><path class="wave-valid" d="M20 64 C42 12 63 111 85 64 S128 16 150 64 S194 112 216 64 S260 16 282 64 S326 111 348 64"/><path class="wave-valid" d="M20 140 C42 88 63 187 85 140 S128 92 150 140 S194 188 216 140 S260 92 282 140 S326 187 348 140"/><path class="wave-padding" d="M348 64 H696"/><path class="wave-padding" d="M348 140 H696"/><line x1="348" x2="348" y1="22" y2="172"/><text x="20" y="26">Minimal padding</text><text x="20" y="104">Additional padding</text><text x="367" y="26">valid audio</text><text x="555" y="26">padding</text><text x="367" y="104">valid audio</text><text x="555" y="104">padding</text></svg><figcaption>Experiment design</figcaption></figure></section>
+
+<section class="section garden-preview-section" aria-labelledby="garden-preview-title"><div class="section-heading"><p class="section-number">Garden</p><div><h2 id="garden-preview-title">Follow a question.</h2><p>These paths connect my projects, notes, and longer articles. Pick a theme, or take an unexpected turn.</p></div></div><div class="compact-garden">
+
+{{< include _generated/homepage-garden.html >}}
+
+</div><p class="section-action"><a class="button-link" href="/garden/">Explore the full garden</a></p></section>
+
+<section class="section recent-section" aria-labelledby="recent-title"><div class="section-heading"><p class="section-number">Recent notes</p><div><h2 id="recent-title">Small distinctions with large consequences.</h2><p>Notes are short, but they keep the measurement attached to the question.</p></div></div>
+
+{{< include _generated/homepage-recent.html >}}
+
 </section>
 
-<section class="section about-brief" aria-labelledby="about-title">
-<p class="section-number">About</p>
-<div>
-<h2 id="about-title">Psychology, statistics, and model evaluation.</h2>
-<p>I am Tomer Zipori. I turn research questions into models, visual explanations, and tools that other people can inspect.</p>
-<p class="section-action"><a class="text-link" href="about/">More about me</a><a class="text-link" href="assets/cv/tomer-zipori.pdf">CV (PDF)</a></p>
-</div>
-</section>
+<section class="section contact-section" id="contact" aria-labelledby="contact-title"><div class="contact-layout"><div><p class="section-number">About and contact</p><h2 id="contact-title">Let’s talk about models, experiments, and useful tools.</h2><p>My background spans psychology, experimental methods, statistics, data science, and machine learning. I turn research questions into models, visual explanations, and tools that other people can inspect.</p><p class="section-action"><a class="button-link" href="/about/">More about me</a> <a class="text-link" href="/assets/cv/tomer-zipori.pdf">CV</a></p></div><figure class="contact-portrait"><img src="/assets/profile.jpg" alt="Tomer Zipori outdoors, looking toward the camera"></figure></div></section>
 </main>
 
-<footer class="site-footer">
-<p>© 2026 Tomer Zipori<br>Part of the <a href="https://www.r-bloggers.com/">R-Bloggers</a> network.</p>
-<p>Updated 04 Sep 2026</p>
-<nav class="footer-links" aria-label="Footer links"><a href="https://github.com/tomerzipori">GitHub</a><a href="https://huggingface.co/tomerz14">Hugging Face</a><a href="https://www.linkedin.com/in/tomer-zipori/">LinkedIn</a><a href="writing/index.xml">RSS</a></nav>
-</footer>
-
-<script src="assets/site.js"></script>
+{{< include _includes/site-footer.qmd >}}

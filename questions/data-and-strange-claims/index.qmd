@@ -1,15 +1,17 @@
 ---
 title: "Data and strange claims"
-description: "Work about odd questions, messy data, and exploratory analysis."
-status: finished
-draft: false
-paths:
-  - data-and-strange-claims
+description: "Work that tests memorable claims with measurements, denominators, and explicit limits."
 format:
   html:
     title-block-style: none
 ---
 
-<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
-<main class="site-main"><section class="page-intro"><p class="section-number">Research theme 03</p><h1>Data and strange claims</h1><p>Can an unusual question survive contact with messy data?</p></section><section class="section"><div class="tended-list"><article class="archive-row"><span class="status">Published</span><div><h2 class="row-title"><a href="../../posts/ufo/">Who is the leading US state in UFO reports?</a></h2><p class="row-description">Reports per capita, because raw counts can produce a misleading map.</p></div><p class="row-type">Article · 2023</p></article><article class="archive-row"><span class="status">Published</span><div><h2 class="row-title"><a href="../../posts/eggs/">Cage-free vs. caged hens in the US</a></h2><p class="row-description">A TidyTuesday visualization of change over time.</p></div><p class="row-type">Article · 2023</p></article><article class="archive-row"><span class="status">Published</span><div><h2 class="row-title"><a href="../../posts/fifa23/">What makes FIFA 23 players good?</a></h2><p class="row-description">Feature selection, regularization, and the limits of game data.</p></div><p class="row-type">Article · 2023</p></article></div></section></main>
-<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../">All research themes</a></p><p>Exploratory analysis with clear limits.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>
+{{< include ../../_includes/site-header.qmd >}}
+
+<main class="site-main" id="content"><section class="page-intro"><p class="section-number">Garden theme 03</p><h1>Data and strange claims</h1><p>What happens when a memorable claim meets a careful unit, denominator, or comparison?</p></section><section class="section archive-section">
+
+{{< include ../../_generated/theme-data-and-strange-claims.html >}}
+
+</section></main>
+
+{{< include ../../_includes/site-footer.qmd >}}

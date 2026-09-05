@@ -1,0 +1,93 @@
+---
+title: "Can padding change audio-classification metrics?"
+description: "An ongoing DistilHuBERT study comparing ordinary and masked positional BatchNorm under minimal and additional padding."
+date: 2026-09-05
+updated: 2026-09-05
+status: finished
+draft: false
+paths:
+  - models-and-meaning
+  - tools-for-thinking
+related:
+  - /notes/criteria-move-answers/
+  - /notes/more-frames-do-not-mean-more-movies/
+study-status: ongoing
+study-status-as-of: 2026-09-05
+---
+
+{{< include ../../_includes/site-header.qmd >}}
+
+<main class="site-main note-page">
+<section class="page-intro"><p class="section-number">Note · Models and meaning</p><h1>Can padding change audio-classification metrics?</h1><div class="article-meta"><span class="status">Published</span><span class="study-status">Ongoing study · Status checked 5 September 2026</span></div></section>
+<article class="prose"><p>Audio clips have different lengths. To process several clips together, we often extend the shorter ones with padding.</p>
+
+<p>Those extra samples are bookkeeping. They should not casually become evidence about what someone said.</p>
+
+<p>I’m investigating whether padding-sensitive normalization can change downstream audio-classification metrics in a small DistilHuBERT model.</p>
+
+<h2>The mechanism</h2>
+
+<p>The reported issue concerns HuBERT’s positional convolution when <code>conv_pos_batch_norm=True</code>. Batch normalization receives padded time steps without using their validity mask. This can affect valid-frame normalization during training, and padded positions can become nonzero before the convolution. The original report includes a reproduction of the padding sensitivity. <a href="https://github.com/huggingface/transformers/issues/47739">Transformers issue #47739</a></p>
+
+<p>A difference inside a model is a reason to investigate. It does not establish how much classification performance changes.</p>
+
+<p>That is the question for this experiment.</p>
+
+<h2>What I am testing</h2>
+
+<p>The study uses a pretrained DistilHuBERT backbone with a new classifier for 14 spoken intents. The dataset combines the Australian, British, and American English portions of MInDS-14: 1,809 examples in total.</p>
+
+<p>The fixed split contains 1,266 training examples, 269 validation examples, and 274 test examples.</p>
+
+<p>There is an important architectural detail: the original DistilHuBERT checkpoint does not use this positional BatchNorm path. The main experiment explicitly adds it after converting the positional convolution’s weight-normalized representation to an equivalent ordinary convolution.</p>
+
+<p>The study therefore tests a controlled configuration built from DistilHuBERT. It does not assume that the original checkpoint has the same problem.</p>
+
+<h2>Four conditions</h2>
+
+<table><thead><tr><th>Condition</th><th>Positional normalization</th><th>Padding</th></tr></thead><tbody><tr><td>C-L</td><td>Ordinary BatchNorm</td><td>Minimum needed for each batch</td></tr><tr><td>F-L</td><td>Masked BatchNorm</td><td>Minimum needed for each batch</td></tr><tr><td>C-H</td><td>Ordinary BatchNorm</td><td>Pad to a total of 20 seconds</td></tr><tr><td>F-H</td><td>Masked BatchNorm</td><td>Pad to a total of 20 seconds</td></tr></tbody></table>
+
+<p>The cached utterances are capped at 12 seconds. The high-padding condition extends the tensor to 20 seconds; it does not add 20 seconds to every utterance.</p>
+
+<p>The masked version gathers valid feature frames, applies PyTorch’s BatchNorm to those frames, and puts the results back into a tensor whose padded positions are zero.</p>
+
+<p>Within each seed, the four conditions start from the same initialized state and use the same examples and batch order.</p>
+
+<h2>The comparison that matters</h2>
+
+<p>I am tracking macro-F1, accuracy, and loss.</p>
+
+<p>For macro-F1, one useful comparison is:</p>
+
+<p class="equation">\[(F\text{-}H-C\text{-}H)-(F\text{-}L-C\text{-}L).\]</p>
+
+<p>This asks whether the difference between masked and ordinary normalization changes when padding increases.</p>
+
+<p>A positive value means the masked-minus-ordinary difference is larger under high padding. It does not, by itself, prove a general improvement.</p>
+
+<p>The study also separates changes accumulated during training from changes caused by padding at evaluation time.</p>
+
+<h2>Why repeat it?</h2>
+
+<p>A single training run can give an interesting result for the wrong reason.</p>
+
+<p>The planned main comparison uses five paired seeds. It also includes a repeated run and two controls that retain the architecture without positional BatchNorm.</p>
+
+<p>These checks help distinguish the targeted mechanism from other padding effects and run-to-run variation.</p>
+
+<h2>Where the study stands</h2>
+
+<p>As of 5 September 2026, all four pilot conditions passed the predefined learning gate. The main comparison has started, but the full matrix and controls are not complete.</p>
+
+<p>Passing the pilot means the setup can learn well enough to continue. It does not answer the research question.</p>
+
+<p>I will draw a conclusion only after reviewing the paired results, controls, and measurements inside the model.</p>
+
+<p>For now, the question remains open: does this implementation detail produce a consistent, practically meaningful change in classification metrics?</p>
+</article>
+
+{{< include ../../_generated/note-distilhubert-padding-study.html >}}
+
+</main>
+
+{{< include ../../_includes/site-footer.qmd >}}

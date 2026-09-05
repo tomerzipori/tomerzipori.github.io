@@ -1,15 +1,17 @@
 ---
 title: "Tools for thinking"
-description: "Open-source tools for seeing models and data more clearly."
-status: finished
-draft: false
-paths:
-  - tools-for-thinking
+description: "Projects and notes about instruments, workflows, and useful constraints."
 format:
   html:
     title-block-style: none
 ---
 
-<header class="site-header" aria-label="Main navigation"><a class="wordmark" href="../../"><img class="wordmark-mark" src="../../assets/site-mark.svg" alt=""><span>Tomer Zipori.</span></a><nav class="primary-nav" id="primary-navigation"><a href="../">Questions</a><a href="../../notes/">Notes</a><a href="../../experiments/">Experiments</a><a href="../../writing/">Writing</a><a href="../../about/">About</a></nav><div class="utility-nav"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></div><button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-navigation">Menu</button></header>
-<main class="site-main"><section class="page-intro"><p class="section-number">Research theme 04</p><h1>Tools for thinking</h1><p>What small instrument would make the next question easier to inspect?</p></section><section class="section"><div class="tended-list"><article class="archive-row"><span class="status">Published</span><div><h2 class="row-title"><a href="../../experiments/ordinal-regression-viz/">OrdinalRegressionViz</a></h2><p class="row-description">Model output becomes a set of plots that can be inspected and reused.</p></div><p class="row-type">R package</p></article><article class="archive-row"><span class="status">Published</span><div><h2 class="row-title"><a href="../../experiments/blue-movies/">Blue Movies</a></h2><p class="row-description">A reproducible color-analysis pipeline that keeps the movie as the statistical unit.</p></div><p class="row-type">Python pipeline</p></article><article class="archive-row"><span class="status">Published</span><div><h2 class="row-title"><a href="../../experiments/local-agent-toolkit/">Local Agent Toolkit</a></h2><p class="row-description">A bounded local worker for repository exploration and first-pass engineering work.</p></div><p class="row-type">Python toolkit</p></article></div></section></main>
-<footer class="site-footer"><p>© 2026 Tomer Zipori<br><a href="../">All research themes</a></p><p>Small tools for technical work.</p><nav class="footer-links"><a href="https://github.com/tomerzipori">GitHub</a><a href="../../writing/index.xml">RSS</a></nav></footer><script src="../../assets/site.js"></script>
+{{< include ../../_includes/site-header.qmd >}}
+
+<main class="site-main" id="content"><section class="page-intro"><p class="section-number">Garden theme 04</p><h1>Tools for thinking</h1><p>How can an instrument make a question easier to inspect without pretending to answer it?</p></section><section class="section archive-section">
+
+{{< include ../../_generated/theme-tools-for-thinking.html >}}
+
+</section></main>
+
+{{< include ../../_includes/site-footer.qmd >}}
