@@ -29,7 +29,8 @@ THEMES = (
 )
 FEATURED_URLS = (
     "/notes/distilhubert-padding-study/",
-    "/experiments/ordinal-regression-viz/",
+    "/posts/looking-for-an-animal-neuron/",
+    "/experiments/neuron-playground/",
     "/experiments/local-agent-toolkit/",
     "/experiments/blue-movies/",
     "/notes/criteria-move-answers/",
@@ -144,8 +145,8 @@ def validate(records: list[dict[str, object]]) -> list[str]:
                 errors.append(f"{url}: public item is missing description")
             if record["image"] and not str(record["image-alt"]).strip():
                 errors.append(f"{url}: image-alt is required when image is set")
-            if record["kind"] == "project" and (not str(record["repo"]).strip() or not str(record["artifact"]).strip()):
-                errors.append(f"{url}: public project needs repo and artifact links")
+            if record["kind"] == "project" and not str(record["artifact"]).strip():
+                errors.append(f"{url}: public project needs an artifact link")
         related = record["related"]
         if not isinstance(related, list):
             errors.append(f"{url}: related must be a list")

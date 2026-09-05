@@ -28,6 +28,32 @@
       "artifact": ""
     },
     {
+      "kind": "project",
+      "collection": "experiments",
+      "slug": "neuron-playground",
+      "url": "/experiments/neuron-playground/",
+      "title": "Neuron playground",
+      "description": "Explore how units across 26 Gemma layers respond to animals, plants, tools, and other words.",
+      "date": "2026-09-05",
+      "updated": "2026-09-05",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "models-and-meaning",
+        "tools-for-thinking"
+      ],
+      "related": [
+        "/posts/looking-for-an-animal-neuron/",
+        "/posts/micrograd/"
+      ],
+      "image": "/assets/functional-localizer/localizer-heldout.svg",
+      "image-alt": "Selected units retain animal-versus-tool selectivity on unseen words.",
+      "study-status": "",
+      "study-status-as-of": "",
+      "repo": "",
+      "artifact": "/assets/neuron-playground/index.html"
+    },
+    {
       "kind": "note",
       "collection": "notes",
       "slug": "more-frames-do-not-mean-more-movies",
@@ -47,6 +73,34 @@
       ],
       "image": "",
       "image-alt": "",
+      "study-status": "",
+      "study-status-as-of": "",
+      "repo": "",
+      "artifact": ""
+    },
+    {
+      "kind": "article",
+      "collection": "posts",
+      "slug": "looking-for-an-animal-neuron",
+      "url": "/posts/looking-for-an-animal-neuron/",
+      "title": "Looking for an animal neuron",
+      "description": "A psychology-inspired experiment inside Gemma: strong category responses, a few useful surprises, and a hypothesis that did not survive its controls.",
+      "date": "2026-09-05",
+      "updated": "2026-09-05",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "models-and-meaning",
+        "evidence-and-belief",
+        "tools-for-thinking"
+      ],
+      "related": [
+        "/experiments/neuron-playground/",
+        "/posts/micrograd/",
+        "/posts/p_values_paradox/"
+      ],
+      "image": "/assets/functional-localizer/localizer-heldout.svg",
+      "image-alt": "All 20 units selected on animal and tool words retain positive selectivity on unseen words.",
       "study-status": "",
       "study-status-as-of": "",
       "repo": "",

@@ -26,6 +26,32 @@
     "artifact": ""
   },
   {
+    "kind": "project",
+    "collection": "experiments",
+    "slug": "neuron-playground",
+    "url": "/experiments/neuron-playground/",
+    "title": "Neuron playground",
+    "description": "Explore how units across 26 Gemma layers respond to animals, plants, tools, and other words.",
+    "date": "2026-09-05",
+    "updated": "2026-09-05",
+    "status": "finished",
+    "draft": false,
+    "paths": [
+      "models-and-meaning",
+      "tools-for-thinking"
+    ],
+    "related": [
+      "/posts/looking-for-an-animal-neuron/",
+      "/posts/micrograd/"
+    ],
+    "image": "/assets/functional-localizer/localizer-heldout.svg",
+    "image-alt": "Selected units retain animal-versus-tool selectivity on unseen words.",
+    "study-status": "",
+    "study-status-as-of": "",
+    "repo": "",
+    "artifact": "/assets/neuron-playground/index.html"
+  },
+  {
     "kind": "note",
     "collection": "notes",
     "slug": "more-frames-do-not-mean-more-movies",
@@ -42,31 +68,6 @@
     ],
     "related": [
       "/experiments/blue-movies/"
-    ],
-    "image": "",
-    "image-alt": "",
-    "study-status": "",
-    "study-status-as-of": "",
-    "repo": "",
-    "artifact": ""
-  },
-  {
-    "kind": "note",
-    "collection": "notes",
-    "slug": "criteria-move-answers",
-    "url": "/notes/criteria-move-answers/",
-    "title": "Criteria move the answers. Separation moves discriminability.",
-    "description": "A worked example showing how decision thresholds change responses without changing fixed discriminability.",
-    "date": "2026-05-22",
-    "updated": "2026-09-05",
-    "status": "finished",
-    "draft": false,
-    "paths": [
-      "evidence-and-belief",
-      "models-and-meaning"
-    ],
-    "related": [
-      "/experiments/ordinal-regression-viz/"
     ],
     "image": "",
     "image-alt": "",

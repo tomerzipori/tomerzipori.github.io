@@ -1,0 +1,31 @@
+---
+title: "Neuron playground"
+description: "Explore how units across 26 Gemma layers respond to animals, plants, tools, and other words."
+date: 2026-09-05
+updated: 2026-09-05
+status: finished
+draft: false
+paths:
+  - models-and-meaning
+  - tools-for-thinking
+related:
+  - /posts/looking-for-an-animal-neuron/
+  - /posts/micrograd/
+artifact: /assets/neuron-playground/index.html
+image: /assets/functional-localizer/localizer-heldout.svg
+image-alt: "Selected units retain animal-versus-tool selectivity on unseen words."
+---
+
+{{< include ../../_includes/site-header.qmd >}}
+
+<main class="site-main project-detail" id="content"><section class="page-intro"><p class="section-number">Experiment · Model inspection</p><h1>Neuron playground</h1><p class="project-lede">A unit can prefer animals to tools. What happens when you add plants, food, and people?</p><div class="article-meta"><span class="status">Recorded model responses</span><span>Gemma 3 · 1B parameters</span></div></section>
+
+<iframe class="neuron-playground-frame" src="/assets/neuron-playground/index.html" title="Neuron playground: explore saved unit responses across Gemma layers" loading="eager"></iframe>
+
+<article class="prose"><h2>Start with a prediction</h2><p>Choose a layer and a unit. Look at its category responses, then inspect the individual words. Start with L12/U646, which strongly prefers animals. Find a unit that prefers plants and compare the two profiles.</p><p>The 20 original units were selected using a separate animal/tool vocabulary. The layer explorer also includes exploratory examples so you can visit every layer. Check the selection label before treating an example as part of the frozen set.</p><h2>What you are seeing</h2><p>These are saved measurements from a pretrained Gemma model. The controls choose which measurement to display. They do not run a new prompt, disable a neuron, or change the model’s answer. A strong category response is an observation to investigate, not proof that one unit stores a concept.</p><p><a class="button-link" href="/posts/looking-for-an-animal-neuron/">Read the experiment</a> <a class="text-link" href="/assets/neuron-playground/index.html">Open playground on its own</a> <a class="text-link" href="/assets/functional-localizer/evidence.json">Download evidence</a></p></article>
+
+{{< include ../../_generated/project-neuron-playground.html >}}
+
+</main>
+
+{{< include ../../_includes/site-footer.qmd >}}

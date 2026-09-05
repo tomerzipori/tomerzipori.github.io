@@ -1,0 +1,152 @@
+---
+title: "Looking for an animal neuron"
+description: "A psychology-inspired experiment inside Gemma: strong category responses, a few useful surprises, and a hypothesis that did not survive its controls."
+date: 2026-09-05
+updated: 2026-09-05
+status: finished
+draft: false
+paths:
+  - models-and-meaning
+  - evidence-and-belief
+  - tools-for-thinking
+related:
+  - /experiments/neuron-playground/
+  - /posts/micrograd/
+  - /posts/p_values_paradox/
+image: /assets/functional-localizer/localizer-heldout.svg
+image-alt: "All 20 units selected on animal and tool words retain positive selectivity on unseen words."
+---
+
+{{< include ../../_includes/site-header.qmd >}}
+
+<main class="site-main" id="content">
+<section class="page-intro"><p class="section-number">Article · Models and meaning</p><h1>Looking for an animal neuron</h1><p class="project-lede">What happens when you borrow an experiment from psychology and point it at a language model?</p><div class="article-meta"><span class="status">Experiment report</span><span>5 September 2026</span></div></section>
+<article class="prose real-post">
+
+<p>Suppose I show a language model the word <em>otter</em>, then the word <em>hammer</em>. Somewhere inside the model, a number changes. Actually, many thousands of numbers change. But imagine that one number consistently gets larger for animals.</p>
+
+<p>Have we found an animal neuron?</p>
+
+<p>That is a tempting name. It is also doing quite a lot of work. Maybe the unit responds to living things. Maybe it responds to something about these particular words. Or maybe we searched enough units to find something that looks impressive by accident.</p>
+
+<p>I built a small study to work through these possibilities in <code>google/gemma-3-1b-pt</code>, a pretrained language model. It grew into five experiments. Some results were striking. One appealing idea did not survive its controls.</p>
+
+<p>You can <a href="/experiments/neuron-playground/">play with the recorded responses</a> before reading on. Start with layer 12, unit 646. Then find a unit that prefers plants. The change is a good introduction to the problem.</p>
+
+<h2>A familiar idea from psychology</h2>
+
+<p>My background is in psychology, so the idea of using a task to locate a response feels familiar. In neuroscience, a <em>functional localizer</em> identifies a region through what it responds to. A classic example compares responses to faces and other objects. Language localizers use contrasts such as sentences versus nonword strings. The details differ, but the useful habit is to locate a response first, then test its properties with independent material. <a href="https://pubmed.ncbi.nlm.nih.gov/9151747/">Kanwisher, McDermott, and Chun (1997)</a>; <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC2934923/">Fedorenko et al. (2010)</a>.</p>
+
+<p>I borrowed that experimental logic. I did not assume that a transformer layer is a brain region, or that a model unit is a biological neuron. Here, a “unit” is one coordinate in an intermediate computation: a number we can record for each input.</p>
+
+<p>The separation between finding and testing is the part that matters. If I choose a unit because it responds strongly to my animal words, those same words cannot provide an independent test of the result.</p>
+
+<h2>First, find a response</h2>
+
+<p>The first experiment used 120 words: 60 animals and 60 tools. Every target was one model token, placed in the same sentence:</p>
+
+<pre><code>They mentioned the word {TARGET}</code></pre>
+
+<p>I measured the target token inside each of the model’s 26 layers. More precisely, I recorded the gated MLP intermediate, before its projection back into the model’s main representation. There are 6,912 units per layer. This gave me 179,712 places to look.</p>
+
+<p>I used 80 words to find units: 40 animals and 40 tools. The other 40 words stayed out of selection. For each unit, I calculated Cohen’s <em>d</em>: the difference between its mean animal and tool responses, divided by the pooled standard deviation.</p>
+
+<p class="equation">$$d = \frac{\text{mean animal response} - \text{mean tool response}}{\text{pooled standard deviation}}$$</p>
+
+<p>A positive value means the unit responds more to the animal words, relative to the spread of responses. It does not tell us why.</p>
+
+<p>The strongest discovery result was layer 12, unit 646, with <em>d</em> = 4.96. I froze the top 20 unit IDs, then evaluated them on the untouched words. All 20 retained a positive effect; the median held-out <em>d</em> was 3.46. The top discovery unit reached 7.10 on the held-out words. These are large differences for this particular contrast.</p>
+
+<figure><img src="/assets/functional-localizer/localizer-heldout.svg" alt="Scatter plot of discovery versus held-out Cohen's d for the 20 selected units. All held-out values exceed 2.5." loading="lazy"><figcaption>Each point is one unit. The horizontal axis uses the words that selected it; the vertical axis uses untouched words. The dashed line marks equal effects. Selection used only the horizontal axis.</figcaption></figure>
+
+<p>But remember the number of places I looked: nearly 180,000. To check that search, I shuffled the discovery labels 500 times. Every shuffle repeated the search across <em>all</em> units and kept its largest effect. The observed maximum was 4.96; the 95th percentile of the shuffled maxima was 1.16. None of the 500 shuffled maxima reached the observed value.</p>
+
+<p>This result addresses a specific concern: a large maximum produced by searching many units under shuffled labels. It does not remove differences in word frequency, naturalness, or other properties of the categories. A clean result can still answer a narrower question than its name suggests.</p>
+
+<h2>Then ask what else it likes</h2>
+
+<p>An animal-versus-tool contrast cannot distinguish “animal” from everything that happens to separate those two lists. So I kept the same 20 units and gave the model 320 new words. This time there were eight categories: animals, humans, plants, foods, vehicles, tools, household objects, and natural nonliving objects.</p>
+
+<p>Animals produced the highest mean response in 14 of the 20 units. Plants led in five. Food led in one.</p>
+
+<p>That is already more interesting than giving all 20 units the same name. They agreed on the original contrast but disagreed when the question became broader.</p>
+
+<p>The strongest unit, L12/U646, still showed a clear animal preference. Its high-response words included <em>pigeon</em>, <em>bird</em>, <em>otter</em>, <em>elk</em>, and <em>quail</em>. But the other units show why one successful contrast is only a starting point.</p>
+
+<p>All 20 responded more to the animal list than the human list. Before reading too much into that distinction, the human words were occupations and roles. They were not a complete sample of human concepts. The labels on our plots are broader than the examples we supplied.</p>
+
+<p><a class="button-link" href="/experiments/neuron-playground/">Explore the units and their words</a></p>
+
+<h2>When 100% is less informative than it looks</h2>
+
+<p>The third experiment asked whether a simple classifier could recover the categories from these internal numbers. This is often called a <em>linear probe</em>: keep the language model fixed, then fit a small classifier to its recorded representations.</p>
+
+<p>The animal/tool test was easy enough that a single unit, a group of units, and the full input embedding could all reach 100% on the small held-out set. That is a ceiling effect. Accuracy has run out of room to tell these representations apart.</p>
+
+<p>The eight-category problem also had a strong input baseline. Its highest cross-validated accuracy was 94.7%, at the embedding representation, before the transformer layers. This is the best observed cross-validation score across representations, not a second independent test of a chosen winner.</p>
+
+<p>These results show that category information is accessible. They give little support to a story in which deeper layers uniquely create that information. If the baseline already performs extremely well, the later layers need to earn their place in the explanation.</p>
+
+<h2>Remove the obvious word</h2>
+
+<p>The next experiment changed the way a concept appeared. Each of 60 concepts had three forms: a literal mention, a description, and a context. Instead of reading the animal or tool token itself, I measured a shared token, <code>entity</code>, after the preceding text.</p>
+
+<p>This changes the task. The measured word is now identical across inputs. Any category difference at that position must depend on the preceding context, although that context can still contain useful lexical clues.</p>
+
+<p>The original frozen units transferred less cleanly. Their median effect fell from 3.55 on the first localizer to 1.21 for literal mentions, 1.51 for descriptions, and 0.88 for contexts. Fourteen of the 20 units had positive effects in each form.</p>
+
+<p>Population probes did better. In five folds that kept all forms of a concept together, a probe trained on literal forms reached 100% on descriptions and 93.3% on contexts at layer 4. These are the best observed layer results in that evaluation. They show useful transfer across forms; they do not establish a uniquely abstract layer.</p>
+
+<p>The distinction is useful: a response can weaken at one selected coordinate while information remains available across the population. Neither measurement is a complete account of what the model does with that information.</p>
+
+<h2>The attractive story that did not work</h2>
+
+<p>By this point there was an obvious next question. Perhaps concrete things are available early, while abstract concepts need deeper computation. Could we watch that difference emerge across layers?</p>
+
+<p>The fifth experiment used 300 concepts, each with four descriptions, and human concreteness ratings on a scale from 1 to 5. The ratings came from <a href="https://biblio.ugent.be/publication/5774089">Brysbaert, Warriner, and Kuperman (2014)</a>. I again read the shared <code>entity</code> token.</p>
+
+<p>There were two questions. Could a linear model predict the human rating? And could the internal representation match different descriptions of the same concept?</p>
+
+<p>For rating prediction, the strict test held out both concepts and a description style: 200 training concepts used styles A–C; 50 validation concepts selected settings; the final test used style D for 50 separate concepts.</p>
+
+<p>Here is the comparison that matters. A retrospective check of the saved validation scores selects layer 15. This was not a preregistered layer choice or a new untouched test. On the strict test, the lexical baseline performed better:</p>
+
+<table><caption>Human concreteness prediction on 50 unseen concepts in the held-out description style.</caption><thead><tr><th scope="col">Representation</th><th scope="col">Spearman correlation ↑</th><th scope="col">R² ↑</th><th scope="col">Mean absolute error ↓</th></tr></thead><tbody><tr><th scope="row">MLP layer 15, selected on validation</th><td>0.292</td><td>0.250</td><td>0.876</td></tr><tr><th scope="row">TF-IDF lexical baseline</th><td>0.654</td><td>0.499</td><td>0.765</td></tr></tbody></table>
+
+<p>TF-IDF represents a description through its words and their frequencies. It does not use transformer layers. Including it asks whether the model reveals something beyond a comparatively simple description of the text.</p>
+
+<p>There was a more flattering number available: layer 3 reached a strict-test correlation of 0.711. The original summary highlighted layer 3, the winner <em>after looking across the test results</em>. Reporting it as the selected model’s generalization performance would mix exploration with evaluation. It is a useful observation for another experiment, not a replacement for a selection rule that uses validation data.</p>
+
+<p>The description-matching result was also unhelpful to the proposed depth story. Within every concreteness group, matching performance peaked at layer 0, the first MLP layer. The TF-IDF baseline exceeded the transformer’s peak in all five groups. Abstract concepts did not show the proposed later peak.</p>
+
+<figure><img src="/assets/functional-localizer/description-retrieval.svg" alt="Mean within-group description retrieval is strongest at layer 0 and remains below the TF-IDF baseline across all 26 layers." loading="lazy"><figcaption>Can one description retrieve another description of the same concept? Higher mean reciprocal rank (MRR) is better: a correct match in first place scores 1, in second place ½. The curve averages the five concreteness groups. Matching uses other concepts in the same group as candidates.</figcaption></figure>
+
+<p>This does not prove that abstract and concrete concepts are represented identically. It says that this model, these descriptions, this readout position, and these measurements did not produce the predicted pattern. The lexical baseline also suggests that wording carries much of the usable signal in this dataset.</p>
+
+<h2>So, did we find an animal neuron?</h2>
+
+<p>We found units with large, repeatable animal-versus-tool differences. Most of the selected units preferred animals across a wider category set; a few preferred plants or food. Some category information transferred when we changed the wording and measured a shared token.</p>
+
+<p>Those are useful observations. They do not show that one unit <em>is</em> a concept, that the model needs it to recognize animals, or that changing it would produce a predictable change in an answer. These experiments record activations and fit probes. They do not disable units or intervene on the model’s computation.</p>
+
+<p>For me, the psychology connection is most useful here. The work is in turning an appealing label into a sequence of contrasts. What else could explain the response? Which examples were used to select it? Does the pattern survive a different question?</p>
+
+<p>I would follow this with better-matched vocabulary, more varied descriptions, and a controlled intervention on selected units. Each would test a different gap. The current study stops before those claims.</p>
+
+<p>For now, try a smaller experiment yourself: open the playground, choose a unit, and predict its strongest category before looking at the individual words. Then change the layer or choose another unit. The point is to see how much a response can tell us—and how quickly a name can outrun it.</p>
+
+<p><a class="button-link" href="/experiments/neuron-playground/">Open the neuron playground</a></p>
+
+<h2>Measurements and source records</h2>
+
+<p>All model results above come from saved runs of <code>google/gemma-3-1b-pt</code>, revision <code>fcf18a2a879aab110ca39f8bffbccd5d49d8eb29</code>. Layer IDs are zero-based. The first three experiments use curated single-token words; the later experiments use a shared contextual anchor. The browser playground displays saved activations and does not run the model or change its weights.</p>
+
+<p>The <a href="/assets/functional-localizer/evidence.json">downloadable evidence snapshot</a> contains the first four experiment summaries and the tables behind the fifth experiment’s comparisons. It includes source paths and the model revision. These are exploratory results from one model, not a general map of language-model cognition.</p>
+
+</article>
+
+{{< include ../../_generated/article-looking-for-an-animal-neuron.html >}}
+
+</main>
+
+{{< include ../../_includes/site-footer.qmd >}}

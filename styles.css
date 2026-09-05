@@ -302,3 +302,12 @@ svg { max-width: 100%; }
   a { text-decoration: underline; }
   .real-post, .prose { width: 100%; }
 }
+
+/* The recorded neuron explorer is shared by the home and experiment pages. */
+.neuron-playground-frame { display: block; width: 100%; height: 940px; border: 0; background: var(--paper, #f7f5ef); }
+.neuron-playground-frame--home { height: 700px; }
+.neuron-playground-links { display: flex; flex-wrap: wrap; gap: 1rem; margin: .75rem 0 0; font-size: .85rem; }
+@media (max-width: 560px) {
+  .neuron-playground-frame { height: 1080px; }
+  .neuron-playground-frame--home { height: 730px; }
+}

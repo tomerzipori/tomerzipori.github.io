@@ -21,7 +21,8 @@ format:
 <div class="home-hero-copy"><p class="eyebrow">ML · Model evaluation · Research tools</p><h1 id="page-title">Tomer Zipori</h1><p class="hero-tagline">Playful questions. Rigorous answers.</p><p class="hero-intro">I build models, experiments, and tools to understand how people—and machines—make sense of the world.</p><div class="hero-actions"><a class="button-link" href="#selected-work">Explore my work</a><a class="text-link" href="/assets/cv/tomer-zipori.pdf">CV</a><a class="text-link" href="#contact">Contact</a></div></div>
 <div class="hero-demonstration">
 
-{{< include _includes/evidence-threshold-component.qmd >}}
+<iframe class="neuron-playground-frame neuron-playground-frame--home" src="/assets/neuron-playground/index.html?compact=1" title="Explore neuron responses across Gemma layers"></iframe>
+<p class="neuron-playground-links"><a class="text-link" href="/experiments/neuron-playground/">Open the playground</a> <a class="text-link" href="/posts/looking-for-an-animal-neuron/">Read the experiment</a></p>
 
 </div>
 </section>

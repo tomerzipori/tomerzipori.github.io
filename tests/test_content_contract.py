@@ -42,7 +42,7 @@ class ContentContractTests(unittest.TestCase):
 
     def test_public_content_passes_maturity_gate(self):
         public = [record for record in self.records if MODULE.is_public(record)]
-        self.assertEqual(len(public), 18)
+        self.assertEqual(len(public), 20)
         self.assertNotIn("/notes/pca-is-intuition-not-proof/", {record["url"] for record in self.records})
         self.assertNotIn("/posts/multilingual-embeddings-layers/", {record["url"] for record in self.records})
 
@@ -55,6 +55,8 @@ class ContentContractTests(unittest.TestCase):
         self.assertIn("Playful questions. Rigorous answers.", home)
         self.assertIn("I build models, experiments, and tools", home)
         self.assertIn("/garden/", home)
+        self.assertIn("/assets/neuron-playground/index.html", home)
+        self.assertIn("/posts/looking-for-an-animal-neuron/", home)
         self.assertIn("/notes/distilhubert-padding-study/", home)
         self.assertNotIn("I make models easier to inspect.", home)
 

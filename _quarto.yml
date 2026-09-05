@@ -14,6 +14,8 @@ project:
     - "writing/**/*.qmd"
   resources:
     - "_generated/**"
+    - "assets/neuron-playground/**"
+    - "assets/functional-localizer/**"
 
 website:
   title: "Tomer Zipori"
