@@ -1,29 +1,85 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Neuron playground · Gemma 3 1B</title>
-  <link rel="stylesheet" href="styles.css"><script src="app.js" defer></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Neural Observatory · Gemma 3 1B</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
 </head>
 <body>
-<main id="playground">
-  <header><p class="eyebrow">Gemma 3 1B / recorded responses</p><h1>What does this unit respond to?</h1><p>Choose a unit. Try different words. A preference is a clue, not a definition.</p></header>
-  <p id="loading" role="status">Loading recorded activations…</p>
+<main id="observatory">
+  <header class="observatory-header">
+    <p class="eyebrow">Gemma 3 1B / recorded activations</p>
+    <h1>Neural Observatory</h1>
+    <p class="lede">A paper-styled view of one measured token as it passes through all 26 transformer blocks.</p>
+  </header>
+
+  <p id="loading" class="loading" role="status">Loading the recorded observatory…</p>
+
   <div id="workspace" hidden>
-    <div class="presets" role="group" aria-label="Examples"><span>Start with:</span><button data-preset="12/646">Animals</button><button data-preset="12/1000">Now try plants</button><button data-preset="13/5008">Or food</button><button id="reset">Reset</button></div>
-    <div class="layer-control"><label for="layer">Layer <output id="layer-value" for="layer">12</output> <span>/ 25</span></label><input id="layer" type="range" min="0" max="25" value="12"><span class="depth-label">earlier → deeper</span></div>
-    <div id="layer-map" class="layer-map" role="group" aria-label="Choose a transformer layer"></div>
-    <div class="unit-control"><label for="unit">Unit in this layer <select id="unit"></select></label><div class="step-buttons"><button id="previous" aria-label="Previous unit in this layer">←</button><button id="next" aria-label="Next unit in this layer">→</button></div><p id="selection-note"></p></div>
-    <div class="chart-heading"><h2 id="unit-title"></h2><label for="scale">Response scale <select id="scale"><option value="z">Standardized</option><option value="raw">Raw activation</option></select></label></div>
-    <p id="chart-help">Each dot is one word. Click a category to inspect its words. The larger mark is the category mean. Axis fits each unit.</p>
-    <div id="response-chart" class="response-chart" aria-label="Responses across eight categories"></div>
-    <div id="axis" class="axis"></div>
-    <div class="word-controls"><label for="word-a">Word A <select id="word-a"></select></label><label for="word-b">Word B <select id="word-b"></select></label><button id="surprise">Try another pair</button></div>
-    <p id="readout" role="status" aria-live="polite"></p>
-    <details id="word-detail"><summary id="category-summary">Inspect animal words</summary><div id="word-list" class="word-list"></div></details>
-    <details class="method"><summary>What am I looking at?</summary><p>A “neuron” here is one coordinate of the gated MLP vector before <code>down_proj</code>. Layers run from 0 to 25. Unit IDs are local to each layer; moving deeper selects a different unit.</p><p>All 320 words were measured in <code>They mentioned the word {TARGET}</code>. There are 40 words in each category. Standardized responses use this unit’s mean and population SD across all 320 words. Zero means its average response, not inactivity. Larger values do not mean a unit is more important.</p><p>The 20 frozen winners were selected on a separate animal/tool vocabulary. Extra units let you explore all layers: the three strongest animal/tool contrasts and the contrast closest to zero in each layer. These extras are exploratory, not a new held-out claim. A near-zero animal/tool contrast does not imply an inactive unit.</p><p>This is a browser for saved measurements. Controls select units and words; they do not alter activations, silence neurons, or run the model. <a href="data.json" download>Download the data and provenance</a>.</p></details>
+    <section class="word-station" aria-labelledby="word-station-title">
+      <div>
+        <p class="section-kicker" id="word-station-title">Measured token</p>
+        <p class="sentence">They mentioned the word <strong id="target-word">pigeon</strong>.</p>
+        <p class="station-note">Switching words changes the recorded target-token values shown below. It does not run inference.</p>
+      </div>
+      <div class="word-actions">
+        <div id="quick-words" class="quick-words" role="group" aria-label="Recorded quick inputs"></div>
+        <form id="search-form" class="search-panel">
+          <label for="word-search">Find one of the 320 recorded words</label>
+          <div class="search-row"><input id="word-search" type="search" autocomplete="off" spellcheck="false" placeholder="Search words"><button type="submit">Select</button></div>
+          <p id="search-status" class="search-status" role="status" aria-live="polite"></p>
+          <div id="search-results" class="search-results" aria-label="Matching recorded words"></div>
+        </form>
+      </div>
+    </section>
+
+    <section class="architecture" aria-labelledby="architecture-title">
+      <div class="architecture-heading">
+        <div><p class="section-kicker">Whole model</p><h2 id="architecture-title">One token, 26 blocks</h2></div>
+        <p class="architecture-copy">Select any block to zoom in. Attention and residual paths stay neutral; measured gated-MLP activity carries the color.</p>
+      </div>
+      <div class="architecture-labels" aria-hidden="true"><span>blue bar · mean absolute z of strongest 1% of MLP units</span><span>orange diamond · global self-attention</span></div>
+      <div class="architecture-scroll"><div id="architecture-strip" class="architecture-strip" role="group" aria-label="Gemma 3 architecture"></div></div>
+      <p class="architecture-footnote">Embedding → 26 transformer blocks → output. Layers 5, 11, 17, and 23 use global self-attention; the other layers use a local window.</p>
+    </section>
+
+    <section id="focus-section" class="focus-section" aria-labelledby="focus-title" hidden>
+      <h2 id="focus-title">Layer 12</h2>
+      <div class="block-row" aria-label="Focused layer components">
+        <div class="neutral-block"><span>Self-attention block</span><small>neutral architecture path</small></div>
+        <div class="mlp-block"><small>You are here</small><span>proj_up → <strong>6,912 units</strong> → proj_down</span></div>
+        <div class="neutral-block"><span>Residual stream</span><small>neutral architecture path</small></div>
+      </div>
+
+      <div class="field-layout">
+        <div class="field-column">
+          <div class="field-heading"><div><p class="section-kicker">Unit field</p><h3>6,912 coordinates</h3></div><form id="unit-form" class="unit-jump"><label for="unit-jump">Go to unit</label><div><span>U</span><input id="unit-jump" type="number" min="0" max="6911" step="1" inputmode="numeric"><button type="submit">Go</button></div></form></div>
+          <canvas id="unit-field" class="unit-field" width="720" height="960" role="img" aria-describedby="field-description"></canvas>
+          <p id="field-description" class="field-description">A 96 × 72 field. Unit IDs increase from top-left to bottom-right. Spatial adjacency has no learned meaning.</p>
+          <p id="field-summary" class="field-summary" role="status" aria-live="polite"></p>
+        </div>
+        <aside id="unit-inspector" class="unit-inspector" aria-labelledby="unit-title">
+          <p class="section-kicker">Selected unit</p>
+          <h3 id="unit-title">Layer 12 / U646</h3>
+          <dl class="unit-facts"><div><dt>Standardized activation</dt><dd id="unit-activation">—</dd></div><div><dt>Selection status</dt><dd id="unit-rank">—</dd></div></dl>
+          <div class="category-profile"><h4>Mean response by category (z)</h4><p>Mean z-score across the 40 recorded words in each category.</p><div id="category-profile-rows"></div></div>
+          <p id="unit-compact-readout" class="unit-compact-readout"></p>
+        </aside>
+      </div>
+    </section>
+
+    <details class="method-details">
+      <summary>How to read this observatory</summary>
+      <p>The blue bar in each layer is the mean absolute standardized response of that layer’s strongest 69 units for the selected word. Its scale is fixed across all 320 words and all 26 layers. The orange diamond marks global self-attention and is an architecture marker, not an activation value.</p>
+      <p>Each field cell is one gated-MLP coordinate before <code>proj_down</code>. Cobalt marks values above the unit’s mean, rust marks values below it, and warm paper marks values near the mean. The numeric readout is the primary value; color is a second channel.</p>
+      <p>Category profiles are means of standardized activations across 40 words. For example, Animals +2.36 means the unit responds an average of 2.36 standard deviations above its own 320-word mean to animal words. It is not a probability, accuracy, or causal effect.</p>
+      <p>These are recorded target-token activations from <code>They mentioned the word {TARGET}</code>. They are not live inference, ablation, or causal evidence. Frozen-winner rank refers to units selected earlier on a separate animal/tool vocabulary; all other units are exploratory.</p>
+      <p><a href="manifest.json">Download the manifest and provenance</a>. Source model revision and file hashes are in the manifest.</p>
+    </details>
   </div>
-  <noscript>This playground needs JavaScript. <a href="data.json">Download its recorded data</a>.</noscript>
+  <noscript>This observatory needs JavaScript to load its recorded assets. <a href="manifest.json">Download the manifest</a>.</noscript>
 </main>
 </body>
 </html>

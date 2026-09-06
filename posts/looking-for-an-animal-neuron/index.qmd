@@ -133,9 +133,9 @@ image-alt: "All 20 units selected on animal and tool words retain positive selec
 
 <p>I would follow this with better-matched vocabulary, more varied descriptions, and a controlled intervention on selected units. Each would test a different gap. The current study stops before those claims.</p>
 
-<p>For now, try a smaller experiment yourself: open the playground, choose a unit, and predict its strongest category before looking at the individual words. Then change the layer or choose another unit. The point is to see how much a response can tell us—and how quickly a name can outrun it.</p>
+<p>For now, try a smaller experiment yourself: open Neural Observatory, choose a unit, and predict its strongest category before looking at the individual words. Then change the layer or choose another unit. The point is to see how much a response can tell us—and how quickly a name can outrun it.</p>
 
-<p><a class="button-link" href="/experiments/neuron-playground/">Open the neuron playground</a></p>
+<p><a class="button-link" href="/experiments/neuron-playground/">Open Neural Observatory</a></p>
 
 <h2>Measurements and source records</h2>
 

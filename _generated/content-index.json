@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-05",
+  "generated": "2026-09-06",
   "items": [
     {
       "kind": "note",
@@ -32,8 +32,8 @@
       "collection": "experiments",
       "slug": "neuron-playground",
       "url": "/experiments/neuron-playground/",
-      "title": "Neuron playground",
-      "description": "Explore how units across 26 Gemma layers respond to animals, plants, tools, and other words.",
+      "title": "Neural Observatory",
+      "description": "Explore the recorded Gemma 3 1B architecture and 6,912 MLP units across 26 layers.",
       "date": "2026-09-05",
       "updated": "2026-09-05",
       "status": "finished",

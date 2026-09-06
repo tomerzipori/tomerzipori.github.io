@@ -60,6 +60,16 @@ class ContentContractTests(unittest.TestCase):
         self.assertIn("/notes/distilhubert-padding-study/", home)
         self.assertNotIn("I make models easier to inspect.", home)
 
+    def test_neural_observatory_asset_contract(self):
+        page = (ROOT / "experiments" / "neuron-playground" / "index.qmd").read_text(encoding="utf-8")
+        manifest = json.loads((ROOT / "assets" / "neuron-playground" / "manifest.json").read_text(encoding="utf-8"))
+        self.assertIn("Neural Observatory", page)
+        self.assertNotIn("Neuron playground", page)
+        self.assertEqual(manifest["schema"], "neural-observatory/v1")
+        self.assertEqual(len(manifest["words"]), 320)
+        self.assertEqual(len(manifest["layer_details"]), 26)
+        self.assertFalse((ROOT / "assets" / "neuron-playground" / "data.json").exists())
+
     def test_nested_pages_use_shared_shell_and_pre_render(self):
         config = (ROOT / "_quarto.yml").read_text(encoding="utf-8")
         self.assertIn("css: /styles.css", config)
