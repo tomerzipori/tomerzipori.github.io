@@ -31,11 +31,11 @@ I spent four years teaching statistics, then moved deeper into data science, mac
 </p>
 
 <p>
-I'm particularly fascinated by neural networks — partly because they work so well, partly because they are so simple when ytou think about them, and partly because there is still something strange about watching useful representations emerge from a very large pile of matrix multiplications.
+I'm particularly fascinated by neural networks — partly because they work so well, partly because they are so simple when you think about them, and partly because there is still something strange about watching useful representations emerge from a very large pile of matrix multiplications.
 </p>
 
 <p>
-A lot of what I make comes from that combination of interests: experiments, statistical models, visualizations, and attempts to understand what a model is actually doing rather than just whether its score went up. I think evaluation of models have to come with deep understanding of what they do.
+A lot of what I make comes from that combination of interests: experiments, statistical models, visualizations, and attempts to understand what a model is actually doing rather than just whether its loss went down.
 </p>
 
 <p><a class="button-link" href="/assets/cv/tomer-zipori.pdf">Download CV</a></p>
