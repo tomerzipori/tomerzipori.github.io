@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 430" role="img" aria-labelledby="title desc">
+  <title id="title">The proposed hierarchy from visual features to language concepts</title>
+  <desc id="desc">Simple visual edge responses combine into shape and object responses. Below, surface words could hypothetically combine into stable meanings across language-model layers. A question mark marks this as a hypothesis.</desc>
+  <defs>
+    <marker id="arrow2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0l10 5-10 5z" fill="#3158c9"/></marker>
+    <style>.head{font:500 16px 'IBM Plex Mono',monospace;fill:#6b6a65}.label{font:500 18px system-ui,sans-serif;fill:#282826}.small{font:14px system-ui,sans-serif;fill:#6b6a65}.node{fill:#f7f5ef;stroke:#282826;stroke-width:2}.final{fill:#dbe2f7;stroke:#3158c9;stroke-width:2}.flow{fill:none;stroke:#3158c9;stroke-width:2;marker-end:url(#arrow2)}</style>
+  </defs>
+  <rect width="960" height="430" rx="18" fill="#ebe8df"/>
+  <text x="54" y="48" class="head">A USEFUL IDEA FROM VISION</text>
+  <g transform="translate(54 72)">
+    <rect class="node" width="200" height="104" rx="10"/><path d="M42 78l58-52m-26 54l58-52m-24 55l58-52" stroke="#282826" stroke-width="7"/><text x="100" y="128" class="small" text-anchor="middle">oriented edges</text>
+    <path class="flow" d="M214 52h70"/><rect class="node" x="298" width="200" height="104" rx="10"/><path d="M350 78l48-48 48 48z" fill="none" stroke="#282826" stroke-width="7"/><text x="398" y="128" class="small" text-anchor="middle">shapes</text>
+    <path class="flow" d="M512 52h70"/><rect class="final" x="596" width="250" height="104" rx="10"/><path d="M679 69c9-26 29-34 48-17 19-17 39-9 48 17" fill="none" stroke="#282826" stroke-width="7" stroke-linecap="round"/><text x="721" y="128" class="small" text-anchor="middle">stable object response</text>
+  </g>
+  <path d="M54 241h852" stroke="#d4d1c8"/><text x="54" y="278" class="head">THE QUESTION FOR LANGUAGE</text>
+  <g transform="translate(54 299)">
+    <rect class="node" width="240" height="76" rx="10"/><text x="120" y="33" class="label" text-anchor="middle">surface words</text><text x="120" y="56" class="small" text-anchor="middle">fair · yellow · juicy</text>
+    <path class="flow" d="M254 38h86"/><rect class="node" x="354" width="240" height="76" rx="10"/><text x="474" y="33" class="label" text-anchor="middle">deeper layers</text><text x="474" y="56" class="small" text-anchor="middle">combine clues?</text>
+    <path class="flow" d="M608 38h86"/><rect class="final" x="708" width="138" height="76" rx="10"/><text x="777" y="34" class="label" text-anchor="middle">meaning</text><text x="777" y="59" class="label" text-anchor="middle">?</text>
+  </g>
+</svg>

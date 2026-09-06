@@ -241,6 +241,21 @@ svg { max-width: 100%; }
 .real-post table { display: block; max-width: 100%; overflow-x: auto; }
 .real-post .sourceCode, .real-post pre { overflow-x: auto; }
 .real-post h1, .real-post h2, .real-post h3, .real-post h4 { font-family: var(--serif); }
+.real-post figure { margin: 2.2rem 0; }
+.real-post figcaption { margin-top: .75rem; color: var(--muted); font-family: var(--mono); font-size: .68rem; line-height: 1.55; }
+.real-post .article-figure--wide { width: min(940px, calc(100vw - 4rem)); max-width: none; margin-left: 50%; transform: translateX(-50%); }
+.real-post .article-figure--compact { width: min(500px, 100%); margin-right: auto; margin-left: auto; }
+.real-post .article-figure--compact img { display: block; max-height: 540px; margin: 0 auto; object-fit: contain; }
+.unit-table { margin: 1.8rem 0; border-top: var(--line); border-bottom: var(--line); }
+.unit-table summary { padding: .9rem 0; cursor: pointer; color: var(--accent); font-family: var(--mono); font-size: .73rem; letter-spacing: .04em; text-transform: uppercase; }
+.unit-table__scroll { overflow-x: auto; padding-bottom: .6rem; }
+.unit-table table { min-width: 610px; margin: 0; }
+.stimulus-examples { display: grid; gap: 0; margin: 1.6rem 0; border-top: var(--line); }
+.stimulus-examples p { display: grid; grid-template-columns: 8.4rem 1fr; gap: 1rem; margin: 0; padding: 1rem 0; border-bottom: var(--line); }
+.stimulus-examples span { color: var(--accent); font-family: var(--mono); font-size: .7rem; letter-spacing: .04em; text-transform: uppercase; }
+.stimulus-examples q { display: block; }
+.stimulus-examples mark { padding: .04em .2em; background: var(--accent-soft); color: var(--ink); }
+.stimulus-examples--paired p { grid-template-columns: 10rem 1fr; }
 
 @media (max-width: 900px) {
   .site-header, .site-footer, .site-main { width: min(100% - 2.5rem, 760px); }
@@ -288,6 +303,8 @@ svg { max-width: 100%; }
   .relationship-section { grid-template-columns: 1fr; gap: 1rem; }
   .evidence-threshold-component { padding: 1rem; }
   .threshold-svg { min-height: 180px; }
+  .real-post .article-figure--wide { width: 100%; }
+  .stimulus-examples p, .stimulus-examples--paired p { grid-template-columns: 1fr; gap: .45rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

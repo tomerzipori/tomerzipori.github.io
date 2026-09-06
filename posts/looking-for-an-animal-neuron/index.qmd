@@ -2,7 +2,7 @@
 title: "Looking for an animal neuron"
 description: "A psychology-inspired experiment inside Gemma: strong category responses, a few useful surprises, and a hypothesis that did not survive its controls."
 date: 2026-09-05
-updated: 2026-09-05
+updated: 2026-09-06
 status: finished
 draft: false
 paths:
@@ -20,16 +20,20 @@ image-alt: "All 20 units selected on animal and tool words retain positive selec
 {{< include ../../_includes/site-header.qmd >}}
 
 <main class="site-main" id="content">
-<section class="page-intro"><p class="section-number">Article · Models and meaning</p><h1>Looking for an animal neuron</h1><p class="project-lede">What happens when you borrow an experiment from psychology and point it at a language model?</p><div class="article-meta"><span class="status">Experiment report</span><span>5 September 2026</span></div></section>
+<section class="page-intro"><p class="section-number">Article · Models and meaning</p><h1>Looking for an animal neuron</h1><p class="project-lede">What happens when you borrow an experiment from psychology and point it at a language model?</p><div class="article-meta"><span class="status">Experiment report</span><span>Updated 6 September 2026</span></div></section>
 <article class="prose real-post">
 
-<p>Suppose I show a language model the word <em>otter</em>, then the word <em>hammer</em>. Somewhere inside the model, a number changes. Actually, many thousands of numbers change. But imagine that one number consistently gets larger for animals.</p>
+<p>Suppose I show a language model the word <em>otter</em>, then the word <em>hammer</em>. A neural network turns each input into layers of numbers. Training adjusts millions of connections between those numbers until useful internal responses emerge. You can picture each response as a tiny knob: quiet for some inputs, active for others. I went looking for a knob that seemed to say, “that’s an animal.”</p>
 
 <p>Have we found an animal neuron?</p>
 
-<p>That is a tempting name. It is also doing quite a lot of work. Maybe the unit responds to living things. Maybe it responds to something about these particular words. Or maybe we searched enough units to find something that looks impressive by accident.</p>
+<p>Why expect such a knob at all? Brain studies have found cells and regions that respond selectively to edges, places, faces, and other recurring patterns. Artificial neural networks also learn selective internal responses, although a concept can be spread across many units and one unit can take part in many concepts. The brain analogy gives us a question, not an answer.</p>
 
-<p>I built a small study to work through these possibilities in <code>google/gemma-3-1b-pt</code>, a pretrained language model. It grew into five experiments. Some results were striking. One appealing idea did not survive its controls.</p>
+<p>That leaves several possibilities. Maybe the unit responds to animals. Maybe it responds to living things, to these particular words, or to some mixture of features. Or maybe a search across enough units will always find an impressive accident.</p>
+
+<p>I built five small experiments in <code>google/gemma-3-1b-pt</code> to separate those possibilities. The first result repeated on new words. The later experiments showed both what that response could reveal and where the story became too simple.</p>
+
+<figure class="article-figure article-figure--compact"><img src="/assets/functional-localizer/sources/neuron-figure.svg" alt="Diagram of a biological neuron, with branching dendrites leading to the cell body and a long axon." loading="eager"><figcaption>A biological neuron receives signals through branching dendrites and sends signals along an axon. The “units” in this study are mathematical activations, not cells like this one. Diagram by Nicolas Rougier, <a href="https://commons.wikimedia.org/wiki/File:Neuron-figure.svg">Wikimedia Commons</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>.</figcaption></figure>
 
 <p>You can <a href="/experiments/neuron-playground/">play with the recorded responses</a> before reading on. Start with layer 12, unit 646. Then find a unit that prefers plants. The change is a good introduction to the problem.</p>
 
@@ -37,7 +41,9 @@ image-alt: "All 20 units selected on animal and tool words retain positive selec
 
 <p>My background is in psychology, so the idea of using a task to locate a response feels familiar. In neuroscience, a <em>functional localizer</em> identifies a region through what it responds to. A classic example compares responses to faces and other objects. Language localizers use contrasts such as sentences versus nonword strings. The details differ, but the useful habit is to locate a response first, then test its properties with independent material. <a href="https://pubmed.ncbi.nlm.nih.gov/9151747/">Kanwisher, McDermott, and Chun (1997)</a>; <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC2934923/">Fedorenko et al. (2010)</a>.</p>
 
-<p>I borrowed that experimental logic. I did not assume that a transformer layer is a brain region, or that a model unit is a biological neuron. Here, a “unit” is one coordinate in an intermediate computation: a number we can record for each input.</p>
+<figure class="article-figure article-figure--compact"><img src="/assets/functional-localizer/sources/fusiform-face-area.jpg" alt="Computer-enhanced fMRI scan with activity highlighted near the fusiform face area." loading="lazy"><figcaption>A face localizer asks where brain activity differs when a person views faces instead of comparison images. The highlighted signal is a contrast, not a photograph of a “face thought.” NIH image via <a href="https://commons.wikimedia.org/wiki/File:Fusiform_face_area_face_recognition.jpg">Wikimedia Commons</a>, public domain.</figcaption></figure>
+
+<p>I borrowed that experimental move, not the brain anatomy. An fMRI signal and a model activation are different measurements in different systems. The shared idea is a contrast: find a response with one set of examples, then ask what it does with new examples.</p>
 
 <p>The separation between finding and testing is the part that matters. If I choose a unit because it responds strongly to my animal words, those same words cannot provide an independent test of the result.</p>
 
@@ -47,7 +53,11 @@ image-alt: "All 20 units selected on animal and tool words retain positive selec
 
 <pre><code>They mentioned the word {TARGET}</code></pre>
 
-<p>I measured the target token inside each of the model’s 26 layers. More precisely, I recorded the gated MLP intermediate, before its projection back into the model’s main representation. There are 6,912 units per layer. This gave me 179,712 places to look.</p>
+<p>For each sentence, I recorded the model’s activations at the position of the target word. I focused on the MLP block: the part of each transformer layer that expands the current representation, applies thousands of nonlinear gates, and compresses it again. MLPs are a natural place to look because research suggests that transformer feed-forward blocks help store and retrieve factual associations. Grant Sanderson gives a visual account of this hypothesis in 3Blue1Brown’s <a href="https://www.youtube.com/watch?v=9-Jl0dxWQs8"><em>How might LLMs store facts?</em></a>. It remains a hypothesis about a complicated system, not a promise that one fact lives in one unit.</p>
+
+<p>I recorded the gated MLP intermediate just before it was projected back into the model’s main representation. Gemma has 26 layers and 6,912 such units in each layer. That gave me 179,712 activation knobs to inspect.</p>
+
+<figure class="article-figure article-figure--wide"><img src="/assets/functional-localizer/activation-path.svg" alt="Diagram showing an input sentence passing through one transformer layer, with the target word activation recorded inside the MLP block." loading="lazy"><figcaption>The word stays in its sentence. At its position, the model passes a representation through attention and an MLP. I recorded all 6,912 gated MLP activations in each of 26 layers.</figcaption></figure>
 
 <p>I used 80 words to find units: 40 animals and 40 tools. The other 40 words stayed out of selection. For each unit, I calculated Cohen’s <em>d</em>: the difference between its mean animal and tool responses, divided by the pooled standard deviation.</p>
 
@@ -59,7 +69,30 @@ image-alt: "All 20 units selected on animal and tool words retain positive selec
 
 <figure><img src="/assets/functional-localizer/localizer-heldout.svg" alt="Scatter plot of discovery versus held-out Cohen's d for the 20 selected units. All held-out values exceed 2.5." loading="lazy"><figcaption>Each point is one unit. The horizontal axis uses the words that selected it; the vertical axis uses untouched words. The dashed line marks equal effects. Selection used only the horizontal axis.</figcaption></figure>
 
-<p>But remember the number of places I looked: nearly 180,000. To check that search, I shuffled the discovery labels 500 times. Every shuffle repeated the search across <em>all</em> units and kept its largest effect. The observed maximum was 4.96; the 95th percentile of the shuffled maxima was 1.16. None of the 500 shuffled maxima reached the observed value.</p>
+<details class="unit-table"><summary>See all 20 selected units</summary><div class="unit-table__scroll"><table><caption>The frozen top 20, ranked only by discovery Cohen’s <em>d</em>. Held-out values were calculated after selection.</caption><thead><tr><th scope="col">Rank</th><th scope="col">Layer</th><th scope="col">Unit index</th><th scope="col">Discovery <em>d</em></th><th scope="col">Held-out <em>d</em></th></tr></thead><tbody>
+<tr><td>1</td><td>12</td><td>646</td><td>4.956</td><td>7.104</td></tr>
+<tr><td>2</td><td>17</td><td>348</td><td>4.450</td><td>4.080</td></tr>
+<tr><td>3</td><td>10</td><td>5552</td><td>4.399</td><td>3.640</td></tr>
+<tr><td>4</td><td>12</td><td>1000</td><td>3.744</td><td>3.317</td></tr>
+<tr><td>5</td><td>5</td><td>1208</td><td>3.732</td><td>4.659</td></tr>
+<tr><td>6</td><td>5</td><td>2799</td><td>3.703</td><td>4.368</td></tr>
+<tr><td>7</td><td>12</td><td>4850</td><td>3.597</td><td>3.928</td></tr>
+<tr><td>8</td><td>7</td><td>3908</td><td>3.591</td><td>2.542</td></tr>
+<tr><td>9</td><td>8</td><td>3330</td><td>3.580</td><td>3.308</td></tr>
+<tr><td>10</td><td>13</td><td>3181</td><td>3.568</td><td>3.293</td></tr>
+<tr><td>11</td><td>7</td><td>6793</td><td>3.535</td><td>3.598</td></tr>
+<tr><td>12</td><td>9</td><td>4088</td><td>3.534</td><td>3.185</td></tr>
+<tr><td>13</td><td>9</td><td>3757</td><td>3.480</td><td>3.133</td></tr>
+<tr><td>14</td><td>14</td><td>971</td><td>3.461</td><td>2.996</td></tr>
+<tr><td>15</td><td>14</td><td>36</td><td>3.451</td><td>2.526</td></tr>
+<tr><td>16</td><td>9</td><td>3357</td><td>3.412</td><td>3.743</td></tr>
+<tr><td>17</td><td>13</td><td>2865</td><td>3.408</td><td>2.955</td></tr>
+<tr><td>18</td><td>7</td><td>6840</td><td>3.405</td><td>4.172</td></tr>
+<tr><td>19</td><td>13</td><td>5008</td><td>3.372</td><td>3.156</td></tr>
+<tr><td>20</td><td>8</td><td>44</td><td>3.361</td><td>4.073</td></tr>
+</tbody></table></div></details>
+
+<p>But remember the number of places I looked: nearly 180,000. I used a <em>maximum-statistic label-permutation test</em>, also called a max-T procedure, to account for that search. I shuffled the 40 animal and 40 tool labels 500 times. Each shuffle repeated the search across all 179,712 units and kept only its largest Cohen’s <em>d</em>. The observed maximum was 4.96; the 95th percentile of the shuffled maxima was 1.16. None of the 500 shuffled maxima reached the observed value, giving an empirical maximum-statistic <em>p</em> = 0.002.</p>
 
 <p>This result addresses a specific concern: a large maximum produced by searching many units under shuffled labels. It does not remove differences in word frequency, naturalness, or other properties of the categories. A clean result can still answer a narrower question than its name suggests.</p>
 
@@ -79,49 +112,76 @@ image-alt: "All 20 units selected on animal and tool words retain positive selec
 
 <h2>When 100% is less informative than it looks</h2>
 
-<p>The third experiment asked whether a simple classifier could recover the categories from these internal numbers. This is often called a <em>linear probe</em>: keep the language model fixed, then fit a small classifier to its recorded representations.</p>
+<p>The third experiment asked whether a simple classifier could recover the categories from these activations. This is called a <em>linear probe</em>. The language model stays frozen. The probe only learns a weighted vote: which recorded activations, added together, best separate animals from tools?</p>
 
 <p>The animal/tool test was easy enough that a single unit, a group of units, and the full input embedding could all reach 100% on the small held-out set. That is a ceiling effect. Accuracy has run out of room to tell these representations apart.</p>
 
-<p>The eight-category problem also had a strong input baseline. Its highest cross-validated accuracy was 94.7%, at the embedding representation, before the transformer layers. This is the best observed cross-validation score across representations, not a second independent test of a chosen winner.</p>
-
-<p>These results show that category information is accessible. They give little support to a story in which deeper layers uniquely create that information. If the baseline already performs extremely well, the later layers need to earn their place in the explanation.</p>
+<figure class="article-figure article-figure--wide"><img src="/assets/functional-localizer/probe-ceiling.svg" alt="Held-out animal and tool classification accuracy for a single unit, the selected 20 units, all units, and the input embedding. Each reaches 100 percent at its best representation." loading="lazy"><figcaption>Think of four contestants reaching the same finish line. The result says that animal-versus-tool information is easy to read. It cannot tell us which representation is richer because every best score is already at the ceiling.</figcaption></figure>
 
 <h2>Remove the obvious word</h2>
 
-<p>The next experiment changed the way a concept appeared. Each of 60 concepts had three forms: a literal mention, a description, and a context. Instead of reading the animal or tool token itself, I measured a shared token, <code>entity</code>, after the preceding text.</p>
+<p>The next experiment removed the easiest clue: the animal or tool word itself. Each of 60 concepts appeared in three forms. For a baboon, the model saw:</p>
 
-<p>This changes the task. The measured word is now identical across inputs. Any category difference at that position must depend on the preceding context, although that context can still contain useful lexical clues.</p>
+<div class="stimulus-examples" aria-label="Three example prompts for the concept baboon">
+<p><span>Literal</span><q>A baboon was described. They then referred to this <mark>entity</mark></q></p>
+<p><span>Description</span><q>A large social primate with a dog-like muzzle and expressive face was described. They then referred to this <mark>entity</mark></q></p>
+<p><span>Context</span><q>At the rocky troop’s edge, it watched for danger while others searched the ground. They then referred to this <mark>entity</mark></q></p>
+</div>
+
+<p>I recorded the activation at the final word, <code>entity</code>. That word was identical in all 180 prompts. A category difference there must come from the preceding sentence, although the sentence can still contain clues such as <em>primate</em>, <em>muzzle</em>, or <em>troop</em>.</p>
 
 <p>The original frozen units transferred less cleanly. Their median effect fell from 3.55 on the first localizer to 1.21 for literal mentions, 1.51 for descriptions, and 0.88 for contexts. Fourteen of the 20 units had positive effects in each form.</p>
 
+<figure class="article-figure article-figure--wide"><img src="/assets/functional-localizer/surface-form-units.svg" alt="The frozen units' animal-versus-tool Cohen's d values are weaker and more variable for literal, description, and context prompts than in the original localizer." loading="lazy"><figcaption>One coordinate is fragile. Each line follows one of the same 20 units from the original word test into the three new forms. Most effects remain positive, but they shrink and spread out.</figcaption></figure>
+
 <p>Population probes did better. In five folds that kept all forms of a concept together, a probe trained on literal forms reached 100% on descriptions and 93.3% on contexts at layer 4. These are the best observed layer results in that evaluation. They show useful transfer across forms; they do not establish a uniquely abstract layer.</p>
 
-<p>The distinction is useful: a response can weaken at one selected coordinate while information remains available across the population. Neither measurement is a complete account of what the model does with that information.</p>
+<figure class="article-figure article-figure--wide"><img src="/assets/functional-localizer/surface-form-probe.svg" alt="Cross-format animal and tool classification accuracy across layers. A probe trained on literal prompts transfers strongly to descriptions and contexts, with the best results at layer 4." loading="lazy"><figcaption>The group can retain information that one knob loses. The probe combines all 6,912 activations in a layer. A probe trained only on literal prompts still classified descriptions and contexts well.</figcaption></figure>
+
+<p>This is the difference between asking whether one knob still behaves the same and asking whether the whole control panel still contains usable information. The first answer weakened. The second remained strong.</p>
 
 <h2>The attractive story that did not work</h2>
 
-<p>By this point there was an obvious next question. Perhaps concrete things are available early, while abstract concepts need deeper computation. Could we watch that difference emerge across layers?</p>
+<p>Vision offers an attractive picture of depth. Early cells can respond to small spots or oriented edges. Later responses can combine simpler signals into shapes and objects. The classic simple-to-complex hierarchy is not the whole story of vision, but it suggests a powerful question: can basic building blocks become more stable and more concept-like as information moves through a system? <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3477598/">Priebe and Ferster (2012)</a>.</p>
 
-<p>The fifth experiment used 300 concepts, each with four descriptions, and human concreteness ratings on a scale from 1 to 5. The ratings came from <a href="https://biblio.ugent.be/publication/5774089">Brysbaert, Warriner, and Kuperman (2014)</a>. I again read the shared <code>entity</code> token.</p>
+<figure class="article-figure article-figure--wide"><img src="/assets/functional-localizer/visual-hierarchy.svg" alt="Conceptual diagram in which simple edge responses combine into shape responses and then an object response, followed by a question mark over an analogous language hierarchy." loading="lazy"><figcaption>The hypothesis, not the result: if visual systems build complex responses from simpler ones, should language move from surface wording toward stable concepts in later transformer layers?</figcaption></figure>
 
-<p>There were two questions. Could a linear model predict the human rating? And could the internal representation match different descriptions of the same concept?</p>
+<p>Could language behave in the same way? Early layers might preserve obvious wording. Later layers might combine those clues into meanings that survive paraphrase. If that analogy holds, a concrete thing such as <em>lemon</em> should become recognizable early, while an abstract idea such as <em>justice</em> might need more transformation and peak later.</p>
 
-<p>For rating prediction, the strict test held out both concepts and a description style: 200 training concepts used styles A–C; 50 validation concepts selected settings; the final test used style D for 50 separate concepts.</p>
+<p>The fifth experiment used 300 concepts, each with four differently worded descriptions. Human ratings placed every concept on a scale from 1, abstract, to 5, concrete. The ratings came from <a href="https://biblio.ugent.be/publication/5774089">Brysbaert, Warriner, and Kuperman (2014)</a>. The descriptions did not contain the concept name, and each ended with the same neutral anchor word, <code>entity</code>.</p>
 
-<p>Here is the comparison that matters. A retrospective check of the saved validation scores selects layer 15. This was not a preregistered layer choice or a new untouched test. On the strict test, the lexical baseline performed better:</p>
+<div class="stimulus-examples stimulus-examples--paired" aria-label="Examples of abstract and concrete descriptions">
+<p><span>Justice · 1.45</span><q>A subject or item characterized as the quality of being just or fair. They then referred to this <mark>entity</mark></q></p>
+<p><span>Lemon · 5.00</span><q>A subject or item characterized as yellow oval fruit with juicy acidic flesh. They then referred to this <mark>entity</mark></q></p>
+</div>
 
-<table><caption>Human concreteness prediction on 50 unseen concepts in the held-out description style.</caption><thead><tr><th scope="col">Representation</th><th scope="col">Spearman correlation ↑</th><th scope="col">R² ↑</th><th scope="col">Mean absolute error ↓</th></tr></thead><tbody><tr><th scope="row">MLP layer 15, selected on validation</th><td>0.292</td><td>0.250</td><td>0.876</td></tr><tr><th scope="row">TF-IDF lexical baseline</th><td>0.654</td><td>0.499</td><td>0.765</td></tr></tbody></table>
+<p>I began with a short preliminary test: could a linear predictor recover the human rating from the 6,912 activations in one layer? On unseen concepts written in a held-out description style, the validation-selected layer reached a correlation of 0.292, while a TF-IDF baseline based only on words and their frequencies reached 0.654. The activations contained some usable information, but this was not a clean abstraction scale.</p>
 
-<p>TF-IDF represents a description through its words and their frequencies. It does not use transformer layers. Including it asks whether the model reveals something beyond a comparatively simple description of the text.</p>
+<p>The more direct test asked a different question: if the model reads two descriptions of the same concept, can it recognize that they refer to the same thing?</p>
 
-<p>There was a more flattering number available: layer 3 reached a strict-test correlation of 0.711. The original summary highlighted layer 3, the winner <em>after looking across the test results</em>. Reporting it as the selected model’s generalization performance would mix exploration with evaluation. It is a useful observation for another experiment, not a replacement for a selection rule that uses validation data.</p>
+<p>Take <em>justice</em>. I used one description as a query, then compared its 6,912-number activation pattern with 60 descriptions written in another style. One candidate also described <em>justice</em>. The other 59 described concepts with similar concreteness ratings. I measured the cosine similarity between the query and every candidate, then ranked the candidates from most to least similar.</p>
 
-<p>The description-matching result was also unhelpful to the proposed depth story. Within every concreteness group, matching performance peaked at layer 0, the first MLP layer. The TF-IDF baseline exceeded the transformer’s peak in all five groups. Abstract concepts did not show the proposed later peak.</p>
+<div class="stimulus-examples" aria-label="A worked example of the concept retrieval test">
+<p><span>Query</span><q>A subject or item characterized as the quality of being just or fair. They then referred to this <mark>entity</mark></q></p>
+<p><span>Compare</span><q>60 descriptions in another writing style: one about justice and 59 about other similarly abstract concepts.</q></p>
+<p><span>Rank</span><q>Where does the other justice description appear when activation patterns are ordered by similarity?</q></p>
+</div>
 
-<figure><img src="/assets/functional-localizer/description-retrieval.svg" alt="Mean within-group description retrieval is strongest at layer 0 and remains below the TF-IDF baseline across all 26 layers." loading="lazy"><figcaption>Can one description retrieve another description of the same concept? Higher mean reciprocal rank (MRR) is better: a correct match in first place scores 1, in second place ½. The curve averages the five concreteness groups. Matching uses other concepts in the same group as candidates.</figcaption></figure>
+<p>The score was mean reciprocal rank, or MRR. If the correct description ranked first, it scored 1. If it ranked second, it scored 1/2; if it ranked tenth, 1/10. Random ranking among 60 candidates would average about 0.078. I repeated the comparison across all pairs of writing styles and in both directions.</p>
 
-<p>This does not prove that abstract and concrete concepts are represented identically. It says that this model, these descriptions, this readout position, and these measurements did not produce the predicted pattern. The lexical baseline also suggests that wording carries much of the usable signal in this dataset.</p>
+<p>I divided the concepts into five equally sized groups, from the most abstract to the most concrete. These are five groups within this dataset, not five equal intervals on the original 1–5 rating scale. The prediction was about <em>where</em> each curve would peak: concrete concepts should peak early, while abstract concepts should shift to the right and peak in later layers.</p>
+
+<figure class="article-figure article-figure--wide"><img src="/assets/functional-localizer/concept-invariance.svg" alt="Description retrieval performance across layers for five concreteness groups. Every group peaks at layer 0 rather than at a later layer." loading="lazy"><figcaption>Each line asks whether one description retrieves another description of the same concept. Higher MRR is better; random ranking averages about 0.078. Every group peaks immediately at layer 0. The predicted rightward shift for abstract concepts is absent.</figcaption></figure>
+
+<p>That is not what happened. All five groups reached their best matching score at layer 0, the first MLP block I measured. The very abstract group peaked at 0.585; the very concrete group peaked at 0.890. Concrete concepts were easier to match, but easier is not the same as earlier. The important result is horizontal: none of the abstract groups moved its peak toward deeper layers. Every group also reached 80% of its own best score at layer 0.</p>
+
+<p>A TF-IDF baseline slightly exceeded the best transformer score in all five groups. This suggests that shared words and phrases could solve part of the task. It does not prove that the model lacked concept information, but it limits how much the retrieval scores can tell us about abstraction.</p>
+
+<p>Model scale may be part of the explanation. Anthropic’s <a href="https://www.transformer-circuits.pub/2026/workspace/"><em>Verbalizable Representations Form a Global Workspace in Language Models</em></a> identifies a small, Jacobian-derived set of directions in large Claude models called the <em>J-space</em>. These directions can carry concepts that the model can report and use flexibly, while much automatic processing happens outside that workspace. The researchers explicitly leave open whether smaller models have an equally rich workspace, a weaker one, or none at all. Gemma 3 1B may therefore be too small for a workspace-like depth effect to appear clearly. But this experiment cannot separate that possibility from a measurement problem: Anthropic studied residual-stream directions and tested them with interventions, while I compared all gated MLP activations. A useful follow-up would repeat this test across model sizes with a J-lens-like measurement.</p>
+
+<p>Layer 0 is also not a raw word embedding. It is the first contextual MLP block, after attention has already processed the description. The result therefore does not say that abstraction exists before contextual processing. It says that different descriptions were already highly matchable at the earliest internal point I measured.</p>
+
+<p>So the attractive story did not survive this test. Abstract concepts were harder to match than concrete ones, but they did not emerge later. This model, these descriptions, this readout, and this similarity measure did not reveal the neat progression we expected.</p>
 
 <h2>So, did we find an animal neuron?</h2>
 
