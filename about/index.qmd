@@ -14,11 +14,8 @@ format:
 <section class="page-intro">
 <p class="section-number">About</p>
 
-<h1>I came for psychology. Philosophy almost stole me.</h1>
+<h1>I came for Psychology, Philosophy almost stole me and ended up with Statistics</h1>
 
-<p>
-I studied Psychology and Philosophy, originally because I got super interested in Carl Jung of all. By the end of my degree, I wasn't so sure.
-</p>
 </section>
 
 <section class="section background-section">
@@ -76,7 +73,7 @@ I also wrote the <em>OrdinalRegressionViz</em> R package, used by me in a meta-a
 
 <p class="section-number">Contact</p>
 
-<h2>say hello.</h2>
+<h4>say hello.</h4>
 
 <p>
 <a class="button-link" href="https://www.linkedin.com/in/tomer-zipori/">LinkedIn</a>
