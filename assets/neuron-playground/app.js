@@ -3,6 +3,7 @@
 (() => {
   const $ = (id) => document.getElementById(id);
   const compact = new URLSearchParams(location.search).get("compact") === "1";
+  const home = new URLSearchParams(location.search).get("home") === "1";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const state = {
     manifest: null,
@@ -19,6 +20,7 @@
   };
 
   document.documentElement.classList.toggle("compact", compact);
+  document.documentElement.classList.toggle("home-preview", home);
 
   const assetUrl = (file) => new URL(file, document.baseURI).href;
   const wordRecord = (index) => state.manifest.words[index];
@@ -74,6 +76,7 @@
     params.set("layer", String(state.layer));
     params.set("unit", String(state.unit));
     if (compact) params.set("compact", "1");
+    if (home) params.set("home", "1");
     const url = `${location.pathname}?${params}`;
     history[replace ? "replaceState" : "pushState"]({}, "", url);
   }
@@ -208,12 +211,29 @@
     });
   }
 
+  function renderHomeSummary(values) {
+    if (!home) return;
+    const detailStart = state.unit * categoryCount();
+    const categoryValue = (id) => {
+      const index = state.manifest.categories.findIndex((category) => category.id === id);
+      return state.detailBytes[detailStart + index] / state.manifest.quantization.scale;
+    };
+    const value = values[state.unit];
+    $("home-unit-title").textContent = `Layer ${state.layer} / U${state.unit}`;
+    $("home-unit-jump").value = String(state.unit);
+    $("home-unit-activation").textContent = value.toFixed(2);
+    $("home-unit-animals").textContent = formatZ(categoryValue("animals"));
+    $("home-unit-tools").textContent = formatZ(categoryValue("tools"));
+  }
+
   function renderFocus() {
     $("focus-section").hidden = false;
     $("focus-title").textContent = `Layer ${state.layer}`;
+    if (home) $("home-layer-select").value = String(state.layer);
     const values = decodeLayer(state.wordBytes, state.layer);
     drawField(values);
     renderInspector(values);
+    renderHomeSummary(values);
   }
 
   function animateFocus() {
@@ -275,19 +295,33 @@
   }
 
   function renderQuickWords() {
-    const visible = compact ? ["pigeon", "rose"] : state.manifest.featured_words;
+    const visible = home
+      ? { Animals: ["owl", "cat", "pigeon", "monkey", "elk"], Tools: ["microscope", "mallet", "drill", "pencil", "ruler"] }
+      : compact ? ["pigeon", "rose"] : state.manifest.featured_words;
     const container = $("quick-words");
     container.replaceChildren();
-    visible.forEach((word) => {
+    const renderButton = (word, parent) => {
       const index = state.manifest.words.findIndex((item) => item.word.toLowerCase() === word);
+      if (index < 0) return;
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = word;
       button.dataset.word = word;
       button.setAttribute("aria-pressed", String(index === state.wordIndex));
       button.addEventListener("click", () => selectWord(index));
-      container.append(button);
-    });
+      parent.append(button);
+    };
+    if (home) {
+      Object.entries(visible).forEach(([label, words]) => {
+        const group = document.createElement("div");
+        group.className = "word-group";
+        const heading = document.createElement("p");
+        heading.textContent = label;
+        group.append(heading);
+        words.forEach((word) => renderButton(word, group));
+        container.append(group);
+      });
+    } else visible.forEach((word) => renderButton(word, container));
   }
 
   function searchMatches(query) {
@@ -328,6 +362,21 @@
   }
 
   function wireControls() {
+    if (home) {
+      $("home-layer-select").addEventListener("change", (event) => selectLayer(Number(event.target.value)));
+      $("home-unit-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        selectUnit(Number($("home-unit-jump").value), { moveFocus: true });
+      });
+      $("unit-field").addEventListener("click", (event) => {
+        const canvas = $("unit-field");
+        const bounds = canvas.getBoundingClientRect();
+        const column = Math.min(state.manifest.field.columns - 1, Math.floor(((event.clientX - bounds.left) / bounds.width) * state.manifest.field.columns));
+        const row = Math.min(state.manifest.field.rows - 1, Math.floor(((event.clientY - bounds.top) / bounds.height) * state.manifest.field.rows));
+        selectUnit(row * state.manifest.field.columns + column, { moveFocus: true });
+      });
+      return;
+    }
     $("search-form").addEventListener("submit", (event) => {
       event.preventDefault();
       const matches = searchMatches($("word-search").value);
@@ -378,6 +427,17 @@
       state.detailBytes = await loadLayerDetail(state.layer);
       state.detailLayer = state.layer;
       renderQuickWords();
+      if (home) {
+        const selector = $("home-layer-select");
+        for (let layer = 0; layer < state.manifest.model.layers; layer += 1) {
+          const option = document.createElement("option");
+          option.value = String(layer);
+          option.textContent = `Layer ${layer}`;
+          selector.append(option);
+        }
+        $("home-map-canvas").append($("unit-field"));
+        $("unit-field").setAttribute("aria-describedby", "home-unit-note");
+      }
       wireControls();
       renderArchitecture();
       renderFocus();

@@ -13,6 +13,7 @@
     <p class="eyebrow">Gemma 3 1B / recorded activations</p>
     <h1>Neural Observatory</h1>
     <p class="lede">A paper-styled view of one measured token as it passes through all 26 transformer blocks.</p>
+    <p class="home-subtitle">This compact Neural Observatory view accompanies the animal-neuron project. It shows Gemma 3 1B target-token activations for the sentence “They mentioned the word {TARGET}.”</p>
   </header>
 
   <p id="loading" class="loading" role="status">Loading the recorded observatory…</p>
@@ -33,6 +34,21 @@
           <div id="search-results" class="search-results" aria-label="Matching recorded words"></div>
         </form>
       </div>
+    </section>
+
+    <section class="home-map" aria-labelledby="home-map-title">
+      <div class="home-map-heading"><h2 id="home-map-title">Activation map</h2><div class="home-map-controls"><label for="home-layer-select">Layer <select id="home-layer-select" aria-label="Select a model layer"></select></label><form id="home-unit-form"><label for="home-unit-jump">Unit <input id="home-unit-jump" type="number" min="0" max="6911" step="1" inputmode="numeric" required aria-label="Find a unit in the selected layer"><button type="submit">Go</button></label></form></div></div>
+      <div id="home-map-canvas"></div>
+      <aside class="home-unit-summary" aria-labelledby="home-unit-title">
+        <p class="section-kicker">Selected unit</p>
+        <h3 id="home-unit-title">Layer 12 / U646</h3>
+        <dl>
+          <div><dt>Current-word activation</dt><dd id="home-unit-activation">—</dd></div>
+          <div><dt>Animal-word mean</dt><dd id="home-unit-animals">—</dd></div>
+          <div><dt>Tool-word mean</dt><dd id="home-unit-tools">—</dd></div>
+        </dl>
+        <p id="home-unit-note">Select a unit in the map. Values are standardized responses.</p>
+      </aside>
     </section>
 
     <section class="architecture" aria-labelledby="architecture-title">
@@ -56,7 +72,7 @@
       <div class="field-layout">
         <div class="field-column">
           <div class="field-heading"><div><p class="section-kicker">Unit field</p><h3>6,912 coordinates</h3></div><form id="unit-form" class="unit-jump"><label for="unit-jump">Go to unit</label><div><span>U</span><input id="unit-jump" type="number" min="0" max="6911" step="1" inputmode="numeric"><button type="submit">Go</button></div></form></div>
-          <canvas id="unit-field" class="unit-field" width="720" height="960" role="img" aria-describedby="field-description"></canvas>
+          <canvas id="unit-field" class="unit-field" width="720" height="960" role="img" aria-describedby="field-description" tabindex="0"></canvas>
           <p id="field-description" class="field-description">A 96 × 72 field. Unit IDs increase from top-left to bottom-right. Spatial adjacency has no learned meaning.</p>
           <p id="field-summary" class="field-summary" role="status" aria-live="polite"></p>
         </div>
