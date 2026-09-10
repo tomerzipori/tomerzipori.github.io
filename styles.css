@@ -120,6 +120,8 @@ svg { max-width: 100%; }
 .study-callout { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
 .study-status { color: var(--green); }
 .padding-diagram { margin: 0; padding: 1.2rem 1.4rem; border: var(--line); background: var(--paper-deep); }
+.padding-diagram picture, .real-post picture { display: block; }
+.padding-diagram img { display: block; width: 100%; }
 .padding-diagram svg { display: block; width: 100%; }
 .padding-diagram text { fill: var(--muted); font-family: var(--mono); font-size: 12px; text-transform: uppercase; }
 .padding-diagram .wave-valid { fill: none; stroke: var(--accent); stroke-width: 3; }

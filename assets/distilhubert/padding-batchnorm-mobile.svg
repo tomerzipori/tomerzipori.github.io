@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 760" role="img" aria-labelledby="title desc">
+  <title id="title">How padded frames enter BatchNorm statistics</title>
+  <desc id="desc">Three audio sequences have valid frames of different lengths and padded zero frames. Ordinary BatchNorm includes both valid and padded frames in its mean and variance, while masked BatchNorm includes only valid frames.</desc>
+  <defs>
+    <pattern id="padding" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="14" height="14" fill="#ebe8df"/>
+      <line x1="0" y1="0" x2="0" y2="14" stroke="#c9914c" stroke-width="5" opacity="0.65"/>
+    </pattern>
+  </defs>
+  <rect width="600" height="760" fill="#f7f5ef"/>
+  <text x="34" y="48" fill="#6b6a65" font-family="ui-monospace, monospace" font-size="17" letter-spacing="1">ONE BATCH · THREE CLIPS</text>
+  <text x="34" y="94" fill="#282826" font-family="Georgia, serif" font-size="31">The zeros keep the</text>
+  <text x="34" y="130" fill="#282826" font-family="Georgia, serif" font-size="31">rectangle neat.</text>
+  <text x="34" y="184" fill="#282826" font-family="Georgia, serif" font-size="31">They do not belong</text>
+  <text x="34" y="220" fill="#282826" font-family="Georgia, serif" font-size="31">in the statistics.</text>
+
+  <g transform="translate(34 276)">
+    <text x="0" y="0" fill="#6b6a65" font-family="ui-monospace, monospace" font-size="16">CLIP A</text>
+    <rect x="0" y="16" width="336" height="34" rx="4" fill="#3158c9"/>
+    <rect x="336" y="16" width="196" height="34" fill="url(#padding)"/>
+
+    <text x="0" y="104" fill="#6b6a65" font-family="ui-monospace, monospace" font-size="16">CLIP B</text>
+    <rect x="0" y="120" width="230" height="34" rx="4" fill="#3158c9"/>
+    <rect x="230" y="120" width="302" height="34" fill="url(#padding)"/>
+
+    <text x="0" y="208" fill="#6b6a65" font-family="ui-monospace, monospace" font-size="16">CLIP C</text>
+    <rect x="0" y="224" width="444" height="34" rx="4" fill="#3158c9"/>
+    <rect x="444" y="224" width="88" height="34" fill="url(#padding)"/>
+
+    <text x="0" y="298" fill="#3158c9" font-family="ui-monospace, monospace" font-size="16">VALID AUDIO</text>
+    <text x="328" y="298" fill="#a06d2f" font-family="ui-monospace, monospace" font-size="16">PADDED ZEROS</text>
+  </g>
+
+  <path d="M298 604 C298 630 272 632 246 646" fill="none" stroke="#282826" stroke-width="2"/>
+  <path d="M298 604 C298 630 326 632 352 646" fill="none" stroke="#282826" stroke-width="2"/>
+  <circle cx="299" cy="667" r="51" fill="#f7f5ef" stroke="#282826" stroke-width="2"/>
+  <text x="299" y="661" text-anchor="middle" fill="#282826" font-family="Georgia, serif" font-size="21">mean</text>
+  <text x="299" y="687" text-anchor="middle" fill="#282826" font-family="Georgia, serif" font-size="21">variance</text>
+
+  <text x="34" y="736" fill="#6b6a65" font-family="ui-monospace, monospace" font-size="15">ORDINARY: BLUE + STRIPED</text>
+  <text x="340" y="736" fill="#3158c9" font-family="ui-monospace, monospace" font-size="15">MASKED: BLUE ONLY</text>
+</svg>

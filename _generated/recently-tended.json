@@ -50,25 +50,26 @@
   {
     "kind": "note",
     "collection": "notes",
-    "slug": "a-useful-local-agent-earns-its-keep",
-    "url": "/notes/a-useful-local-agent-earns-its-keep/",
-    "title": "A useful local agent earns its keep",
-    "description": "Evaluate a local agent by the useful result after preparation, review, correction, and unsuccessful attempts.",
+    "slug": "distilhubert-padding-study",
+    "url": "/notes/distilhubert-padding-study/",
+    "title": "Can padding change audio-classification metrics?",
+    "description": "A completed DistilHuBERT study comparing ordinary and masked positional BatchNorm under minimal and additional padding.",
     "date": "2026-09-05",
     "updated": "2026-09-10",
     "status": "finished",
     "draft": false,
     "paths": [
-      "tools-for-thinking",
-      "models-and-meaning"
+      "models-and-meaning",
+      "tools-for-thinking"
     ],
     "related": [
-      "/experiments/local-agent-toolkit/"
+      "/posts/can-gradient-descent-learn-around-padding/",
+      "/notes/more-frames-do-not-mean-more-movies/"
     ],
     "image": "",
     "image-alt": "",
-    "study-status": "",
-    "study-status-as-of": "",
+    "study-status": "complete",
+    "study-status-as-of": "2026-09-10",
     "repo": "",
     "artifact": ""
   }

@@ -1,0 +1,119 @@
+---
+title: "Can gradient descent learn around padded zeros?"
+description: "A five-seed DistilHuBERT experiment asks whether a model can learn around BatchNorm statistics contaminated by padding."
+date: 2026-09-10
+updated: 2026-09-10
+status: finished
+draft: false
+paths:
+  - models-and-meaning
+  - evidence-and-belief
+  - tools-for-thinking
+related:
+  - /notes/distilhubert-padding-study/
+  - /notes/more-frames-do-not-mean-more-movies/
+image: /assets/distilhubert/padding-interaction.svg
+image-alt: "Across five seeds, current BatchNorm macro-F1 falls as training padding increases while masked BatchNorm stays level, but the interaction interval is wide."
+---
+
+{{< include ../../_includes/site-header.qmd >}}
+
+<main class="site-main" id="content">
+<section class="page-intro"><p class="section-number">Article · Models and meaning</p><h1>Can gradient descent learn around padded zeros?</h1><p class="project-lede">The bug looked obvious. Its downstream cost did not.</p><div class="article-meta"><span class="status">Experiment report</span><span>Published 10 September 2026</span></div></section>
+<article class="prose real-post">
+
+<p>Start with a batch of speech recordings. One lasts two seconds. Another lasts eight. A tensor wants a rectangle, so the short recording gets six seconds of zeros.</p>
+
+<p>Those zeros are bookkeeping. Then BatchNorm treats them as observations.</p>
+
+<p>I found this problem in a HuBERT configuration where BatchNorm sits before the positional convolution. The layer calculates a mean and variance across the batch and time dimensions, but it does not receive the mask that says which frames are padding. More zeros change the statistics. The same valid audio can therefore produce different internal values because it shared a tensor with a different amount of padding.</p>
+
+<p>That sounds like an obvious bug. In this configuration, it is: BatchNorm is meant to combine information from valid observations, not from placeholders. The problem is how the layer is used, not a universal defect in PyTorch’s BatchNorm.</p>
+
+<p>But an implementation can be wrong without causing a large downstream error. Models always train in batches. If the padding pattern is stable, perhaps the model can use it. Or perhaps gradient descent can brute-force a set of weights that works around the contaminated statistics.</p>
+
+<p>So I asked a narrower question: when a small speech model learns a real classification task, does a padding-aware BatchNorm produce more reliable test performance?</p>
+
+<figure class="article-figure article-figure--wide"><picture><source media="(max-width: 560px)" srcset="/assets/distilhubert/padding-batchnorm-mobile.svg"><img src="/assets/distilhubert/padding-batchnorm.svg" alt="Three audio clips contain different amounts of valid audio and padded zeros. Ordinary BatchNorm includes both in its statistics; masked BatchNorm includes only valid audio." loading="eager"></picture><figcaption>BatchNorm intentionally uses a batch of valid observations. The implementation problem begins when padded positions join that batch as if they were data.</figcaption></figure>
+
+<h2>The short answer</h2>
+
+<p>The correction clearly reduced padding sensitivity inside the model. It did not produce decisive evidence of a better selected-checkpoint classification score.</p>
+
+<p>Across five paired seeds, ordinary BatchNorm lost some macro-F1 when training moved from minimal padding to fixed 20-second tensors. Masked BatchNorm stayed almost level. The estimated interaction was +0.020 macro-F1. Its descriptive 95% interval ran from −0.041 to +0.080.</p>
+
+<p>The direction agrees with the original concern. The uncertainty also covers a small effect in the other direction, no effect, and a practically useful effect.</p>
+
+<figure class="article-figure article-figure--wide"><picture><source media="(max-width: 560px)" srcset="/assets/distilhubert/padding-interaction-mobile.svg"><img src="/assets/distilhubert/padding-interaction.svg" alt="Current BatchNorm mean macro-F1 changes from 0.441 to 0.422 as training padding increases. Masked BatchNorm stays near 0.454. The interaction is positive 0.020 with a descriptive interval from negative 0.041 to positive 0.080." loading="lazy"></picture><figcaption>All four models are evaluated with fixed 20-second tensors, so the x-axis changes training padding while test padding stays fixed. Error bars are descriptive 95% t intervals across five seeds.</figcaption></figure>
+
+<p>This is not evidence that the implementation is harmless. It is also not enough evidence to promise that fixing it improves this task.</p>
+
+<h2>A test for learning around the bug</h2>
+
+<p>I used <a href="https://huggingface.co/ntu-spml/distilhubert"><code>ntu-spml/distilhubert</code></a>, a compact pretrained HuBERT-family model, and trained a new classifier for 14 spoken intents. The data came from the Australian, British, and American English parts of <a href="https://huggingface.co/datasets/PolyAI/minds14">MInDS-14</a>: 1,809 recordings, split into 1,266 training, 269 validation, and 274 test examples.</p>
+
+<p>One detail matters. The published DistilHuBERT checkpoint does not use this positional BatchNorm path. I enabled the path to create a controlled test of the reported mechanism. This experiment is about a DistilHuBERT-based configuration. It is not a claim that the original checkpoint carries the same problem.</p>
+
+<p>The experiment crossed two choices:</p>
+
+<table><thead><tr><th>Condition</th><th>Positional normalization</th><th>Training padding</th></tr></thead><tbody><tr><td>C-L</td><td>Ordinary BatchNorm</td><td>Minimum needed in each batch</td></tr><tr><td>F-L</td><td>Masked BatchNorm</td><td>Minimum needed in each batch</td></tr><tr><td>C-H</td><td>Ordinary BatchNorm</td><td>Fixed 20-second tensor</td></tr><tr><td>F-H</td><td>Masked BatchNorm</td><td>Fixed 20-second tensor</td></tr></tbody></table>
+
+<p>The longest retained recording was 12 seconds. The high-padding condition extended the whole tensor to 20 seconds. It did not add 20 seconds to each recording.</p>
+
+<p>The masked implementation gathered only valid feature frames, applied the same PyTorch BatchNorm to those frames, and scattered the results back into a tensor with zeros at padded positions.</p>
+
+<p>Each seed used the same initialized state, examples, batch membership, batch order, optimizer, and number of updates across the four conditions. Only normalization and padding changed. The main matrix used seeds 17, 29, 43, 59, and 71, with 20 training epochs each.</p>
+
+<p>Every trained model was then tested with both minimal and fixed padding. This separates a model’s training history from the padding used for one evaluation pass.</p>
+
+<h2>What moved inside the network</h2>
+
+<p>The mechanism did not disappear into measurement noise.</p>
+
+<p>At the final update, changing evaluation padding shifted valid positional outputs by about 2.0 mean absolute activation units in the ordinary path. The same comparison was about 0.22 in the masked path. The exact scale is specific to this model, but the roughly nine-fold reduction shows that the mask changed the intended mechanism.</p>
+
+<p>That leaves the more interesting puzzle: a clear internal correction can lead to a much less clear change at the output.</p>
+
+<h2>Did masking help the classifier?</h2>
+
+<p>Under fixed 20-second evaluation tensors, the five-seed mean best-checkpoint macro-F1 values were:</p>
+
+<table><thead><tr><th>Training condition</th><th>Ordinary</th><th>Masked</th></tr></thead><tbody><tr><td>Minimal padding</td><td>0.441</td><td>0.454</td></tr><tr><td>Fixed 20-second tensor</td><td>0.422</td><td>0.454</td></tr></tbody></table>
+
+<p>For the high-padding models, masking improved the paired mean by 0.032 macro-F1 at the selected checkpoint. Its descriptive interval was −0.007 to +0.071. That is encouraging, but it does not exclude zero.</p>
+
+<p>The final epoch leaned more strongly toward the masked version: +0.049 under the same high-padding evaluation, with an interval from +0.010 to +0.088. I treat this as secondary evidence. Validation selected the best checkpoint, and that primary comparison stayed uncertain. Choosing the more convenient checkpoint after seeing the data would make the story cleaner and the evidence worse.</p>
+
+<p>There is a plausible “gradient descent worked around it” story here. Ordinary BatchNorm still learned a useful classifier. Under low padding, its best matched-evaluation mean was 0.469, compared with 0.465 for masked BatchNorm. But the experiment did not observe the strategy used by gradient descent. Similar output scores do not tell us whether the model compensated, ignored the affected features, or reached the same score for another reason.</p>
+
+<h2>Two checks on the experiment</h2>
+
+<p>I repeated the seed-17 masked high-padding run. Its initialization checksum, final parameter checksum, and every reported metric matched exactly. That makes accidental nondeterminism a less convincing explanation for the pattern.</p>
+
+<p>I also trained one low-padding and one high-padding control without positional BatchNorm. Under fixed 20-second evaluation, the best-checkpoint macro-F1 difference was +0.002. This control points toward the BatchNorm path, but it used one seed. It is a check, not a second five-seed experiment.</p>
+
+<h2>So: bug, feature, or brute force?</h2>
+
+<p>The padded zeros are not a useful feature of the recordings. They are a property of how the batch was assembled. Letting them change normalization statistics breaks the clean rule that adding masked padding should leave valid observations alone.</p>
+
+<p>The downstream result is less dramatic. In this small model, on this intent task, masking produced a modest advantage under heavy padding, but the main five-seed interval was too wide for a firm conclusion. Gradient descent may absorb part of the problem. Model selection may absorb part of it too. This experiment cannot say how.</p>
+
+<p>That is the result I wanted the study to be able to keep: the mechanism is wrong, the correction works internally, and the practical effect remains uncertain.</p>
+
+<p>A semantic bug does not guarantee a large metric failure. A small metric difference does not make the semantics correct.</p>
+
+<h2>Limits</h2>
+
+<p>This was one compact model, one 14-class dataset, one training recipe, and five primary seeds. The intervals are descriptive estimates from those seeds. A larger HuBERT model, a different batching distribution, or a task that depends more on the affected positional signal could behave differently.</p>
+
+<p>The public <a href="https://github.com/huggingface/transformers/issues/47739">Transformers issue</a> motivated the mechanism test. The experiment did not modify Transformers, and it does not propose a production patch.</p>
+
+<p>The next useful result would not be another single lucky run. It would be a replication that changes model scale or padding distribution while preserving the same paired causal comparison.</p>
+
+</article>
+
+{{< include ../../_generated/article-can-gradient-descent-learn-around-padding.html >}}
+
+</main>
+
+{{< include ../../_includes/site-footer.qmd >}}

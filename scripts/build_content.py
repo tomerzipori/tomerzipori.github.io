@@ -28,7 +28,7 @@ THEMES = (
     ("tools-for-thinking", "Tools for thinking"),
 )
 FEATURED_URLS = (
-    "/notes/distilhubert-padding-study/",
+    "/posts/can-gradient-descent-learn-around-padding/",
     "/posts/looking-for-an-animal-neuron/",
     "/experiments/neuron-playground/",
     "/experiments/local-agent-toolkit/",

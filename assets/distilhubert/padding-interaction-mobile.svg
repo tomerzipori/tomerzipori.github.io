@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 760" role="img" aria-labelledby="title desc">
+  <title id="title">DistilHuBERT BatchNorm and training padding interaction</title>
+  <desc id="desc">Across five seeds, current BatchNorm mean macro-F1 falls from 0.441 with minimal training padding to 0.422 with fixed 20-second training tensors. Masked BatchNorm stays near 0.454 in both conditions. The paired interaction is positive 0.020 with a descriptive 95 percent interval from negative 0.041 to positive 0.080.</desc>
+  <rect width="600" height="760" fill="#ebe8df"/>
+  <text x="34" y="46" fill="#6b6a65" font-family="ui-monospace, monospace" font-size="17" letter-spacing="1">FIVE PAIRED SEEDS</text>
+  <text x="34" y="92" fill="#282826" font-family="Georgia, serif" font-size="31">The corrected path</text>
+  <text x="34" y="128" fill="#282826" font-family="Georgia, serif" font-size="31">stayed level.</text>
+  <text x="34" y="180" fill="#282826" font-family="Georgia, serif" font-size="31">The interval</text>
+  <text x="34" y="216" fill="#282826" font-family="Georgia, serif" font-size="31">stayed wide.</text>
+  <text x="34" y="250" fill="#6b6a65" font-family="ui-sans-serif, sans-serif" font-size="16">Best-checkpoint test macro-F1.</text>
+  <text x="34" y="273" fill="#6b6a65" font-family="ui-sans-serif, sans-serif" font-size="16">Fixed 20-second evaluation tensors.</text>
+
+  <g stroke="#d4d1c8" stroke-width="1">
+    <line x1="82" y1="550" x2="566" y2="550"/>
+    <line x1="82" y1="491" x2="566" y2="491"/>
+    <line x1="82" y1="432" x2="566" y2="432"/>
+    <line x1="82" y1="373" x2="566" y2="373"/>
+  </g>
+  <g fill="#6b6a65" font-family="ui-monospace, monospace" font-size="15" text-anchor="end">
+    <text x="69" y="555">.40</text>
+    <text x="69" y="496">.42</text>
+    <text x="69" y="437">.44</text>
+    <text x="69" y="378">.46</text>
+  </g>
+
+  <g stroke="#c06149" fill="#ebe8df">
+    <line x1="190" y1="329" x2="190" y2="540" stroke-width="2" opacity="0.58"/>
+    <line x1="181" y1="329" x2="199" y2="329" stroke-width="2" opacity="0.58"/>
+    <line x1="181" y1="540" x2="199" y2="540" stroke-width="2" opacity="0.58"/>
+    <line x1="456" y1="435" x2="456" y2="534" stroke-width="2" opacity="0.58"/>
+    <line x1="447" y1="435" x2="465" y2="435" stroke-width="2" opacity="0.58"/>
+    <line x1="447" y1="534" x2="465" y2="534" stroke-width="2" opacity="0.58"/>
+    <path d="M190 429 L456 485" fill="none" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="190" cy="429" r="9" stroke-width="4"/>
+    <circle cx="456" cy="485" r="9" stroke-width="4"/>
+  </g>
+  <g stroke="#3158c9" fill="#ebe8df">
+    <line x1="190" y1="340" x2="190" y2="458" stroke-width="2" opacity="0.58"/>
+    <line x1="181" y1="340" x2="199" y2="340" stroke-width="2" opacity="0.58"/>
+    <line x1="181" y1="458" x2="199" y2="458" stroke-width="2" opacity="0.58"/>
+    <line x1="456" y1="322" x2="456" y2="471" stroke-width="2" opacity="0.58"/>
+    <line x1="447" y1="322" x2="465" y2="322" stroke-width="2" opacity="0.58"/>
+    <line x1="447" y1="471" x2="465" y2="471" stroke-width="2" opacity="0.58"/>
+    <path d="M190 393 L456 391" fill="none" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="190" cy="393" r="9" stroke-width="4"/>
+    <circle cx="456" cy="391" r="9" stroke-width="4"/>
+  </g>
+
+  <g font-family="ui-monospace, monospace" font-size="16">
+    <text x="207" y="421" fill="#a34836">CURRENT .441</text>
+    <text x="474" y="511" fill="#a34836">.422</text>
+    <text x="207" y="379" fill="#3158c9">MASKED .454</text>
+    <text x="474" y="379" fill="#3158c9">.454</text>
+  </g>
+  <g fill="#282826" font-family="ui-monospace, monospace" font-size="15" text-anchor="middle">
+    <text x="190" y="585">MINIMAL PADDING</text>
+    <text x="456" y="585">FIXED 20 S</text>
+  </g>
+
+  <rect x="34" y="624" width="532" height="101" rx="2" fill="#f7f5ef"/>
+  <text x="54" y="658" fill="#282826" font-family="ui-monospace, monospace" font-size="17">INTERACTION +.020</text>
+  <text x="54" y="690" fill="#6b6a65" font-family="ui-monospace, monospace" font-size="16">95% INTERVAL −.041 TO +.080</text>
+  <text x="54" y="713" fill="#6b6a65" font-family="ui-monospace, monospace" font-size="14">DESCRIPTIVE · FIVE SEEDS</text>
+</svg>

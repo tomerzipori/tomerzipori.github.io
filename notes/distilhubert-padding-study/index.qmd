@@ -1,28 +1,31 @@
 ---
 title: "Can padding change audio-classification metrics?"
-description: "An ongoing DistilHuBERT study comparing ordinary and masked positional BatchNorm under minimal and additional padding."
+description: "A completed DistilHuBERT study comparing ordinary and masked positional BatchNorm under minimal and additional padding."
 date: 2026-09-05
-updated: 2026-09-05
+updated: 2026-09-10
 status: finished
 draft: false
 paths:
   - models-and-meaning
   - tools-for-thinking
 related:
+  - /posts/can-gradient-descent-learn-around-padding/
   - /notes/more-frames-do-not-mean-more-movies/
-study-status: ongoing
-study-status-as-of: 2026-09-05
+study-status: complete
+study-status-as-of: 2026-09-10
 ---
 
 {{< include ../../_includes/site-header.qmd >}}
 
 <main class="site-main note-page">
-<section class="page-intro"><p class="section-number">Note · Models and meaning</p><h1>Can padding change audio-classification metrics?</h1><div class="article-meta"><span class="status">Published</span><span class="study-status">Ongoing study · Status checked 5 September 2026</span></div></section>
-<article class="prose"><p>Audio clips have different lengths. To process several clips together, we often extend the shorter ones with padding.</p>
+<section class="page-intro"><p class="section-number">Note · Models and meaning</p><h1>Can padding change audio-classification metrics?</h1><div class="article-meta"><span class="status">Published</span><span class="study-status">Study complete · Status checked 10 September 2026</span></div></section>
+<article class="prose"><p>This started with an obvious bug. Or at least it looked obvious.</p>
 
-<p>Those extra samples are bookkeeping. They should not casually become evidence about what someone said.</p>
+<p>Audio clips have different lengths, so a batch often extends shorter clips with zeros. In one HuBERT configuration, BatchNorm receives those padded frames without their validity mask. The zeros then enter its mean and variance as if they were observations.</p>
 
-<p>I’m investigating whether padding-sensitive normalization can change downstream audio-classification metrics in a small DistilHuBERT model.</p>
+<p>That should be wrong. But this model will always see data in batches during training. BatchNorm is designed to use a batch, and gradient descent is good at finding inelegant ways around inconvenient details. Could the contaminated statistics become part of the training environment? Could the weights learn around them?</p>
+
+<p>I built a downstream experiment to find out. The full result is now in <a href="/posts/can-gradient-descent-learn-around-padding/">Can gradient descent learn around padded zeros?</a></p>
 
 <h2>The mechanism</h2>
 
@@ -70,19 +73,19 @@ study-status-as-of: 2026-09-05
 
 <p>A single training run can give an interesting result for the wrong reason.</p>
 
-<p>The planned main comparison uses five paired seeds. It also includes a repeated run and two controls that retain the architecture without positional BatchNorm.</p>
+<p>The main comparison used five paired seeds. It also included a repeated run and two controls that retained the architecture without positional BatchNorm.</p>
 
 <p>These checks help distinguish the targeted mechanism from other padding effects and run-to-run variation.</p>
 
-<h2>Where the study stands</h2>
+<h2>What happened</h2>
 
-<p>As of 5 September 2026, all four pilot conditions passed the predefined learning gate. The main comparison has started, but the full matrix and controls are not complete.</p>
+<p>The study completed 27 runs: the four pilot conditions, a five-seed four-condition matrix, an exact repeat, and two no-BatchNorm controls.</p>
 
-<p>Passing the pilot means the setup can learn well enough to continue. It does not answer the research question.</p>
+<p>The masked implementation reduced the internal padding sensitivity by roughly nine-fold. At the selected checkpoint, however, the downstream interaction was only +0.020 macro-F1, with a descriptive 95% interval from −0.041 to +0.080.</p>
 
-<p>I will draw a conclusion only after reviewing the paired results, controls, and measurements inside the model.</p>
+<p>The direction fits the concern, but the uncertainty is too wide for a firm performance claim. The mechanism is wrong; the correction works internally; the practical effect in this model and task remains uncertain.</p>
 
-<p>For now, the question remains open: does this implementation detail produce a consistent, practically meaningful change in classification metrics?</p>
+<p><a class="button-link" href="/posts/can-gradient-descent-learn-around-padding/">Read the full experiment</a></p>
 </article>
 
 {{< include ../../_generated/note-distilhubert-padding-study.html >}}

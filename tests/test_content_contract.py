@@ -42,7 +42,7 @@ class ContentContractTests(unittest.TestCase):
 
     def test_public_content_passes_maturity_gate(self):
         public = [record for record in self.records if MODULE.is_public(record)]
-        self.assertEqual(len(public), 18)
+        self.assertEqual(len(public), 19)
         self.assertNotIn("/notes/pca-is-intuition-not-proof/", {record["url"] for record in self.records})
         self.assertNotIn("/posts/multilingual-embeddings-layers/", {record["url"] for record in self.records})
         self.assertNotIn("/notes/criteria-move-answers/", {record["url"] for record in self.records})
@@ -60,6 +60,7 @@ class ContentContractTests(unittest.TestCase):
         self.assertIn("/assets/neuron-playground/index.html", home)
         self.assertIn("/posts/looking-for-an-animal-neuron/", home)
         self.assertIn("/notes/distilhubert-padding-study/", home)
+        self.assertIn("/posts/can-gradient-descent-learn-around-padding/", home)
         self.assertIn("https://github.com/tomerzipori/OrdinalRegressionViz", home)
         self.assertNotIn("/experiments/ordinal-regression-viz/", home)
         self.assertNotIn("I make models easier to inspect.", home)
@@ -84,6 +85,7 @@ class ContentContractTests(unittest.TestCase):
         self.assertIn("css: /styles.css", config)
         self.assertIn("pre-render: python3 scripts/build_content.py", config)
         self.assertIn('"_generated/**"', config)
+        self.assertIn('"assets/distilhubert/**"', config)
         self.assertIn("site-header.qmd", (ROOT / "posts" / "micrograd" / "index.qmd").read_text())
 
     def test_generated_inventory_drives_archive_garden_and_feeds(self):
@@ -92,6 +94,7 @@ class ContentContractTests(unittest.TestCase):
         self.assertEqual(len(urls), len(set(urls)))
         self.assertIn("/posts/micrograd/", urls)
         self.assertIn("/notes/distilhubert-padding-study/", urls)
+        self.assertIn("/posts/can-gradient-descent-learn-around-padding/", urls)
         for path in ("writing/index.xml", "blog/blog.xml"):
             feed = (ROOT / path).read_text(encoding="utf-8")
             self.assertIn("/posts/micrograd/", feed)
@@ -118,11 +121,12 @@ class ContentContractTests(unittest.TestCase):
     def test_study_status_is_separate_from_editorial_status(self):
         padding = next(record for record in self.records if record["slug"] == "distilhubert-padding-study")
         self.assertEqual(padding["status"], "finished")
-        self.assertEqual(padding["study-status"], "ongoing")
-        self.assertEqual(padding["study-status-as-of"], "2026-09-05")
+        self.assertEqual(padding["study-status"], "complete")
+        self.assertEqual(padding["study-status-as-of"], "2026-09-10")
         note = (ROOT / "notes" / "distilhubert-padding-study" / "index.qmd").read_text(encoding="utf-8")
         self.assertIn("the original DistilHuBERT checkpoint does not use this positional BatchNorm path", note)
-        self.assertIn("full matrix and controls are not complete", note)
+        self.assertIn("The study completed 27 runs", note)
+        self.assertIn("/posts/can-gradient-descent-learn-around-padding/", note)
         self.assertNotIn("/Users/Tomer.Zipori/research", note)
 
     def test_public_posts_keep_their_long_form_source_content(self):

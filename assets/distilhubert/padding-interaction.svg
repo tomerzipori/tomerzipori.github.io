@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">DistilHuBERT BatchNorm and training padding interaction</title>
+  <desc id="desc">Across five seeds, current BatchNorm mean macro-F1 falls from 0.441 with minimal training padding to 0.422 with fixed 20-second training tensors. Masked BatchNorm stays near 0.454 in both conditions. The paired interaction is positive 0.020 with a descriptive 95 percent interval from negative 0.041 to positive 0.080.</desc>
+  <rect width="960" height="540" fill="#ebe8df"/>
+  <text x="54" y="50" fill="#6b6a65" font-family="ui-monospace, monospace" font-size="15" letter-spacing="1.2">FIVE PAIRED SEEDS · BEST CHECKPOINT</text>
+  <text x="54" y="94" fill="#282826" font-family="Georgia, serif" font-size="34">The corrected path stayed level.</text>
+  <text x="54" y="128" fill="#282826" font-family="Georgia, serif" font-size="34">The interval stayed wide.</text>
+  <text x="54" y="159" fill="#6b6a65" font-family="ui-sans-serif, sans-serif" font-size="15">Mean test macro-F1; every model evaluated with a fixed 20-second tensor.</text>
+
+  <g stroke="#d4d1c8" stroke-width="1">
+    <line x1="132" y1="390" x2="888" y2="390"/>
+    <line x1="132" y1="331" x2="888" y2="331"/>
+    <line x1="132" y1="272" x2="888" y2="272"/>
+    <line x1="132" y1="213" x2="888" y2="213"/>
+  </g>
+  <g fill="#6b6a65" font-family="ui-monospace, monospace" font-size="13" text-anchor="end">
+    <text x="114" y="395">.40</text>
+    <text x="114" y="336">.42</text>
+    <text x="114" y="277">.44</text>
+    <text x="114" y="218">.46</text>
+  </g>
+
+  <g stroke="#c06149" fill="#f7f5ef">
+    <line x1="288" y1="169" x2="288" y2="380" stroke-width="2" opacity="0.58"/>
+    <line x1="277" y1="169" x2="299" y2="169" stroke-width="2" opacity="0.58"/>
+    <line x1="277" y1="380" x2="299" y2="380" stroke-width="2" opacity="0.58"/>
+    <line x1="704" y1="275" x2="704" y2="374" stroke-width="2" opacity="0.58"/>
+    <line x1="693" y1="275" x2="715" y2="275" stroke-width="2" opacity="0.58"/>
+    <line x1="693" y1="374" x2="715" y2="374" stroke-width="2" opacity="0.58"/>
+    <path d="M288 269 L704 325" fill="none" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="288" cy="269" r="9" stroke-width="4"/>
+    <circle cx="704" cy="325" r="9" stroke-width="4"/>
+  </g>
+  <g stroke="#3158c9" fill="#f7f5ef">
+    <line x1="288" y1="180" x2="288" y2="298" stroke-width="2" opacity="0.58"/>
+    <line x1="277" y1="180" x2="299" y2="180" stroke-width="2" opacity="0.58"/>
+    <line x1="277" y1="298" x2="299" y2="298" stroke-width="2" opacity="0.58"/>
+    <line x1="704" y1="162" x2="704" y2="311" stroke-width="2" opacity="0.58"/>
+    <line x1="693" y1="162" x2="715" y2="162" stroke-width="2" opacity="0.58"/>
+    <line x1="693" y1="311" x2="715" y2="311" stroke-width="2" opacity="0.58"/>
+    <path d="M288 233 L704 231" fill="none" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="288" cy="233" r="9" stroke-width="4"/>
+    <circle cx="704" cy="231" r="9" stroke-width="4"/>
+  </g>
+
+  <g font-family="ui-monospace, monospace" font-size="14">
+    <text x="311" y="264" fill="#a34836">CURRENT .441</text>
+    <text x="727" y="350" fill="#a34836">.422</text>
+    <text x="311" y="220" fill="#3158c9">MASKED .454</text>
+    <text x="727" y="217" fill="#3158c9">.454</text>
+  </g>
+  <g fill="#282826" font-family="ui-monospace, monospace" font-size="14" text-anchor="middle">
+    <text x="288" y="427">MINIMAL TRAINING PADDING</text>
+    <text x="704" y="427">FIXED 20 S TRAINING TENSOR</text>
+  </g>
+
+  <rect x="54" y="466" width="852" height="48" rx="2" fill="#f7f5ef"/>
+  <text x="75" y="496" fill="#282826" font-family="ui-monospace, monospace" font-size="14">INTERACTION +.020</text>
+  <text x="285" y="496" fill="#6b6a65" font-family="ui-monospace, monospace" font-size="14">DESCRIPTIVE 95% INTERVAL −.041 TO +.080</text>
+</svg>

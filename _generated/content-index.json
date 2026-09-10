@@ -52,6 +52,59 @@
     {
       "kind": "note",
       "collection": "notes",
+      "slug": "distilhubert-padding-study",
+      "url": "/notes/distilhubert-padding-study/",
+      "title": "Can padding change audio-classification metrics?",
+      "description": "A completed DistilHuBERT study comparing ordinary and masked positional BatchNorm under minimal and additional padding.",
+      "date": "2026-09-05",
+      "updated": "2026-09-10",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "models-and-meaning",
+        "tools-for-thinking"
+      ],
+      "related": [
+        "/posts/can-gradient-descent-learn-around-padding/",
+        "/notes/more-frames-do-not-mean-more-movies/"
+      ],
+      "image": "",
+      "image-alt": "",
+      "study-status": "complete",
+      "study-status-as-of": "2026-09-10",
+      "repo": "",
+      "artifact": ""
+    },
+    {
+      "kind": "article",
+      "collection": "posts",
+      "slug": "can-gradient-descent-learn-around-padding",
+      "url": "/posts/can-gradient-descent-learn-around-padding/",
+      "title": "Can gradient descent learn around padded zeros?",
+      "description": "A five-seed DistilHuBERT experiment asks whether a model can learn around BatchNorm statistics contaminated by padding.",
+      "date": "2026-09-10",
+      "updated": "2026-09-10",
+      "status": "finished",
+      "draft": false,
+      "paths": [
+        "models-and-meaning",
+        "evidence-and-belief",
+        "tools-for-thinking"
+      ],
+      "related": [
+        "/notes/distilhubert-padding-study/",
+        "/notes/more-frames-do-not-mean-more-movies/"
+      ],
+      "image": "/assets/distilhubert/padding-interaction.svg",
+      "image-alt": "Across five seeds, current BatchNorm macro-F1 falls as training padding increases while masked BatchNorm stays level, but the interaction interval is wide.",
+      "study-status": "",
+      "study-status-as-of": "",
+      "repo": "",
+      "artifact": ""
+    },
+    {
+      "kind": "note",
+      "collection": "notes",
       "slug": "a-useful-local-agent-earns-its-keep",
       "url": "/notes/a-useful-local-agent-earns-its-keep/",
       "title": "A useful local agent earns its keep",
@@ -153,31 +206,6 @@
       "study-status-as-of": "",
       "repo": "",
       "artifact": "/assets/neuron-playground/index.html"
-    },
-    {
-      "kind": "note",
-      "collection": "notes",
-      "slug": "distilhubert-padding-study",
-      "url": "/notes/distilhubert-padding-study/",
-      "title": "Can padding change audio-classification metrics?",
-      "description": "An ongoing DistilHuBERT study comparing ordinary and masked positional BatchNorm under minimal and additional padding.",
-      "date": "2026-09-05",
-      "updated": "2026-09-05",
-      "status": "finished",
-      "draft": false,
-      "paths": [
-        "models-and-meaning",
-        "tools-for-thinking"
-      ],
-      "related": [
-        "/notes/more-frames-do-not-mean-more-movies/"
-      ],
-      "image": "",
-      "image-alt": "",
-      "study-status": "ongoing",
-      "study-status-as-of": "2026-09-05",
-      "repo": "",
-      "artifact": ""
     },
     {
       "kind": "project",
