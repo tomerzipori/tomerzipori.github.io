@@ -201,14 +201,13 @@ Full garden requirements:
 - Explain once that connections represent shared themes and editorial links.
 - Keep **Surprise me** as a small Garden-page action. Preserve its non-repeating destination behaviour and include only public existing destinations.
 
-Homepage map: show the four themes and exactly these six featured nodes:
+Homepage map: show the four themes and exactly these five featured nodes:
 
 1. DistilHuBERT padding study
 2. OrdinalRegressionViz
 3. Local Agent Toolkit
 4. Blue Movies
-5. Criteria move the answers
-6. A useful local agent earns its keep
+5. A useful local agent earns its keep
 
 Provide **Explore the full garden →**. Do not include UFO, eggs, FIFA, PCA, or multilingual embeddings among featured homepage nodes.
 
@@ -232,17 +231,16 @@ Extend the existing Python builder. Keep Quarto/static rendering.
 - Display editorial `finished` as **Published**, replacing conflicting decorative labels such as “in bloom.”
 - Preserve the actual singular kind `note`; inspect the existing collection-to-kind conversion rather than assuming generic string slicing produces it.
 
-Metadata for the five final notes:
+Metadata for the four final notes:
 
 | Slug | Themes, in order | Related targets |
 | --- | --- | --- |
-| `criteria-move-answers` | evidence-and-belief; models-and-meaning | `/experiments/ordinal-regression-viz/` |
 | `the-denominator-changes-the-story` | data-and-strange-claims; evidence-and-belief | `/posts/ufo/`; `/posts/eggs/` |
 | `more-frames-do-not-mean-more-movies` | data-and-strange-claims; tools-for-thinking | `/experiments/blue-movies/` |
 | `a-useful-local-agent-earns-its-keep` | tools-for-thinking; models-and-meaning | `/experiments/local-agent-toolkit/` |
-| `distilhubert-padding-study` | models-and-meaning; tools-for-thinking | `/notes/criteria-move-answers/`; `/notes/more-frames-do-not-mean-more-movies/` |
+| `distilhubert-padding-study` | models-and-meaning; tools-for-thinking | `/notes/more-frames-do-not-mean-more-movies/` |
 
-All five are finished public notes. The padding note additionally has `study-status: ongoing` and `study-status-as-of: 2026-09-05`. Expose and display those fields separately from editorial status. An ongoing experiment does not make its finished explanatory note a draft.
+All four are finished public notes. The padding note additionally has `study-status: ongoing` and `study-status-as-of: 2026-09-05`. Expose and display those fields separately from editorial status. An ongoing experiment does not make its finished explanatory note a draft.
 
 ## 5. Research evidence contract
 
@@ -270,45 +268,7 @@ No absolute local research paths should appear in published note text. Link to t
 
 Insert the following bodies verbatim apart from formatting, typographic consistency, and resolving internal links. Keep citations. Use each opening summary as the metadata description where an explicit description is not given.
 
-### 6.1 Criteria move the answers. Separation moves discriminability.
-
-Description: A worked example showing how decision thresholds change responses without changing fixed discriminability.
-
-Imagine two people reviewing the same evidence. One rarely chooses the highest confidence rating. The other uses it freely. Their answers differ, but that alone does not tell us who distinguishes signal from noise more accurately.
-
-Signal detection theory separates two ideas: how much the evidence distributions overlap, and where a person places a decision criterion. Under an equal-variance Gaussian model, discriminability is:
-
-\[
-d'=\frac{\mu_{\text{signal}}-\mu_{\text{noise}}}{\sigma}.
-\]
-
-Moving the criterion changes the answers without changing this separation. See this [introduction to signal detection theory](https://www.cns.nyu.edu/~david/handouts/sdt/sdt.html).
-
-#### A small example
-
-Take noise with mean 0 and signal with mean 1.5. Give both distributions a standard deviation of 1. The resulting \(d'\) is 1.5.
-
-Call an observation “signal” when it exceeds a threshold. At a threshold of 0.5, the illustrative hit rate is about 84%, and the false-alarm rate is about 31%. Move the threshold to 1.0: the rates fall to about 69% and 16%.
-
-These are calculated probabilities from the example model, not observations from a study. The stricter rule changes both rates. It does not change \(d'\).
-
-#### From two answers to six
-
-A six-point response scale needs five ordered thresholds. Moving these thresholds changes how much probability falls into each category.
-
-This is why I find the picture useful: it separates a change in the response rule from a change in the underlying distributions.
-
-#### Try it
-
-Move a threshold in the interactive figure. Watch the category probabilities change while the distributions stay fixed. Reset the figure to compare with the starting point.
-
-The demonstration assumes normal distributions with equal variance. Real data may require a different model. Observed ratings alone do not establish why two groups differ.
-
-Related: [OrdinalRegressionViz](/experiments/ordinal-regression-viz/).
-
-**Implementation instruction, not article copy:** Embed the shared threshold component under “Try it.” The numerical example above is independent of the component's existing default settings.
-
-### 6.2 The denominator changes the story
+### 6.1 The denominator changes the story
 
 Description: Why counts and population rates can produce different rankings, and what neither measure can establish alone.
 
@@ -346,7 +306,7 @@ Before asking which place leads, decide what “leads” means.
 
 Related: [UFO reports](/posts/ufo/) and [Cage-free vs. caged hens in the US](/posts/eggs/).
 
-### 6.3 More frames do not mean more movies
+### 6.2 More frames do not mean more movies
 
 Description: Why repeated frame measurements do not provide the same information as independently sampled films.
 
@@ -382,7 +342,7 @@ Before trusting a sample size, ask what each row represents—and which rows sha
 
 Related: [Blue Movies](/experiments/blue-movies/).
 
-### 6.4 A useful local agent earns its keep
+### 6.3 A useful local agent earns its keep
 
 Description: Evaluate a local agent by the useful result after preparation, review, correction, and unsuccessful attempts.
 
@@ -419,7 +379,7 @@ The question I care about is practical: after checking the result, am I further 
 
 Related: [Local Agent Toolkit](/experiments/local-agent-toolkit/).
 
-### 6.5 Can padding change audio-classification metrics?
+### 6.4 Can padding change audio-classification metrics?
 
 Description: An ongoing DistilHuBERT study comparing ordinary and masked positional BatchNorm under minimal and additional padding.
 
@@ -498,13 +458,13 @@ I will draw a conclusion only after reviewing the paired results, controls, and 
 
 For now, the question remains open: does this implementation detail produce a consistent, practically meaningful change in classification metrics?
 
-Related: [Criteria move the answers](/notes/criteria-move-answers/) and [More frames do not mean more movies](/notes/more-frames-do-not-mean-more-movies/).
+Related: [More frames do not mean more movies](/notes/more-frames-do-not-mean-more-movies/).
 
 ## 7. Implementation sequence and acceptance
 
 ### Batch 1 — Baseline, content, and inventory
 
-Recheck repository instructions and baseline. Create the task branch through the Git subagent. Record article-body hashes before editing their surrounding shell. Insert the five notes, remove retired pages, and implement the shared inventory, archives, feeds, relationships, and rendering hook.
+Recheck repository instructions and baseline. Create the task branch through the Git subagent. Record article-body hashes before editing their surrounding shell. Insert the four notes, remove retired pages, and implement the shared inventory, archives, feeds, relationships, and rendering hook.
 
 Verify: existing content checks plus new inventory behaviour tests pass; older article bodies are unchanged; generated outputs contain no retired or private content.
 

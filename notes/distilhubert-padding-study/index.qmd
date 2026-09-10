@@ -9,7 +9,6 @@ paths:
   - models-and-meaning
   - tools-for-thinking
 related:
-  - /notes/criteria-move-answers/
   - /notes/more-frames-do-not-mean-more-movies/
 study-status: ongoing
 study-status-as-of: 2026-09-05

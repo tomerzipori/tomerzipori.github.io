@@ -33,13 +33,11 @@ FEATURED_URLS = (
     "/experiments/neuron-playground/",
     "/experiments/local-agent-toolkit/",
     "/experiments/blue-movies/",
-    "/notes/criteria-move-answers/",
     "/notes/a-useful-local-agent-earns-its-keep/",
 )
 RECENT_NOTE_SLUGS = (
     "distilhubert-padding-study",
     "a-useful-local-agent-earns-its-keep",
-    "criteria-move-answers",
 )
 
 

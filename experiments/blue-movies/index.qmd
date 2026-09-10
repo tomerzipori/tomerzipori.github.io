@@ -1,22 +1,140 @@
 ---
-title: "Blue Movies"
-description: "A reproducible Python pipeline for testing whether movies released in the early 2000s were more blue."
+title: "Were Movies in the Early 2000s More Blue?"
+description: "A frame-level colour analysis of movies, aggregated carefully at the movie level."
 date: 2026-06-20
-updated: 2026-06-20
+updated: 2026-09-10
 status: finished
 draft: false
 paths:
   - data-and-strange-claims
   - tools-for-thinking
+related: []
 repo: https://github.com/tomerzipori/blue-movies
 artifact: https://github.com/tomerzipori/blue-movies#readme
-image: ""
-image-alt: ""
+image: /assets/blue-movies/frames/the-abyss-frame-0392.jpg
+image-alt: "A diver suspended in deep cobalt-blue water in a representative frame from The Abyss (1989)."
 ---
 
 {{< include ../../_includes/site-header.qmd >}}
 
-<main class="site-main project-detail" id="content"><section class="page-intro"><p class="section-number">Project · Python pipeline</p><h1>Blue Movies</h1><p class="project-lede">A Python pipeline for testing a claim about movie colour, with the movie as the unit of analysis.</p><div class="article-meta"><span class="status">Published</span><span>Updated 20 Jun 2026</span></div></section><figure class="project-figure"><svg class="workflow-diagram workflow-diagram--warm" viewBox="0 0 560 150" role="img" aria-label="Workflow from movie through sampled frames and colour measurements to movie-level analysis"><path d="M24 76 H524"/><circle cx="55" cy="76" r="8"/><circle cx="205" cy="76" r="8"/><circle cx="355" cy="76" r="8"/><circle cx="505" cy="76" r="8"/><text x="55" y="38">Movie</text><text x="205" y="122">Sampled frames</text><text x="355" y="38">Colour measurements</text><text x="505" y="122">Movie-level analysis</text></svg><figcaption>Workflow</figcaption></figure><article class="project-case-study"><section><p class="section-number">Question</p><h2>Were movies from the early 2000s more blue?</h2><p>The project tests whether a culturally sticky visual impression survives a reproducible colour measurement pipeline.</p></section><section><p class="section-number">What I built</p><h2>Frame measurements, movie summaries.</h2><p>The pipeline records RGB, blue-ratio, blue-pixel share, luminance, saturation, HSV hue, and Lab summaries, then aggregates measurements to one row per movie.</p></section><section><p class="section-number">Key design decision</p><h2>Keep the movie as the unit.</h2><p>More frames can improve the estimate for one film. They do not provide the same information as more independently sampled films.</p></section><section><p class="section-number">Artifact</p><p><a class="button-link" href="https://github.com/tomerzipori/blue-movies#readme">Open the pipeline README</a></p></section><section><p class="section-number">Limitations</p><h2>Colour is not cinematography.</h2><p>Colour metrics are not the same as cinematography, genre, or cultural meaning. The clustering view is exploratory, not causal.</p></section></article>
+<main class="site-main project-detail" id="content">
+<section class="page-intro"><p class="section-number">Project · Color analysis</p><h1>Were Movies in the Early 2000s More Blue?</h1><p class="project-lede">A frame-level colour analysis of movies, with the movie as the unit of analysis.</p><div class="article-meta"><span class="status">Published</span><span>Updated 10 September 2026</span></div></section>
+
+<article class="prose real-post">
+
+<figure class="article-figure article-figure--wide blue-movies-hero"><img src="/assets/blue-movies/frames/the-abyss-frame-0392.jpg" alt="A diver suspended in deep cobalt-blue water in a representative frame from The Abyss (1989)." loading="eager"><figcaption><em>The Abyss</em> (1989) is the bluest movie in this sample by the primary mean blue-ratio metric. This is one of its highest-blue frames.</figcaption></figure>
+
+<p>Recently I stumbled upon this question raised by <em>InternetWeakGuy</em> on Reddit: <a href="https://www.reddit.com/r/TrueFilm/comments/cx4svs/eli5_why_did_so_much_cinematography_go_blue_in/">Why did so much cinematography go blue in the early 2000s?</a> It had some interesting technical explanations, for example the rise of digital colour grading, which made adjusting a movie's palette easier and cheaper. But it still came down to a stylistic choice by the filmmaker. For anyone interested, there is an entire rabbit hole of aesthetic genre taxonomy on TikTok. The early 2000s were characterized by Digital Optimism, Cybercore, Y2K, McBling, and more.</p>
+
+<p>Were movies in the early 2000s actually more blue? I wanted to test it empirically. The first step was finding a good dataset. Fortunately, I found this <a href="https://www.kaggle.com/datasets/asaniczka/movie-identification-dataset-800-movies">Movie Identification Dataset</a> on Kaggle. It contains about 1,000 frames from each of 800 movies, from the late 1980s up to the mid-2020s.</p>
+
+<p>Here are three frames from the dataset:</p>
+
+<figure><img src="/assets/blue-movies/frames/frame_0245.jpg" alt="Jared Butler as King Leonidas in 300." loading="lazy"><figcaption>Jared Butler as King Leonidas in <em>300</em>.</figcaption></figure>
+
+<figure><img src="/assets/blue-movies/frames/frame_0211.jpg" alt="Ants in A Bug's Life." loading="lazy"><figcaption>Ants in <em>A Bug's Life</em>.</figcaption></figure>
+
+<figure><img src="/assets/blue-movies/frames/frame_0606.jpg" alt="Harry, Dumbledore, and Snape in Harry Potter and the Half-Blood Prince." loading="lazy"><figcaption>Harry, Dumbledore, and Snape in <em>Harry Potter and the Half-Blood Prince</em>.</figcaption></figure>
+
+<p>The plan from that point was:</p>
+
+<ol>
+<li>Calculate how blue each frame is.</li>
+<li>Average across each movie.</li>
+<li>Compare the average blueness of movies from different periods.</li>
+</ol>
+
+<h2>How I Measured “Blue”</h2>
+
+<p>As always, there are many ways to measure the same thing. A few ideas were:</p>
+
+<ul>
+<li>average RGB channels</li>
+<li>blue ratio: <code>B / (R + G + B)</code></li>
+<li>blue excess: <code>B - (R + G) / 2</code></li>
+<li>share of pixels where blue is stronger than red and green</li>
+<li>HSV hue-based blue pixels</li>
+<li>Lab colour summaries, which separate brightness from colour direction</li>
+</ul>
+
+<p>For simplicity, I chose <strong>Blue Ratio</strong>, calculated for each pixel's RGB channels like this:</p>
+
+<p class="equation">$$
+\frac{B}{R+G+B}
+$$</p>
+
+<p>Pixel values are averaged for each frame, and then averaged for each movie to create the main statistic in this analysis: <strong>Mean Blue Ratio</strong>.</p>
+
+<aside class="column-margin">In the RGB (Red, Green, Blue) pixel format, each pixel is represented with three values, or channels, indicating the intensity of each colour. Values are usually between 0 and 255, so a (120, 200, 80) RGB pixel has a medium amount of red, a high amount of green, and a low amount of blue.</aside>
+
+<h2>The Main Movie-Level Analysis</h2>
+
+<h3>Tests</h3>
+
+<div class="table-scroll"><table>
+<thead><tr><th>Metric</th><th>Comparison</th><th>Group A</th><th>Group B</th><th>n A</th><th>n B</th><th>Mean A</th><th>Mean B</th><th>Mean Difference</th><th>95% CI</th><th>Welch’s t</th><th>p-value</th></tr></thead>
+<tbody>
+<tr><td>Blue ratio mean</td><td>Early 2000s vs. all other</td><td>Early 2000s</td><td>All other</td><td>151</td><td>649</td><td>0.295</td><td>0.291</td><td>0.004</td><td>[-0.003, 0.011]</td><td>1.033</td><td>0.303</td></tr>
+<tr><td>Blue ratio mean</td><td>Early 2000s vs. 1990s</td><td>Early 2000s</td><td>1990s</td><td>151</td><td>156</td><td>0.295</td><td>0.285</td><td>0.010</td><td>[0.001, 0.019]</td><td>2.186</td><td>0.030</td></tr>
+<tr><td>Blue ratio mean</td><td>Early 2000s vs. 2006–2010</td><td>Early 2000s</td><td>2006–2010</td><td>151</td><td>147</td><td>0.295</td><td>0.281</td><td>0.014</td><td>[0.005, 0.023]</td><td>3.047</td><td>0.003</td></tr>
+</tbody>
+</table></div>
+
+<p>The comparison between the early 2000s (2000–2005) and the late 2000s (2006–2010) is significant, even after adjusting for multiple comparisons. The effect is not large. The many pixels and frames improve the measurement of each movie, but the movie remains the unit of analysis.</p>
+
+<p>A more fine-grained regression analysis revealed no significant trends:</p>
+
+<figure><img src="/assets/blue-movies/plots/blue_ratio_mean_by_release_year.png" alt="Movie-level mean blue ratio by release year, with a modest increase around the early 2000s." loading="lazy"><figcaption>Movie-level blueness by release year.</figcaption></figure>
+
+<p>We can see a small jump in blueness starting around the year 2000, and decreasing again later, but this is not significant.</p>
+
+<figure><img src="/assets/blue-movies/plots/blue_ratio_mean_year_trend.png" alt="Smoothed mean blue ratio trend by release year." loading="lazy"><figcaption>Smoothed blueness trend by release year.</figcaption></figure>
+
+<h2>Comparing Periods</h2>
+
+<figure><img src="/assets/blue-movies/plots/blue_ratio_mean_violin_by_period.png" alt="Violin plot comparing mean blue ratio across release periods." loading="lazy"><figcaption>Blueness by release period.</figcaption></figure>
+
+<h2>The Bluest Movies</h2>
+
+<p>To make the result less abstract, I also pulled out the top movies by the primary blueness metric and a set of representative high-blue frames from the top movie.</p>
+
+<figure><img src="/assets/blue-movies/highlights/top_10_most_blue_movies.png" alt="Top 10 most blue movies ranked by mean blue ratio." loading="lazy"><figcaption>Top 10 most blue movies in the sample.</figcaption></figure>
+
+<figure><img src="/assets/blue-movies/highlights/most_blue_movie_representative_frames.png" alt="A contact sheet of representative high-blue frames from The Abyss." loading="lazy"><figcaption>Representative frames from <em>The Abyss</em>, the most blue movie in the sample.</figcaption></figure>
+
+<h2>A Color-Profile Sanity Check</h2>
+
+<p>The Lab clustering is not meant to prove the thesis. It is a sanity check.</p>
+
+<p>Lab colour space gives us <em>L*</em> for lightness, <em>a*</em> for green-to-red direction, and <em>b*</em> for blue-to-yellow direction. I summarize each movie with Lab features, standardize them, cluster the movies, and then project the result into two dimensions with PCA so it can be plotted.</p>
+
+<p>The question for these plots is: do movies form colour-profile groups, and do those groups map onto year or period?</p>
+
+<figure><img src="/assets/blue-movies/plots/lab_cluster_pca_by_cluster.png" alt="Movies projected into two dimensions and coloured by Lab colour-profile cluster." loading="lazy"><figcaption>Lab colour-profile clusters.</figcaption></figure>
+
+<figure><img src="/assets/blue-movies/plots/lab_cluster_pca_by_period.png" alt="The same Lab colour-profile map coloured by release period." loading="lazy"><figcaption>The same Lab map coloured by release period.</figcaption></figure>
+
+<figure><img src="/assets/blue-movies/plots/lab_cluster_period_mix.png" alt="The mix of release periods within each Lab colour-profile cluster." loading="lazy"><figcaption>Release-period mix within each Lab cluster.</figcaption></figure>
+
+<figure><img src="/assets/blue-movies/plots/lab_cluster_feature_profiles.png" alt="Average Lab feature signature for each colour-profile cluster." loading="lazy"><figcaption>Average Lab signature by cluster.</figcaption></figure>
+
+<p>If a cluster is dominated by one period, that suggests colour profile and time period are related in this sample. If the periods are mixed inside each cluster, then the “early 2000s were blue” story is probably less clean.</p>
+
+<h2>What I Would Not Claim</h2>
+
+<p>This analysis cannot prove that a release year caused a movie to be blue. There are obvious confounds: genre, source quality, restoration, compression, cinematography, animation versus live action, and which frames were sampled.</p>
+
+<p>The useful version of the claim is narrower: in this dataset, using these frame samples and these colour metrics, do early-2000s movies have higher movie-level blueness than the comparison groups?</p>
+
+<h2>Reproducibility</h2>
+
+<p>The pipeline writes a manifest, frame-level metrics, movie-level metrics, statistical outputs, cluster outputs, plots, and this Quarto post. The full run is:</p>
+
+<pre><code>make all PYTHON="uv run --extra dev python" CONFIG=config/default.yaml</code></pre>
+
+<p>The important implementation detail is that every test happens at the movie level. The frames are measurements, not independent observations.</p>
+
+</article>
 
 {{< include ../../_generated/project-blue-movies.html >}}
 

@@ -42,9 +42,11 @@ class ContentContractTests(unittest.TestCase):
 
     def test_public_content_passes_maturity_gate(self):
         public = [record for record in self.records if MODULE.is_public(record)]
-        self.assertEqual(len(public), 20)
+        self.assertEqual(len(public), 18)
         self.assertNotIn("/notes/pca-is-intuition-not-proof/", {record["url"] for record in self.records})
         self.assertNotIn("/posts/multilingual-embeddings-layers/", {record["url"] for record in self.records})
+        self.assertNotIn("/notes/criteria-move-answers/", {record["url"] for record in self.records})
+        self.assertNotIn("/experiments/ordinal-regression-viz/", {record["url"] for record in self.records})
 
     def test_all_four_paths_are_used_by_public_content(self):
         paths = {path for record in self.records if MODULE.is_public(record) for path in record["paths"]}
@@ -58,7 +60,14 @@ class ContentContractTests(unittest.TestCase):
         self.assertIn("/assets/neuron-playground/index.html", home)
         self.assertIn("/posts/looking-for-an-animal-neuron/", home)
         self.assertIn("/notes/distilhubert-padding-study/", home)
+        self.assertIn("https://github.com/tomerzipori/OrdinalRegressionViz", home)
+        self.assertNotIn("/experiments/ordinal-regression-viz/", home)
         self.assertNotIn("I make models easier to inspect.", home)
+
+    def test_work_tab_keeps_ordinal_package_as_external_link(self):
+        work = (ROOT / "experiments" / "index.qmd").read_text(encoding="utf-8")
+        self.assertIn("https://github.com/tomerzipori/OrdinalRegressionViz", work)
+        self.assertNotIn("/experiments/ordinal-regression-viz/", work)
 
     def test_neural_observatory_asset_contract(self):
         page = (ROOT / "experiments" / "neuron-playground" / "index.qmd").read_text(encoding="utf-8")
@@ -101,11 +110,10 @@ class ContentContractTests(unittest.TestCase):
             self.assertEqual(map_html.count(f'data-garden-url="{record["url"]}"'), 1)
 
     def test_relationships_expose_related_items_and_backlinks(self):
-        criteria = (ROOT / "_generated" / "note-criteria-move-answers.html").read_text(encoding="utf-8")
-        self.assertIn("Related", criteria)
-        self.assertIn("Linked from", criteria)
-        self.assertIn("OrdinalRegressionViz", criteria)
-        self.assertIn("Can padding change audio-classification metrics?", criteria)
+        padding = (ROOT / "_generated" / "note-distilhubert-padding-study.html").read_text(encoding="utf-8")
+        self.assertIn("Related", padding)
+        self.assertIn("Were movies from the early 2000s more blue?", padding)
+        self.assertNotIn("criteria-move-answers", padding)
 
     def test_study_status_is_separate_from_editorial_status(self):
         padding = next(record for record in self.records if record["slug"] == "distilhubert-padding-study")

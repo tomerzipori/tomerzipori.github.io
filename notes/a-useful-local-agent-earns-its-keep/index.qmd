@@ -2,7 +2,7 @@
 title: "A useful local agent earns its keep"
 description: "Evaluate a local agent by the useful result after preparation, review, correction, and unsuccessful attempts."
 date: 2026-09-05
-updated: 2026-09-05
+updated: 2026-09-10
 status: finished
 draft: false
 paths:
@@ -18,7 +18,9 @@ related:
 <section class="page-intro"><p class="section-number">Note · Tools for thinking</p><h1>A useful local agent earns its keep</h1><div class="article-meta"><span class="status">Published</span><span>05 Sep 2026</span></div></section>
 <article class="prose"><p>A small local model can produce an answer quickly. That does not yet tell me whether using it saved work.</p>
 
-<p>I would judge a local agent by the useful result after verification.</p>
+<p>I started Local Agent Toolkit for a simple reason: I wanted to spend fewer remote-model tokens on small repository questions. I also wanted to use the compute already sitting in my laptop. Could a local model handle a useful first pass, while I kept responsibility for checking the result?</p>
+
+<p>I was not trying to build an autonomous software engineer. I wanted a bounded tool for repository exploration, review, diagnostics, and candidate patches. The useful question is not whether the model can say something plausible. It is whether the complete workflow leaves me further ahead.</p>
 
 <h2>Give it a job with a finish line</h2>
 
@@ -32,9 +34,9 @@ related:
 
 <ul><li>Find and verify the answer with ordinary search and inspection.</li><li>Ask the local agent, then verify its answer against the same source.</li></ul>
 
-<p>The comparison should include preparation, generation, review, corrections, and unsuccessful attempts. If setup is reused across many tasks, report it separately rather than hiding it.</p>
+<p>The comparison should include preparation, model generation, review, corrections, and unsuccessful attempts. Using my laptop’s compute is not free if setup and verification take longer than the task itself.</p>
 
-<p>A reduction in remote-model tokens can be useful. It is not the same measurement as reduced time or improved correctness.</p>
+<p>Reducing remote-model tokens can be useful. It is not the same as reducing time or improving correctness. Token savings are a reason to test the workflow, not a result I should assume.</p>
 
 <h2>Keep the useful failure cases</h2>
 
@@ -42,7 +44,7 @@ related:
 
 <p>Those cases belong in the assessment alongside successful answers.</p>
 
-<p>Local Agent Toolkit provides a bounded interface for this kind of work. Its existence does not establish a fixed saving across models or tasks.</p>
+<p>Local Agent Toolkit provides a bounded interface for this kind of work. It filters repository context, keeps advice untrusted, and prints candidate diffs instead of applying them. Its existence does not establish a fixed saving across models or tasks.</p>
 
 <p>The question I care about is practical: after checking the result, am I further ahead?</p>
 </article>

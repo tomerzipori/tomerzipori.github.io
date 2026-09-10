@@ -242,6 +242,7 @@ svg { max-width: 100%; }
 .real-post figure { margin: 2.2rem 0; }
 .real-post figcaption { margin-top: .75rem; color: var(--muted); font-family: var(--mono); font-size: .68rem; line-height: 1.55; }
 .real-post .article-figure--wide { width: min(940px, calc(100vw - 4rem)); max-width: none; margin-left: 50%; transform: translateX(-50%); }
+.real-post .blue-movies-hero img { display: block; width: 100%; }
 .real-post .article-figure--compact { width: min(500px, 100%); margin-right: auto; margin-left: auto; }
 .real-post .article-figure--compact img { display: block; max-height: 540px; margin: 0 auto; object-fit: contain; }
 .unit-table { margin: 1.8rem 0; border-top: var(--line); border-bottom: var(--line); }

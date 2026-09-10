@@ -2,21 +2,20 @@
   {
     "kind": "note",
     "collection": "notes",
-    "slug": "the-denominator-changes-the-story",
-    "url": "/notes/the-denominator-changes-the-story/",
-    "title": "The denominator changes the story",
-    "description": "Why counts and population rates can produce different rankings, and what neither measure can establish alone.",
+    "slug": "more-frames-do-not-mean-more-movies",
+    "url": "/notes/more-frames-do-not-mean-more-movies/",
+    "title": "Were movies from the early 2000s more blue?",
+    "description": "A familiar memory about movie colour, and a way to test it without counting frames as extra films.",
     "date": "2026-09-05",
-    "updated": "2026-09-05",
+    "updated": "2026-09-10",
     "status": "finished",
     "draft": false,
     "paths": [
       "data-and-strange-claims",
-      "evidence-and-belief"
+      "tools-for-thinking"
     ],
     "related": [
-      "/posts/ufo/",
-      "/posts/eggs/"
+      "/experiments/blue-movies/"
     ],
     "image": "",
     "image-alt": "",
@@ -28,46 +27,43 @@
   {
     "kind": "project",
     "collection": "experiments",
-    "slug": "neuron-playground",
-    "url": "/experiments/neuron-playground/",
-    "title": "Neural Observatory",
-    "description": "Explore the recorded Gemma 3 1B architecture and 6,912 MLP units across 26 layers.",
-    "date": "2026-09-05",
-    "updated": "2026-09-05",
-    "status": "finished",
-    "draft": false,
-    "paths": [
-      "models-and-meaning",
-      "tools-for-thinking"
-    ],
-    "related": [
-      "/posts/looking-for-an-animal-neuron/",
-      "/posts/micrograd/"
-    ],
-    "image": "/assets/functional-localizer/localizer-heldout.svg",
-    "image-alt": "Selected units retain animal-versus-tool selectivity on unseen words.",
-    "study-status": "",
-    "study-status-as-of": "",
-    "repo": "",
-    "artifact": "/assets/neuron-playground/index.html"
-  },
-  {
-    "kind": "note",
-    "collection": "notes",
-    "slug": "more-frames-do-not-mean-more-movies",
-    "url": "/notes/more-frames-do-not-mean-more-movies/",
-    "title": "More frames do not mean more movies",
-    "description": "Why repeated frame measurements do not provide the same information as independently sampled films.",
-    "date": "2026-09-05",
-    "updated": "2026-09-05",
+    "slug": "blue-movies",
+    "url": "/experiments/blue-movies/",
+    "title": "Were Movies in the Early 2000s More Blue?",
+    "description": "A frame-level colour analysis of movies, aggregated carefully at the movie level.",
+    "date": "2026-06-20",
+    "updated": "2026-09-10",
     "status": "finished",
     "draft": false,
     "paths": [
       "data-and-strange-claims",
       "tools-for-thinking"
     ],
+    "related": [],
+    "image": "/assets/blue-movies/frames/the-abyss-frame-0392.jpg",
+    "image-alt": "A diver suspended in deep cobalt-blue water in a representative frame from The Abyss (1989).",
+    "study-status": "",
+    "study-status-as-of": "",
+    "repo": "https://github.com/tomerzipori/blue-movies",
+    "artifact": "https://github.com/tomerzipori/blue-movies#readme"
+  },
+  {
+    "kind": "note",
+    "collection": "notes",
+    "slug": "a-useful-local-agent-earns-its-keep",
+    "url": "/notes/a-useful-local-agent-earns-its-keep/",
+    "title": "A useful local agent earns its keep",
+    "description": "Evaluate a local agent by the useful result after preparation, review, correction, and unsuccessful attempts.",
+    "date": "2026-09-05",
+    "updated": "2026-09-10",
+    "status": "finished",
+    "draft": false,
+    "paths": [
+      "tools-for-thinking",
+      "models-and-meaning"
+    ],
     "related": [
-      "/experiments/blue-movies/"
+      "/experiments/local-agent-toolkit/"
     ],
     "image": "",
     "image-alt": "",
