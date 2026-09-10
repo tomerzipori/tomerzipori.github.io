@@ -126,14 +126,6 @@ $$</p>
 
 <p>The useful version of the claim is narrower: in this dataset, using these frame samples and these colour metrics, do early-2000s movies have higher movie-level blueness than the comparison groups?</p>
 
-<h2>Reproducibility</h2>
-
-<p>The pipeline writes a manifest, frame-level metrics, movie-level metrics, statistical outputs, cluster outputs, plots, and this Quarto post. The full run is:</p>
-
-<pre><code>make all PYTHON="uv run --extra dev python" CONFIG=config/default.yaml</code></pre>
-
-<p>The important implementation detail is that every test happens at the movie level. The frames are measurements, not independent observations.</p>
-
 </article>
 
 {{< include ../../_generated/project-blue-movies.html >}}
